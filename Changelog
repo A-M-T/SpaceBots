@@ -1,0 +1,34 @@
+2013-05-13  Marek Rogalski  <mafikpl@gmail.com>
+
+	* server.js (on 'report'): added 'manipulator_range' as a property
+	valid for reporting.
+
+	* client.js (on 'report'): added manipulator variable - that holds
+	reference to last seen manipulator.
+
+	* client.js (custom_scripts): added instructions for running local
+	and unsecured scripts in chrome and chromium.
+
+	* client.js (impulse): improved documentation, added two
+	excercises.
+
+	* client.js (navigate): pulled payload and imulse into separate
+	variables.
+
+	* client.js (intro, intro 'click' handler): added check for
+	inhibitIntro that removes initial intro message. Added some
+	documentation about localStorage.
+
+	* client.js (createControls): renamed to controls
+
+	* server.js (require 'ofe', tls.SLAB_BUFFER_SIZE): removed
+
+	* LICENSE, WARRANTY: added license and warranty.
+
+	* server.js: added console with license information.
+
+	* resources.js (make_resources): added hidden inspect method to
+	display resources.
+
+	* server.js (attract, apply_secret_force): externalized encrypted
+	apply_secret_force.

@@ -1,0 +1,33 @@
+{
+  "name": "SpaceBots",
+  "version": "0.1.0",
+  "description": "Programming game for the browser.",
+  "main": "server.js",
+  "dependencies": {
+    "nesh": "~1.1.2",
+    "sty": "~0.6.1",
+    "winston": "~0.7.1",
+    "node-static": "~0.6.9",
+    "socket.io": "~0.9.14",
+    "sylvester": "0.0.21"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node server.js",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mafik/SpaceBots.git"
+  },
+  "keywords": [
+    "game",
+    "programming",
+    "spacebots",
+    "space",
+    "bots",
+    "ai"
+  ],
+  "author": "Marek Rogalski",
+  "license": "GNU GPLv3"
+}

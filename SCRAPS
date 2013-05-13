@@ -1,0 +1,49 @@
+
+FR-layout
+
+		/*else if(obj.parent) {
+
+			var cc = common.dict_to_array(common.walk(obj));
+
+			var area = 1000 * 400;
+			var k = Math.sqrt(area / cc.length);
+			
+			var pull = function(x) {
+				if(x === obj.parent) return true;
+				if(obj.skeleton_slots) {
+					return obj.skeleton_slots.some(function(el) {
+						return x === el;
+					});
+				}
+				return false;
+			};
+			
+			cc.forEach(function(obj2) {
+				if(obj2 === obj) return;
+				var dist = common.screen_distance(obj.screen_position, obj2.screen_position);
+				var dx = obj2.screen_position.x - obj.screen_position.x;
+				var dy = obj2.screen_position.y - obj.screen_position.y;
+
+				if(dist == 0) {
+					dist = 100;
+					dx = common.rand() * 50;
+					dy = common.rand() * 50;
+				}
+
+				var force = 0;
+				if(pull(obj2)) {
+					force += dist * dist / k / 10;
+				} 
+				force += - k * k / dist / 10000;
+
+				obj.screen_position.x += dx / dist * force;
+				obj.screen_position.y += dy / dist * force;
+			});
+
+			ctx.strokeStyle="black";
+			ctx.lineWidth = 2;
+			ctx.beginPath();
+			ctx.moveTo(obj.parent.screen_position.x, obj.parent.screen_position.y);
+			ctx.lineTo(obj.screen_position.x, obj.screen_position.y);
+			ctx.stroke();
+		}*/

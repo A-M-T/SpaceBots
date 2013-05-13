@@ -1,0 +1,12 @@
+
+* DONE Add console to the server
+* DONE Encrypt attractor force
+* DONE Create definition file for npm
+* DONE Listen on 443 only if root
+* TODO Set up github repository
+* TODO Redirect from 80 to 443
+* TODO Display range of manipulator in the client.js
+* TODO Display old objects as transparent
+* TODO Display strange objects with question marks
+* TODO Interface for manipulator
+* TODO Unify interface
