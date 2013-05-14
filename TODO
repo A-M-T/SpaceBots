@@ -10,7 +10,7 @@
 * TODO Display strange objects with question marks
 * TODO Interface for manipulator
 * TODO Unify interface
-* TODO Stop for impulse drive
+* DONE Stop for impulse drive
 * TODO Ablibity to check which avatars are online
 * TODO Implement assembler
 * TODO Implement refinery

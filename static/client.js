@@ -528,6 +528,82 @@ var impulse = function(x,y,z) {
 	// impulse try using position of avatar instead.
 };
 
+// Now, we can think abut how to stop us from moving.
+// Let's start by declaring variable for stopping timer ID
+var stop_timer = 0;
+// Then, we can create main stopping function.
+var stop_tick = function()
+{
+    var x=0, y=0, z=0;
+    var vel = avatar.parent.velocity.elements;
+
+    // Let's detect, in which direction we need to throw to zero our velocity
+    // We'll leave small error margin, for example 0.1, because we aren't able to slow down exactly to (0, 0, 0)
+    if(vel[0] > 0.1) x = -1;
+    else if(vel[0] < -0.1) x = 1;
+    if(vel[1] > 0.1) y = -1;
+    else if(vel[1] < -0.1) y = 1;
+    if(vel[2] > 0.1) z = -1;
+    else if(vel[2] < -0.1) z = 1;
+
+    if(x==0 && y==0 && z==0)
+    {
+        // It we don't need to modify our velocity, we can stop the timer - our work is done
+	console.log("Done!");
+        clearInterval(stop_timer);
+        stop_timer = 0;
+    } else {
+        // If we need to use our impulse drive, let's do it!
+
+        // Again, we are using just hydrogen
+        // If you want more clever resource management, you can create your own function
+        // Tip: You can just override function stop_tick to use stop button in impulse drive GUI
+	var comp = resources.make_empty();
+        comp[0] = impulse_drive.impulse_drive_payload;
+
+        var V = avatar.parent.velocity.distanceFrom($V([0,0,0]));
+        var speed;
+        if (V < 1)
+        {
+            // But this time, we won't move as quick as we can - if we are close to end, let's move slowly
+            speed = impulse_drive.impulse_drive_impulse * V;
+        } else {
+            // If we are still moving quickly, let's move as much as we can
+            speed = impulse_drive.impulse_drive_impulse;
+        }
+
+        // Last step - sending command to server
+	socket.emit('impulse_drive push', {
+		target: impulse_drive.id,
+		energy_source: battery.id,
+		matter_source: store.id,
+		composition: comp,
+		impulse: speed,
+		destination: [
+			camera.e(1) + x * 1000,
+			camera.e(2) + y * 1000,
+			camera.e(3) + z * 1000
+		]
+	});
+
+        // Now, let's refresh our velocity from server
+        socket.emit('report', { target: avatar.parent.id });
+    }
+};
+// It's time to set up our timer
+var stop = function() {
+    if(stop_timer == 0) {
+        // It timer isn't running, let's start it
+        // It can't run too quickly, because of 10 commands per second limit
+        stop_timer = setInterval(stop_tick, 500);
+    } else {
+        // It timer is already running, let's abort stopping
+        console.log("Aborted!");
+        clearInterval(stop_timer);
+        stop_timer = 0;
+    }
+};
+
 var navigate = function(destination) {
 	destination = get(destination);
 
@@ -590,10 +666,10 @@ var ctx = canvas.getContext('2d');
 // We use `requestAnimationFrame` to run our animation exactly when the screen
 // refreshes, but as a fallback (when `requestAnimationFrame` isn't available)
 //  we try to use other methods.
-var animate =   window.requestAnimationFrame       ||
-	window.webkitRequestAnimationFrame ||
-	window.mozRequestAnimationFrame    ||
-	function(f) { setTimeout(f, 1000 / 60); };
+var animate = window.requestAnimationFrame       ||
+              window.webkitRequestAnimationFrame ||
+              window.mozRequestAnimationFrame    ||
+	      function(f) { setTimeout(f, 1000 / 60); };
 
 // We will do 3d rendering using isometric projection. World axes will be
 // placed like this:
