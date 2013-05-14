@@ -14,12 +14,12 @@ var key = 'F12';
 var FF = !(window.mozInnerScreenX == null);
 
 if(FF) {
-    key = "Ctrl + Shift + S";
+	key = "Ctrl + Shift + S";
 }
 
 // To stop intro message from showing up every time you refresh the
 // page, try writing following command into the console:
-// localStarage.inhibitIntro = 'true';
+// localStorage.inhibitIntro = 'true';
 
 // If you set it this way, it will remove #intro element.
 if(localStorage.inhibitIntro) {
@@ -74,31 +74,31 @@ localStorage.custom_scripts = localStorage.custom_scripts || "[]";
 
 JSON.parse(localStorage.custom_scripts).forEach(function(url) {
 
-    // Create new html element for the script
+	// Create new html element for the script
 
-    var script = document.createElement('script');
+	var script = document.createElement('script');
 
-    // Set the script to async - it will run when it'll be ready.
+	// Set the script to async - it will run when it'll be ready.
 
-    script.async = true;
+	script.async = true;
 
-    // Set the url to proper address
+	// Set the url to proper address
 
-    script.src = url;
+	script.src = url;
 
-    // Find any valid element that already is on the site (contents of
-    // body might still being loaded when this code is run). First
-    // script is a safe choice.
+	// Find any valid element that already is on the site (contents of
+	// body might still being loaded when this code is run). First
+	// script is a safe choice.
 
-    var first_script = document.getElementsByTagName('script')[0];
+	var first_script = document.getElementsByTagName('script')[0];
 
-    // Finally, insert script before the first script.
+	// Finally, insert script before the first script.
 
-    // This line will actually load and run the script. If you got
-    // 404, then probably url you entered in
-    // `localStorage.custom_scripts` is down.
+	// This line will actually load and run the script. If you got
+	// 404, then probably url you entered in
+	// `localStorage.custom_scripts` is down.
 
-    first_script.parentNode.insertBefore(script, first_script);
+	first_script.parentNode.insertBefore(script, first_script);
 
 });
 
@@ -139,33 +139,33 @@ var socket = io.connect();
 
 socket.on('connect', function () {
 
-    // We don't have an account yet. A player is identified by a long
-    // (32 characters) hexadecimal number called id. SpaceBots uses
-    // such identifiers for most of the stuff found in the game. We
-    // can create new id with `uid` function from `common` module.
+	// We don't have an account yet. A player is identified by a long
+	// (32 characters) hexadecimal number called id. SpaceBots uses
+	// such identifiers for most of the stuff found in the game. We
+	// can create new id with `uid` function from `common` module.
 
-    localStorage.player_id = localStorage.player_id || common.uid();
+	localStorage.player_id = localStorage.player_id || common.uid();
 
-    // We store id in localStorage. This way you will log into the
-    // same account each time you visit the page.
+	// We store id in localStorage. This way you will log into the
+	// same account each time you visit the page.
 
-    // Excercise: calculate, how big is the probability that this
-    // newly generated number could collide with random id of other
-    // player. You can do it now.
+	// Excercise: calculate, how big is the probability that this
+	// newly generated number could collide with random id of other
+	// player. You can do it now.
 
-    // Tip: find a calculator that can handle very small numbers.
+	// Tip: find a calculator that can handle very small numbers.
 
-    // As number of players is much higher than one (offline players
-    // also count) the probability of id collision raises.
+	// As number of players is much higher than one (offline players
+	// also count) the probability of id collision raises.
 
 	// Excercise: calculate how much players should there be to raise
-    // the probability of collision to 1%?
+	// the probability of collision to 1%?
 
-    // Tip: google for birthday paradox
+	// Tip: google for birthday paradox
 
-    // Now that we have an id, we can send it to the server.
+	// Now that we have an id, we can send it to the server.
 
-    socket.emit('log in', { player_id: localStorage.player_id });
+	socket.emit('log in', { player_id: localStorage.player_id });
 });
 
 // In the case something goes wrong (eventually it will) - server
@@ -528,80 +528,79 @@ var impulse = function(x,y,z) {
 	// impulse try using position of avatar instead.
 };
 
-// Now, we can think abut how to stop us from moving.
+// Now, we can think about how to stop us from moving.
 // Let's start by declaring variable for stopping timer ID
 var stop_timer = 0;
 // Then, we can create main stopping function.
 var stop_tick = function()
 {
-    var x=0, y=0, z=0;
-    var vel = avatar.parent.velocity.elements;
+	var x=0, y=0, z=0;
+	var vel = avatar.parent.velocity.elements;
 
-    // Let's detect, in which direction we need to throw to zero our velocity
-    // We'll leave small error margin, for example 0.1, because we aren't able to slow down exactly to (0, 0, 0)
-    if(vel[0] > 0.1) x = -1;
-    else if(vel[0] < -0.1) x = 1;
-    if(vel[1] > 0.1) y = -1;
-    else if(vel[1] < -0.1) y = 1;
-    if(vel[2] > 0.1) z = -1;
-    else if(vel[2] < -0.1) z = 1;
+	// Let's detect, in which direction we need to throw to zero our velocity
+	// We'll leave small error margin, for example 0.1, because we aren't able to slow down exactly to (0, 0, 0)
+	if(vel[0] > 0.1) x = -1;
+		else if(vel[0] < -0.1) x = 1;
+	if(vel[1] > 0.1) y = -1;
+		else if(vel[1] < -0.1) y = 1;
+	if(vel[2] > 0.1) z = -1;
+		else if(vel[2] < -0.1) z = 1;
 
-    if(x==0 && y==0 && z==0)
-    {
-        // It we don't need to modify our velocity, we can stop the timer - our work is done
-	console.log("Done!");
-        clearInterval(stop_timer);
-        stop_timer = 0;
-    } else {
-        // If we need to use our impulse drive, let's do it!
+	if(x==0 && y==0 && z==0)
+	{
+		// It we don't need to modify our velocity, we can stop the timer - our work is done
+		console.log("Done!");
+		clearInterval(stop_timer);
+		stop_timer = 0;
+	} else {
+		// If we need to use our impulse drive, let's do it!
 
-        // Again, we are using just hydrogen
-        // If you want more clever resource management, you can create your own function
-        // Tip: You can just override function stop_tick to use stop button in impulse drive GUI
-	var comp = resources.make_empty();
-        comp[0] = impulse_drive.impulse_drive_payload;
+		// Again, we are using just hydrogen
+		// If you want more clever resource management, you can create your own function
+		// Tip: You can just override function stop_tick to use stop button in impulse drive GUI
+		var comp = resources.make_empty();
+		comp[0] = impulse_drive.impulse_drive_payload;
 
-        var V = avatar.parent.velocity.distanceFrom($V([0,0,0]));
-        var speed;
-        if (V < 1)
-        {
-            // But this time, we won't move as quick as we can - if we are close to end, let's move slowly
-            speed = impulse_drive.impulse_drive_impulse * V;
-        } else {
-            // If we are still moving quickly, let's move as much as we can
-            speed = impulse_drive.impulse_drive_impulse;
-        }
+		var V = avatar.parent.velocity.distanceFrom($V([0,0,0]));
+		var speed;
+		if (V < 1) {
+			// But this time, we won't move as quick as we can - if we are close to end, let's move slowly
+			speed = impulse_drive.impulse_drive_impulse * V;
+		} else {
+			// If we are still moving quickly, let's move as much as we can
+			speed = impulse_drive.impulse_drive_impulse;
+		}
 
-        // Last step - sending command to server
-	socket.emit('impulse_drive push', {
-		target: impulse_drive.id,
-		energy_source: battery.id,
-		matter_source: store.id,
-		composition: comp,
-		impulse: speed,
-		destination: [
-			camera.e(1) + x * 1000,
-			camera.e(2) + y * 1000,
-			camera.e(3) + z * 1000
-		]
-	});
+		// Last step - sending command to server
+		socket.emit('impulse_drive push', {
+			target: impulse_drive.id,
+			energy_source: battery.id,
+			matter_source: store.id,
+			composition: comp,
+			impulse: speed,
+			destination: [
+				camera.e(1) + x * 1000,
+				camera.e(2) + y * 1000,
+				camera.e(3) + z * 1000
+			]
+		});
 
-        // Now, let's refresh our velocity from server
-        socket.emit('report', { target: avatar.parent.id });
-    }
+		// Now, let's refresh our velocity from server
+		socket.emit('report', { target: avatar.parent.id });
+	}
 };
 // It's time to set up our timer
 var stop = function() {
-    if(stop_timer == 0) {
-        // It timer isn't running, let's start it
-        // It can't run too quickly, because of 10 commands per second limit
-        stop_timer = setInterval(stop_tick, 500);
-    } else {
-        // It timer is already running, let's abort stopping
-        console.log("Aborted!");
-        clearInterval(stop_timer);
-        stop_timer = 0;
-    }
+	if(stop_timer == 0) {
+		// It timer isn't running, let's start it
+		// It can't run too quickly, because of 10 commands per second limit
+		stop_timer = setInterval(stop_tick, 500);
+	} else {
+		// It timer is already running, let's abort stopping
+		console.log("Aborted!");
+		clearInterval(stop_timer);
+		stop_timer = 0;
+	}
 };
 
 var navigate = function(destination) {
@@ -669,30 +668,30 @@ var ctx = canvas.getContext('2d');
 var animate = window.requestAnimationFrame       ||
               window.webkitRequestAnimationFrame ||
               window.mozRequestAnimationFrame    ||
-	      function(f) { setTimeout(f, 1000 / 60); };
+              function(f) { setTimeout(f, 1000 / 60); };
 
 // We will do 3d rendering using isometric projection. World axes will be
 // placed like this:
-//							   	 .
-// 	   	   	   	   	   	   	   	/|\	Y (0,1,0)
-//								 |
-//							  	 |
-//							   	 o (0,0,0)
-//							   	/ \
-//				   (0,0,1) Z   /   \   X (1,0,0)
-//							 \/_   _\/
+//                                 .
+//                                /|\    Y (0,1,0)
+//                                 |
+//                                 |
+//                                 o (0,0,0)
+//                                / \
+//                   (0,0,1) Z   /   \   X (1,0,0)
+//                             \/_   _\/
 //
 // Each axis should have length equal to 1 - this will make 3d spheres
 // correspond to circles on the screen.
 // Also - to stay coherent with most of isometric pixelart, the X and Z axes
 // will have width twice their height.
 //
-// 	   	--
-//	   	- --  sqrt(5)*x
-//	   x-  	--
-//	  	-     --
-//	   	----------
-//		   2x
+//           --
+//           - --  sqrt(5)*x
+//          x-   --
+//           -     --
+//           ----------
+//              2x
 //
 // Solving for x, we get following width and height of X and Z axes:
 
@@ -710,66 +709,66 @@ var worldToScreen = function(p) {
 	var x = d.e(1), y = d.e(2), z = d.e(3);
 
 	// Then, we calculate position using projection described earlier.
-    return $V([
+	return $V([
 		x * XZ_width  - z * XZ_width      + canvas.width  / 2,
 		x * XZ_height + z * XZ_height - y + canvas.height / 2
-    ]);
+	]);
 };
 
 // Here are some drawing functions for various primitives on the screen:
 
 // Here is the line between `a` and `b`:
 var line = function(a, b) {
-    ctx.beginPath();
-    ctx.moveTo(a.e(1), a.e(2));
-    ctx.lineTo(b.e(1), b.e(2));
-    ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo(a.e(1), a.e(2));
+	ctx.lineTo(b.e(1), b.e(2));
+	ctx.stroke();
 };
 
 // This function will draw slightly flattened ellipse at screen coordinates `x`,
 // `y` with width `w`.
 var ellipse = function(x, y, w) {
-    var h = w / 2;
-    var kappa = .5522848,
-		ox = (w / 2) * kappa, // control point offset horizontal
-		oy = (h / 2) * kappa, // control point offset vertical
-		xe = x + w,           // x-end
-		ye = y + h,           // y-end
-		xm = x + w / 2,       // x-middle
-		ym = y + h / 2;       // y-middle
+	var h = w / 2;
+	var kappa = .5522848,
+	       ox = (w / 2) * kappa, // control point offset horizontal
+	       oy = (h / 2) * kappa, // control point offset vertical
+	       xe = x + w,           // x-end
+	       ye = y + h,           // y-end
+	       xm = x + w / 2,       // x-middle
+	       ym = y + h / 2;       // y-middle
 
-    ctx.translate(-w/2, -h/2);
-    ctx.beginPath();
-    ctx.moveTo(x, ym);
-    ctx.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
-    ctx.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
-    ctx.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
-    ctx.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
-    ctx.closePath();
-    ctx.fill();
-    ctx.translate(w/2, h/2);
+	ctx.translate(-w/2, -h/2);
+	ctx.beginPath();
+	ctx.moveTo(x, ym);
+	ctx.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
+	ctx.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
+	ctx.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
+	ctx.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
+	ctx.closePath();
+	ctx.fill();
+	ctx.translate(w/2, h/2);
 };
 
 // Here is the function that will draw gradient background with black lines
 // representing axes:
 var background = function() {
 
-    var x = canvas.width/2, y = canvas.height/2;
+	var x = canvas.width/2, y = canvas.height/2;
 	
-    var r = Math.sqrt(x*x + y*y);
+	var r = Math.sqrt(x*x + y*y);
 	
-    var grd = ctx.createRadialGradient(x, y, 20, x, y, r);
-    grd.addColorStop(0, '#aaa');
-    grd.addColorStop(0.2, '#556');
-    grd.addColorStop(0.4, '#334');
-    grd.addColorStop(1, '#422');
+	var grd = ctx.createRadialGradient(x, y, 20, x, y, r);
+	grd.addColorStop(0, '#aaa');
+	grd.addColorStop(0.2, '#556');
+	grd.addColorStop(0.4, '#334');
+	grd.addColorStop(1, '#422');
 	
-    ctx.fillStyle = grd;
-    ctx.rect(0, 0, canvas.width, canvas.height);
-    ctx.fill();
+	ctx.fillStyle = grd;
+	ctx.rect(0, 0, canvas.width, canvas.height);
+	ctx.fill();
 
-    ctx.strokeStyle = 'black';
-    ctx.lineWidth = .5;
+	ctx.strokeStyle = 'black';
+	ctx.lineWidth = .5;
 	line($V([x - 1000, y - 500]), $V([x + 1000, y + 500]));
 	line($V([x - 1000, y + 500]), $V([x + 1000, y - 500]));
 	line($V([x, y - 500]), $V([x, y + 500]));
@@ -782,15 +781,15 @@ var shadow = function(p, color) {
 	// `b` is the base of point `p` - it has the same coordinates (this is
 	// achieved by using `p` as a prototype) except coordinate `y` which is set
 	// to 0.
-    var b = p.dup();
+	var b = p.dup();
 	b.elements[1] = camera.elements[1];
-    var bp = worldToScreen(b);
+	var bp = worldToScreen(b);
 
 	ctx.strokeStyle=color;
-    line(worldToScreen(p), bp);
+	line(worldToScreen(p), bp);
 	//line(bp, worldToScreen(camera));
 
-    ellipse(bp.e(1), bp.e(2), 10);
+	ellipse(bp.e(1), bp.e(2), 10);
 };
 
 // When drawing images from the internet, we could cache their contents to
@@ -806,13 +805,13 @@ var tick = function(time) {
 
 
 	// First - we convert time from milliseconds to seconds.
-    time = time / 1000;
+	time = time / 1000;
 
 	// Next, we schedule next execution of `tick`.
-    animate(tick);
+	animate(tick);
 
 	// The drawing begins with clearing canvas by filling it with background.
-    background(time);
+	background(time);
 
 	var now = (new Date).getTime();
 
@@ -835,7 +834,7 @@ var tick = function(time) {
 	ctx.scale(scale.current, scale.current);
 	ctx.translate(-canvas.width / 2, -canvas.height / 2);
 
-    ctx.strokeStyle = 'red';
+	ctx.strokeStyle = 'red';
 	ctx.lineWidth = 10;
 	if(radar) {
 		ctx.beginPath();
@@ -845,8 +844,8 @@ var tick = function(time) {
 	ctx.lineWidth = 1;
 
 	// We set the color for lines and ellipses of shadows.
-    ctx.strokeStyle = 'white';
-    ctx.fillStyle = 'white';
+	ctx.strokeStyle = 'white';
+	ctx.fillStyle = 'white';
 
 	var star_life = 200;
 	for(var i = 0; i < stars.length; ++i) {
@@ -923,7 +922,7 @@ var tick = function(time) {
 		);
 	}
 
-    current_time = time;
+	current_time = time;
 	ctx.restore();
 };
 animate(tick);
@@ -1010,14 +1009,14 @@ controls.impulse_drive = function(elem, object) {
 };
 
 var element_in_document = function( element ) {
-    if (element === document) {
-        return true;
-    }
-    element = element.parentNode;
-    if (element) {
-        return element_in_document ( element );
-    }
-    return false;
+	if (element === document) {
+		return true;
+	}
+	element = element.parentNode;
+	if (element) {
+		return element_in_document ( element );
+	}
+	return false;
 };
 
 var top_index = 1;
@@ -1227,8 +1226,8 @@ canvas.addEventListener('mousewheel', function(e) {
 onresize = function(e) {
 	var dw = window.innerWidth - canvas.width;
 	var dh = window.innerHeight - canvas.height;
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+	canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight;
 
 	for(var hash in objects) {
 		var obj = objects[hash];
@@ -1237,6 +1236,6 @@ onresize = function(e) {
 			obj.screen_position.y += dh/2;
 		}
 	}
-    background();
+	background();
 };
 onresize();
