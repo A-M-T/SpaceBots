@@ -1,3 +1,20 @@
+2013-05-15  Marek Rogalski  <mafikpl@gmail.com>
+
+	* index.html, client.js (impulse): renamed to do_impulse
+
+	* client.js (get): added documentation
+
+	* client.js (get_resources_for_waste): externalized from impulse
+
+	* client.js (do_impulse, navigate): organized and extended
+	documentation
+
+	* client.js (speed_step): added momentum-aware velocity-changing
+	function
+
+	* client.js (stop_tick): switched implementation to speed_step,
+	increased acceleration when stopping
+
 2013-05-14  Krzysztof H. <krzys_h@interia.pl>
 
 	* client.js (stop): implemented stopping button

@@ -455,6 +455,7 @@ socket.on('radar result', function(result) {
 // Server will periodically ask questions about locations of various
 // objects. This is part of location prediction minigame that will
 // help you make better predictions about their trajectories.
+
 socket.on('location challenge', function(q) {
 	if(q in objects) {
 		socket.emit('location answer', {
@@ -482,40 +483,65 @@ var get = function(arg) {
 			return objects[hash];
 		}
 	}
+
+	// This will make console use substantially easier - you can use
+	// get('31') to retrieve first object that has id beginning with 31.
 };
 
+// Whenever we have to specify, which materials are we going to waste, we will
+// use this function. There are numerous reasons to waste materials - creating
+// decoys, using mass as a propellant and others yet undisclosed.
 
-// Our first command will perform single full-powerede impulse using
-// our impulse drive toward direction indicated in parameters - x, y
-// and z.
-var impulse = function(x,y,z) {
-
-	// We have to specify, which materials are we going to use. First
-	// - we create empty resource array. Each entry in this array
-	// specifies amount of given element.
+var get_resources_for_waste = function(n) {
+	
+	// First - we create empty resource array. Each entry in this array
+	// specifies amount of given element: from hydrogen (0) to fermium (99)
 
 	var comp = resources.make_empty();
 
-	// And next - we use maximum amount of hydrogen.
+	// Let's use maximum amount of hydrogen.
 
-	comp[0] = impulse_drive.impulse_drive_payload;
+	comp[0] = n;
 
-	// Using hydrogen as a reaction mass is a blatant profligacy - it
-	// can be used as a fuel for reactor - and expelled after burning
-	// into iron.
+	// Using hydrogen as a waste mass is a blatant profligacy - it
+	// can be used as a fuel for reactor - and expelled only after burning
+	// into iron - the least energetic element.
 
 	// Excercise: use localStorage.custom_scripts to add a script with
-	// your own copy of impulse(). Use more clever resource allocation
-	// - first using iron, then cobalt, then mangan etc. Up to full
-	// payload.
+	// your own copy of get_resources_for_waste(). Use more clever
+	// resource allocation - first use iron, then cobalt, then mangan
+	// etc. Up to full payload.
+
+	return comp;
+};
+
+// Our first command will perform single full-powered impulse using
+// our impulse drive toward direction indicated in parameters - x, y
+// and z. With mass and speed specified by fraction of drive capabilities.
+
+var do_impulse = function(x,y,z,mass,speed) {
+
+	// Ok, impulse drives - this is the one that we will use - provide
+	// thrust by throwing matter out of the exhaust pipe with blazing
+	// speeds. The amount and velocity of matter depend on parameters:
+	// impulse_drive_payload ind impulse_drive_impulse.
+
+	var payload = impulse_drive.impulse_drive_payload * (mass || 1);
+
+	// Unit of impulse is speed. Similarly to payload, we scale impulse
+	// using parameter provided.
+
+	var impulse = impulse_drive.impulse_drive_impulse * (speed || 1);
+	var composition = get_resources_for_waste(payload);
 
 	// Last step of our impulse is to send command to the drive.
+
 	socket.emit('impulse_drive push', {
 		target: impulse_drive.id,
 		energy_source: battery.id,
 		matter_source: store.id,
-		composition: comp,
-		impulse: impulse_drive.impulse_drive_impulse,
+		composition: composition,
+		impulse: impulse,
 		destination: [
 			camera.e(1) + x * 1000,
 			camera.e(2) + y * 1000,
@@ -528,100 +554,116 @@ var impulse = function(x,y,z) {
 	// impulse try using position of avatar instead.
 };
 
-// Now, we can think about how to stop us from moving.
-// Let's start by declaring variable for stopping timer ID
-var stop_timer = 0;
-// Then, we can create main stopping function.
-var stop_tick = function()
-{
-	var x=0, y=0, z=0;
-	var vel = avatar.parent.velocity.elements;
+// This function will modify our speed towards desired velocity. If the
+// desired velocity have been achieved, it will return false. If it still
+// needs some refinements, it will return true.
 
-	// Let's detect, in which direction we need to throw to zero our velocity
-	// We'll leave small error margin, for example 0.1, because we aren't able to slow down exactly to (0, 0, 0)
-	if(vel[0] > 0.1) x = -1;
-		else if(vel[0] < -0.1) x = 1;
-	if(vel[1] > 0.1) y = -1;
-		else if(vel[1] < -0.1) y = 1;
-	if(vel[2] > 0.1) z = -1;
-		else if(vel[2] < -0.1) z = 1;
+var speed_step = function(desired_v) {
 
-	if(x==0 && y==0 && z==0)
-	{
-		// It we don't need to modify our velocity, we can stop the timer - our work is done
-		console.log("Done!");
-		clearInterval(stop_timer);
-		stop_timer = 0;
-	} else {
-		// If we need to use our impulse drive, let's do it!
-
-		// Again, we are using just hydrogen
-		// If you want more clever resource management, you can create your own function
-		// Tip: You can just override function stop_tick to use stop button in impulse drive GUI
-		var comp = resources.make_empty();
-		comp[0] = impulse_drive.impulse_drive_payload;
-
-		var V = avatar.parent.velocity.distanceFrom($V([0,0,0]));
-		var speed;
-		if (V < 1) {
-			// But this time, we won't move as quick as we can - if we are close to end, let's move slowly
-			speed = impulse_drive.impulse_drive_impulse * V;
-		} else {
-			// If we are still moving quickly, let's move as much as we can
-			speed = impulse_drive.impulse_drive_impulse;
-		}
-
-		// Last step - sending command to server
-		socket.emit('impulse_drive push', {
-			target: impulse_drive.id,
-			energy_source: battery.id,
-			matter_source: store.id,
-			composition: comp,
-			impulse: speed,
-			destination: [
-				camera.e(1) + x * 1000,
-				camera.e(2) + y * 1000,
-				camera.e(3) + z * 1000
-			]
-		});
-
-		// Now, let's refresh our velocity from server
-		socket.emit('report', { target: avatar.parent.id });
-	}
-};
-// It's time to set up our timer
-var stop = function() {
-	if(stop_timer == 0) {
-		// It timer isn't running, let's start it
-		// It can't run too quickly, because of 10 commands per second limit
-		stop_timer = setInterval(stop_tick, 500);
-	} else {
-		// It timer is already running, let's abort stopping
-		console.log("Aborted!");
-		clearInterval(stop_timer);
-		stop_timer = 0;
-	}
-};
-
-var navigate = function(destination) {
-	destination = get(destination);
-
-	// Ok, impulse drives - this is the one that we will use - provide
-	// thrust by throwing matter out of the exhaust pipe with blazing
-	// speeds. The amount and velocity of matter depend on parameters:
-	// impulse_drive_payload ind impulse_drive_impulse. Let's
-	// calculate, how much momentum is provided by a full impulse:
+	// Let's calculate, how much momentum is provided by a full impulse:
 
 	var payload = impulse_drive.impulse_drive_payload;
 	var impulse = impulse_drive.impulse_drive_impulse;
 	var momentum = payload * impulse;
 
-	// Actual speed difference depends on mass of our ship. Let's
-	// calculate how much would that be..
+	// Actual speed difference depends on mass of our ship. Heavy ships
+	// need bigger engines. Lighter ships can jump around like little
+	// devils. Let's calculate how much would that be in our case...
 
 	var ship_mass = resources.get_connected_mass(impulse_drive);
 
-	var delta_v = momentum / ship_mass;
+	var delta_v_l = momentum / ship_mass;
+
+	// Now we know, what our engine is capable of. Now let's check how
+	// much resources we should actually use...
+
+	var current_v = common.get_root(avatar).velocity;
+
+	// Actual change of speed should be directed from our current velocity
+	// towards desired one.
+
+	var change_v = desired_v.subtract(current_v);
+
+	// Let's calculate, how long this change actually is...
+
+	var change_v_l = change_v.modulus();
+
+	// And what direction it has.
+
+	var direction = change_v.toUnitVector();
+
+	// If our speed change is achievable, we could reduce engine power to 
+	// save some resources.
+	var achievable = change_v_l < delta_v_l;
+
+	if(achievable) {
+		do_impulse(
+			direction.e(1),
+			direction.e(2),
+			direction.e(3),
+			change_v_l / delta_v_l
+		);
+		return false;
+	} else {
+		do_impulse.apply(undefined, direction.elements);
+		return true;
+	}
+};
+
+// Now, we can think about how to stop us from moving.
+// Let's start by declaring variable for stopping timer ID
+var stop_timer = 0;
+// Then, we can create main stopping function.
+var stop_tick = function() {
+
+	// It should do a single impulse directed towards reducing our speed.
+
+	if(speed_step($V([0,0,0]))) {
+
+		// If it hasn't finished, we have to shedule it again.
+
+		// The timer can't run too quickly, because of 10 commands per
+		// second limit.
+
+		stop_timer = setTimeout(stop_tick, 200);
+
+	} else {
+
+		stop_timer = 0;
+		console.log("Stopping finished");
+
+	}
+
+	socket.emit('report', { target: common.get_root(avatar).id });
+
+};
+
+// This function will be executed after clicking on stop orb.
+// Its only function will bi to set up our stop_tick timer.
+
+var stop = function() {
+	if(stop_timer == 0) {
+
+		// The timer isn't running. Let's start it immediatly after
+		// return from this function.
+
+		console.log("Stopping initiated");
+		stop_timer = setTimeout(stop_tick, 0);
+
+	} else {
+
+		// It timer is already running, let's abort stopping by
+		// clearing scheduled timer.
+
+		console.log("Aborted stopping!");
+		clearTimeout(stop_timer);
+		stop_timer = 0;
+
+	}
+};
+
+var navigate = function(destination) {
+	destination = get(destination);
 
 	// Now let's calculate how fast we are moving relative to our
 	// destination and the direction we should move towards...
