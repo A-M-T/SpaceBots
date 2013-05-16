@@ -4,11 +4,11 @@
 		Vector = require('sylvester').Vector;
 	}
 
-    var uid = e.uid = function() {
+	var uid = e.uid = function() {
 		return 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'.replace(/x/g, function() {
 			return (Math.random() * 16).toString(16)[0];
 		});
-    };
+	};
 
 	var RV = e.RV = function(range) {
 		return Vector.Random(3).x(2).add(Vector.create([-1,-1,-1])).x(range);
@@ -80,6 +80,27 @@
 
 	var rand = e.rand = function() {
 		return Math.random() * 2 - 1;
+	};
+
+	// Here is a small utility function. It will return object associated
+	// with the argument.
+	var get = e.get = function(arg) {
+
+		// If the argument is an object, it will return it unaffected.
+
+		if(typeof arg === 'object') return arg;
+
+		// If it is a string, it'll return object that has the string as a
+		// prefix in its id.
+	
+		for(var hash in objects) {
+			if(hash.indexOf(arg) == 0) {
+				return objects[hash];
+			}
+		}
+
+		// This will make console use substantially easier - you can use
+		// get('31') to retrieve first object that has id beginning with 31.
 	};
 
 })(typeof exports === 'undefined' ? this['common'] = {} : exports);

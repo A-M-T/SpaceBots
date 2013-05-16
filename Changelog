@@ -1,3 +1,8 @@
+2013-05-16  Krzysztof H.  <krzys_h@interia.pl>
+
+	* client.js, common.js (get): moved to common.js, to make it
+	available in server console
+
 2013-05-15  Marek Rogalski  <mafikpl@gmail.com>
 
 	* index.html, client.js (impulse): renamed to do_impulse
@@ -15,7 +20,7 @@
 	* client.js (stop_tick): switched implementation to speed_step,
 	increased acceleration when stopping
 
-2013-05-14  Krzysztof H. <krzys_h@interia.pl>
+2013-05-14  Krzysztof H.  <krzys_h@interia.pl>
 
 	* client.js (stop): implemented stopping button
 

@@ -466,28 +466,6 @@ socket.on('location challenge', function(q) {
 	}
 });
 
-// Here is a small utility function. It will return object associated
-// with the argument.
-
-var get = function(arg) {
-
-	// If the argument is an object, it will return it unaffected.
-
-	if(typeof arg === 'object') return arg;
-
-	// If it is a string, it'll return object that has the string as a
-	// prefix in its id.
-
-	for(var hash in objects) {
-		if(hash.indexOf(arg) == 0) {
-			return objects[hash];
-		}
-	}
-
-	// This will make console use substantially easier - you can use
-	// get('31') to retrieve first object that has id beginning with 31.
-};
-
 // Whenever we have to specify, which materials are we going to waste, we will
 // use this function. There are numerous reasons to waste materials - creating
 // decoys, using mass as a propellant and others yet undisclosed.
@@ -663,7 +641,7 @@ var stop = function() {
 };
 
 var navigate = function(destination) {
-	destination = get(destination);
+	destination = common.get(destination);
 
 	// Now let's calculate how fast we are moving relative to our
 	// destination and the direction we should move towards...
