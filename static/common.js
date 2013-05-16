@@ -1,15 +1,19 @@
+// There are some small ulitity functions used in both client and server
+
 (function(e){
 
 	if(typeof Vector === 'undefined') {
 		Vector = require('sylvester').Vector;
 	}
 
-    var uid = e.uid = function() {
+	// We can use this function to get random user id, when creating new account
+	var uid = e.uid = function() {
 		return 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'.replace(/x/g, function() {
 			return (Math.random() * 16).toString(16)[0];
 		});
-    };
+	};
 
+	// TODO: I'm not sure what is this, maybe Random Vector?
 	var RV = e.RV = function(range) {
 		return Vector.Random(3).x(2).add(Vector.create([-1,-1,-1])).x(range);
 	};
@@ -43,16 +47,21 @@
 		});
 	};
 
+	// This function can be used to get root element of the ship by passing
+	// any of ship's elements as an argument
 	var get_root = e.get_root = function(x) {
 		while(true) {
 			if(x.parent) {
+				// If this object has a parent, save it and continue
 				x = x.parent;
 			} else {
+				// But if it hasn't got a parent, let's return this object
 				return x;
 			}
 		}
 	};
 
+	// This function will get position of ship basing on any of it's elements
 	var get_position = e.get_position = function(x) {
 		while(true) {
 			if(x.parent) {
@@ -65,6 +74,7 @@
 		}
 	};
 
+	// Just like previous function, but it's user to set the position
 	var set_position = e.set_position = function(x, pos) {
 		while(true) {
 			if(x.parent) {
@@ -78,8 +88,30 @@
 		}
 	};
 
+	// This function will return random number from -1 to 1
 	var rand = e.rand = function() {
 		return Math.random() * 2 - 1;
+	};
+
+	// Here is a small utility function. It will return object associated
+	// with the argument.
+	var get = e.get = function(arg) {
+
+		// If the argument is an object, it will return it unaffected.
+
+		if(typeof arg === 'object') return arg;
+
+		// If it is a string, it'll return object that has the string as a
+		// prefix in its id.
+	
+		for(var hash in objects) {
+			if(hash.indexOf(arg) == 0) {
+				return objects[hash];
+			}
+		}
+
+		// This will make console use substantially easier - you can use
+		// get('31') to retrieve first object that has id beginning with 31.
 	};
 
 })(typeof exports === 'undefined' ? this['common'] = {} : exports);
