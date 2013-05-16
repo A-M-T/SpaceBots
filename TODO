@@ -18,3 +18,5 @@
 * TODO Implement laboratory
 * TODO Implement enriching reactor
 * TODO Implement burning reactor
+* TODO Implement destroying ships using impulse drive
+* TODO Documentation in common.js
