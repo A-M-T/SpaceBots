@@ -17,6 +17,9 @@ if(FF) {
 	key = "Ctrl + Shift + S";
 }
 
+// You can also find some small ulitity functions in file common.js
+// If you'll find line starting with "common.", it's located in that file
+
 // To stop intro message from showing up every time you refresh the
 // page, try writing following command into the console:
 // localStorage.inhibitIntro = 'true';
