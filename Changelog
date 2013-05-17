@@ -1,3 +1,9 @@
+2013-05-17  Marek Rogalski  <mafikpl@gmail.com>
+
+	ANNOUNCEMENT: This file will be used to notify users about changes
+	in the game. Until there are any users, it does not need to be
+	updated...
+
 2013-05-16  Krzysztof H.  <krzys_h@interia.pl>
 
 	* client.js, common.js (get): moved to common.js, to make it
