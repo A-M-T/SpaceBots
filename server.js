@@ -388,7 +388,6 @@ io.sockets.on('connection', function (socket) {
 
 		var time = trajectory.modulus() / cmd.impulse;
 		setTimeout(function() {
-			log(cmd.destination);
 			socket.emit('explosion', {
 				sprite: '/explosion45.png',
 				duration: 1,
