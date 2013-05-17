@@ -415,7 +415,7 @@ io.sockets.on('connection', function (socket) {
 			}
 		}, time * 1000);
 
-		trajectory = trajectory.toUnitVector().x(delta_v);
+		trajectory = trajectory.toUnitVector().x(-delta_v);
 		root.velocity = root.velocity.add(trajectory);
 
 		resources.subtract(matter_store.store_stored, cmd.composition);

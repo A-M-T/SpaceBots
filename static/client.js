@@ -524,9 +524,9 @@ var do_impulse = function(x,y,z,mass,speed) {
 		composition: composition,
 		impulse: impulse,
 		destination: [
-			camera.e(1) + x * 1000,
-			camera.e(2) + y * 1000,
-			camera.e(3) + z * 1000
+			camera.e(1) - x * 1000,
+			camera.e(2) - y * 1000,
+			camera.e(3) - z * 1000
 		]
 	});
 
