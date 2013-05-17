@@ -6,8 +6,8 @@
 * DONE Set up github repository
 * DONE Redirect from 80 to 443
 * DONE Display range of manipulator in the client.js
-* TODO Display old objects as transparent
-* TODO Display strange objects with question marks
+* DONE Display old objects as transparent
+* DONE Display strange objects with question marks
 * TODO Interface for manipulator
 * TODO Unify interface
 * DONE Stop for impulse drive

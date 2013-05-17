@@ -941,6 +941,18 @@ var tick = function(time) {
 	// Now, we draw every object from the `objects` set
 	for(var i = 0; i < arr.length; ++i) {
 		var obj = arr[i];
+
+		var anomaly = false;
+		if(time - obj.fetch_time > 2) {
+			ctx.globalAlpha = Math.max(1 - (time - obj.fetch_time - 2)/10, 0.5);
+		}
+
+		if(time - obj.fetch_time > 5) {
+			var ap = common.get_position(avatar);
+			if(obj.position.distanceFrom(ap) < radar.radar_range) {
+				anomaly = true;
+			}
+		}
 		
 		var pos = obj.position;
 		if(obj.velocity) {
@@ -959,7 +971,7 @@ var tick = function(time) {
 
 		var sx = (Math.round(time * 30) % frames) * fw;
 		var sy = 0;
-
+		
 		ctx.drawImage(
 			sprite,
 			sx, sy, fw, fh,
@@ -967,6 +979,20 @@ var tick = function(time) {
 			obj.screen_position.e(2) - fh/2,
 			fw, fh
 		);
+
+		ctx.globalAlpha = 1;
+
+		if(anomaly) {
+			var tw = ctx.measureText('?').width;
+			ctx.save();
+			ctx.fillStyle = '#34416c';
+			ctx.font = 'bold 30px Dosis';
+			ctx.strokeStyle = 'white';
+			ctx.lineWidth = 3;
+			ctx.strokeText('?', obj.screen_position.e(1) - tw/2, obj.screen_position.e(2));
+			ctx.fillText('?', obj.screen_position.e(1) - tw/2, obj.screen_position.e(2));
+			ctx.restore();
+		}
 	}
 
 	draw_explosions(time);
