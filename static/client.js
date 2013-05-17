@@ -379,7 +379,7 @@ socket.on('report', function(obj) {
 	// to be safe - to run every 10 seconds.
 	setTimeout(function() {
 		socket.emit('report', { target: obj.id });
-	}, 10000); // time in ms
+	}, 10000 * (Math.random() + 1)); // time in ms
 
 	// Now, we could check features of this object and check whether it
 	// deserves special attention
