@@ -809,6 +809,7 @@ var shadow = function(p, color) {
 	var bp = worldToScreen(b);
 
 	ctx.strokeStyle=color;
+	ctx.fillStyle=color;
 	line(worldToScreen(p), bp);
 	//line(bp, worldToScreen(camera));
 
