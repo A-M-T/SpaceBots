@@ -51,6 +51,14 @@ if( process.getuid() === 0 ) {
 		}
 	);
 	port = 443;
+
+	redirector = require('http').createServer(function (req, res) {
+		res.writeHead(302, {
+			'Location': 'https://' + req.headers['host'] + '/'
+		});
+		res.end();
+	});
+	redirector.listen(80);
 } else {
 	app = require('http').createServer(function (req, res) {
 		file.serve(req, res);

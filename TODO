@@ -4,7 +4,7 @@
 * DONE Create definition file for npm
 * DONE Listen on 443 only if root
 * DONE Set up github repository
-* TODO Redirect from 80 to 443
+* DONE Redirect from 80 to 443
 * TODO Display range of manipulator in the client.js
 * TODO Display old objects as transparent
 * TODO Display strange objects with question marks
