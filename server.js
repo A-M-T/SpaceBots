@@ -137,7 +137,19 @@ var stub = function(obj) {
 attractor = reg(resources.make_asteroid());
 attractor.sprite = '/attractor151.png';
 
-apply_secret_force = function(object) {};
+apply_secret_force = function(object) {
+	for(var i = 1; i <= 3; ++i) {
+		var v = object.position.e(i);
+		if(v < -2000) {
+			object.position.elements[i-1] = - v - 4000;
+			object.velocity.elements[i-1] = - object.velocity.elements[i-1];
+		}
+		if(object.position.e(i) > 2000) {
+			object.position.elements[i-1] = - v + 4000;
+			object.velocity.elements[i-1] = - object.velocity.elements[i-1];
+		}
+	}
+};
 
 if('ATTRACTOR_KEY' in process.env) {
 	try {
