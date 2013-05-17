@@ -836,6 +836,13 @@ socket.on('explosion', function(data) {
 	explosions.push(data);
 });
 
+var get_current_pos = function(obj, time) {
+	obj = common.get(obj);
+	time = time || current_time;
+	var r = common.get_root(obj);
+	return r.position.add(r.velocity.x(time - r.fetch_time));
+};
+
 var stars = [];
 var scale = { current: 1, target: 1 };
 
@@ -948,8 +955,8 @@ var tick = function(time) {
 		}
 
 		if(time - obj.fetch_time > 5) {
-			var ap = common.get_position(avatar);
-			if(obj.position.distanceFrom(ap) < radar.radar_range) {
+			var ap = get_current_pos(avatar);
+			if(get_current_pos(obj).distanceFrom(ap) < radar.radar_range) {
 				anomaly = true;
 			}
 		}
