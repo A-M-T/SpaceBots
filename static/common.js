@@ -13,7 +13,7 @@
 		});
 	};
 
-	// TODO: I'm not sure what is this, maybe Random Vector?
+	// This function makes new random vector within the cube [-1 .. 1]
 	var RV = e.RV = function(range) {
 		return Vector.Random(3).x(2).add(Vector.create([-1,-1,-1])).x(range);
 	};
