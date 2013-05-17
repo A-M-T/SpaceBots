@@ -820,8 +820,31 @@ var shadow = function(p, color) {
 // going to be urls and values - images downloaded from the internet.
 var image_cache = {};
 
+var explosions = [];
+socket.on('explosion', function(data) {
+	data.reported = current_time;
+	data.position = $V(data.position);
+	explosions.push(data);
+});
+
 var stars = [];
 var scale = { current: 1, target: 1 };
+
+var get_image = function(url) {
+	if(!(url in image_cache)) {
+		image_cache[url] = new Image;
+		image_cache[url].src = url;
+	}
+	return image_cache[url];
+};
+
+var get_frame_count = function(filename) {
+	var match = /(\d+)\.png$/.exec(filename);
+	if(match) {
+		return Number(match[1]);
+	}
+	return 1;
+};
 
 // Finally, this is function that will draw everything on the screen.
 var tick = function(time) {
@@ -916,19 +939,9 @@ var tick = function(time) {
 		obj.screen_position = worldToScreen(pos);
 		
 		var sprite_url = obj.sprite || '/unknown.png';
+		var sprite = get_image(sprite_url);
 
-		if(!(sprite_url in image_cache)) {
-			image_cache[sprite_url] = new Image;
-			image_cache[sprite_url].src = sprite_url;
-		}
-
-		var sprite = image_cache[sprite_url];
-
-		var match = /(\d+)\.png$/.exec(sprite_url);
-		var frames = 1;
-		if(match) {
-			frames = Number(match[1]);
-		}
+		var frames = get_frame_count(sprite_url);
 
 		var fw = sprite.width / frames;
 		var fh = sprite.height;
@@ -945,10 +958,46 @@ var tick = function(time) {
 		);
 	}
 
+	draw_explosions(time);
+
 	current_time = time;
 	ctx.restore();
 };
 animate(tick);
+
+var draw_explosions = function(time) {
+
+	for(var i = explosions.length-1; i >= 0; --i) {
+		var e = explosions[i];
+		var sprite_url = e.sprite;
+		var sprite = get_image(sprite_url);
+		var frames = get_frame_count(sprite_url);
+
+		var dt = time - e.reported;
+		if(i == 10)
+			console.log(i, time, e.reported, e.duration, dt);
+		if(dt > e.duration) {
+			explosions.splice(i, 1);
+		} else {
+			e.screen_position = worldToScreen(e.position);
+
+			shadow(e.position, 'rgba(255,0,0,'+(1 - dt / e.duration)+')');
+
+			var fw = sprite.width / frames;
+			var fh = sprite.height;
+			var sx = Math.round(frames * dt / e.duration) * fw;
+			var sy = 0;
+
+			ctx.drawImage(
+				sprite,
+				sx, sy, fw, fh,
+				e.screen_position.e(1) - fw/2,
+				e.screen_position.e(2) - fh/2,
+				fw, fh
+			);
+		}
+	}
+};
 
 var controls = {};
 
