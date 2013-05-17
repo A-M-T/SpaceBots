@@ -213,7 +213,7 @@ io.sockets.on('connection', function (socket) {
 		socket.broadcast.emit('broadcast', data);
 	});
 
-    socket.on('log in', function(data) {
+	socket.on('log in', function(data) {
 		log_in('log in');
 		if(!('' + data.player_id).match(/[0-9A-F]{32}/i)) {
 			return fail(2, 'Hash used to log in does not match regular' +
@@ -225,7 +225,7 @@ io.sockets.on('connection', function (socket) {
 			return fail(3, 'This account doesn\'t have an avatar list');
 		}
 		socket.emit('avatar list',  Object.keys(player.avatars));
-    });
+	});
 
 	var find_target = function(command) {
 		if(typeof player === 'undefined') {
@@ -388,7 +388,32 @@ io.sockets.on('connection', function (socket) {
 
 		var time = trajectory.modulus() / cmd.impulse;
 		setTimeout(function() {
-			// TODO: hit at destination using reaction_mass
+			log(cmd.destination);
+			socket.emit('explosion', {
+				sprite: '/explosion45.png',
+				duration: 1,
+				position: cmd.destination
+			});
+
+			var d = trajectory.modulus();
+			var r = d * reaction_mass * cmd.impulse / 100000;
+			var dmg = momentum;
+			var hit_point = Vector.create(cmd.destination);
+			var noluck = {};
+			var total = 0;
+			var hit = [];
+
+			for(var hash in objects) {
+				var o = objects[hash];
+				if(o.position) {
+					var l = o.position.distanceFrom(hit_point);
+					if(l < r) {
+						var m = resources.get_connected_mass(o);
+						total += m / l;
+						hit.push(o);
+					}
+				}
+			}
 		}, time * 1000);
 
 		trajectory = trajectory.toUnitVector().x(delta_v);
