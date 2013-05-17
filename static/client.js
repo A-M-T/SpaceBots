@@ -683,6 +683,12 @@ var canvas = document.getElementById('canvas');
 // To draw, we have to get drawing context first.
 var ctx = canvas.getContext('2d');
 
+// Small fix for browsers that does not support dashed lines.
+if (!ctx.setLineDash) {
+	ctx.setLineDash = function () {};
+	ctx.lineDashOffset = 0;
+}
+
 // This function should fire every time the screen is refreshed. This usually
 // happens 60 times per second but it might differ depending on the screen.
 // We use `requestAnimationFrame` to run our animation exactly when the screen
@@ -810,7 +816,9 @@ var shadow = function(p, color) {
 
 	ctx.strokeStyle=color;
 	ctx.fillStyle=color;
+	ctx.setLineDash([5]);
 	line(worldToScreen(p), bp);
+	ctx.setLineDash([0]);
 	//line(bp, worldToScreen(camera));
 
 	ellipse(bp.e(1), bp.e(2), 10);
@@ -881,14 +889,16 @@ var tick = function(time) {
 	ctx.scale(scale.current, scale.current);
 	ctx.translate(-canvas.width / 2, -canvas.height / 2);
 
-	ctx.strokeStyle = 'red';
-	ctx.lineWidth = 10;
 	if(radar) {
+		ctx.strokeStyle = 'red';
+		ctx.lineWidth = radar.radar_range / 80;
+		ctx.setLineDash([radar.radar_range / 20]);
 		ctx.beginPath();
 		ctx.arc(canvas.width/2, canvas.height/2, radar.radar_range, 0, 2 * Math.PI, true);
 		ctx.stroke();
+		ctx.setLineDash([0]);
+		ctx.lineWidth = 1;
 	}
-	ctx.lineWidth = 1;
 
 	// We set the color for lines and ellipses of shadows.
 	ctx.strokeStyle = 'white';
@@ -960,6 +970,22 @@ var tick = function(time) {
 	}
 
 	draw_explosions(time);
+
+	if(manipulator) {
+		ctx.strokeStyle = 'white';
+		ctx.setLineDash([1, 8]);
+		ctx.lineDashOffset = time * 2;
+		ctx.lineWidth = 2;
+		ctx.lineCap = 'round';
+		if(radar) {
+			ctx.beginPath();
+			ctx.arc(canvas.width/2, canvas.height/2, manipulator.manipulator_range, 0, 2 * Math.PI, false);
+			ctx.stroke();
+		}
+		ctx.lineDashOffset = 0;
+		ctx.setLineDash([1,0]);
+	}
+	
 
 	current_time = time;
 	ctx.restore();
