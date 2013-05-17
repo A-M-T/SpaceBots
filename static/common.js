@@ -16,8 +16,8 @@
 
 	// This function will walk the object hierarchy (parents and slots) and
 	// return object containing all elements found.
-	var walk = e.walk = function(start) {
-		var cc = {};
+	var walk = e.walk = function(start, dict) {
+		var cc = dict || {};
 		var browse = function(element) {
 			if(!element) return;
 			if(element.id in cc) return;
