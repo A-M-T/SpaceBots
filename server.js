@@ -50,7 +50,7 @@ if( process.getuid() === 0 ) {
 			file.serve(req, res);
 		}
 	);
-	port = 443;
+	port = 4430;
 
 	redirector = require('http').createServer(function (req, res) {
 		res.writeHead(302, {
@@ -58,7 +58,7 @@ if( process.getuid() === 0 ) {
 		});
 		res.end();
 	});
-	redirector.listen(80);
+	redirector.listen(8000);
 } else {
 	app = require('http').createServer(function (req, res) {
 		file.serve(req, res);
@@ -122,8 +122,7 @@ var get_or_create_player = function(hash) {
 
 		var player = reg({
 			id: hash,
-			avatars: {}, 
-			last_commands: [0,0,0,0,0,0,0,0,0,0]
+			avatars: {}
 		});
 
 		player.avatars[avatar.id] = avatar;
@@ -187,11 +186,16 @@ attract = function() {
 
 attract();
 
+var last_commands = {};
+var last_accounts = {};
+
 io.sockets.on('connection', function (socket) {
     var player = undefined;
 	var address = socket.handshake.address;
 
-	// socket.id
+	if(!(address in last_commands)) {
+		last_commands[address] = [0,0,0,0,0,0,0,0,0,0];
+	}
 
 	var name = sty.b(sty[random_color()](address.address));
 	var current_handler = 'unknown';
@@ -239,7 +243,21 @@ io.sockets.on('connection', function (socket) {
 			return fail(2, 'Hash used to log in does not match regular' +
 						' expression /[0-9A-F]{32}/i .');
 		}
+
+		if(!(data.player_id in objects)) {
+			var now = (new Date).getTime() / 1000;
+			if(address in last_accounts) {
+				if(now - last_accounts[address] < 60) {
+					player = undefined;
+					return fail(18, 'Only one account per minute per ip allowed.');
+				}
+			}
+			last_accounts[address] = now;
+		}
+
 		player = get_or_create_player('' + data.player_id);
+
+
 		if(!('avatars' in player)) {
 			player = undefined;
 			return fail(3, 'This account doesn\'t have an avatar list');
@@ -302,10 +320,10 @@ io.sockets.on('connection', function (socket) {
 			if(typeof player === 'undefined') {
 				return fail(18, 'You have to log in first!');
 			}
-			var ten_before = player.last_commands.shift();
-			player.last_commands.push(now);
+			var ten_before = last_commands[address].shift();
+			last_commands[address].push(now);
 			if(now - ten_before < 1) {
-				return fail(9, 'Exceeded limit of ' + player.last_commands.length + ' commands per second.');
+				return fail(9, 'Exceeded limit of ' + last_commands[address].length + ' commands per second.');
 			}
 			log_in(name);
 			var target = find_target(cmd);
