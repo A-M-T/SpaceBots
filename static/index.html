@@ -11,14 +11,37 @@ body {
   font-family: 'Dosis', sans-serif;
 }
 #intro {
-  padding: 1em;
-  text-shadow: 0 2px 0 black;
-  text-align: center;
-  font-size: 2em;
+  padding: 0 .2em;
+  text-shadow: 2px 2px 0 #bbb;
+  text-align: left;
+  font-size: 3em;
   position: fixed;
+  font-weight: bold;
   top: 0;
-  background: rgba(0, 0, 0, 0.2);
+  cursor:help;
+
+  -webkit-animation-duration: .5s;
+  -webkit-animation-name: jump;
+  -webkit-animation-iteration-count: infinite;
+  -webkit-animation-timing-function: ease-in;
+  -webkit-animation-direction:alternate;
 }
+
+@-webkit-keyframes jump {
+  0% {
+    top: 0;
+    -webkit-transform:scale(1,1);
+  }
+  80% {
+    top: .5em;
+    -webkit-transform:scale(1,1);
+  }
+  100% {
+    top: .6em;
+    -webkit-transform:scale(1,.8);
+  }
+}
+
 #overlay {
   position: fixed;
   top: 0;
@@ -75,12 +98,50 @@ padding: 2px;
 li:nth-child(2n-1) {
   background-color: rgba(0, 0, 0, 0.1);
 }
+.editor {
+  position: fixed;
+  width: 600px;
+  height: 400px;
+  top: 50px;
+  left: 50px;
+  border: 1px solid black;
+
+  -webkit-animation-duration: .5s;
+  -webkit-animation-name: showup;
+}
+.ace_scrollbar {
+  display: none;
+}
+.ace_scroller {
+  overflow-x: hidden !important;
+}
+
+@-webkit-keyframes showup {
+  0% {
+    top: 10px;
+    left: 10px;
+    opacity: .1;
+  }
+  100% {
+    top: 50px;
+    left: 50px;
+    opacity: 1;
+  }
+}
+.notransition {
+  -webkit-animation: none !important;
+  -moz-animation: none !important;
+  -o-animation: none !important;
+  -ms-animation: none !important;
+  animation: none !important;
+}
+
 </style>
 <body>
 <!-- Welcome to SpaceBots. For complete tutorial click on a link to client.js -->
 <canvas id="canvas"></canvas>
 <div id="overlay"></div>
-<div id="intro"></div>
+<div id="intro" onclick="help()">?</div>
 <map id="axes_map" name="axes_map"><area shape="circle" alt="Stop" title="Stop" coords="70,81,37" href="javascript:stop()" target="" /><area shape="poly" alt="Full impulse towards X" title="Full impulse towards X" coords="140,121,109,123,110,110,90,99,96,89,113,99,126,95" href="javascript:do_impulse(1,0,0)" target="" /><area shape="poly" alt="Full impulse towards -X" title="Full impulse towards -X" coords="0,41,29,39,31,52,40,57,34,69,22,60,14,67" href="javascript:do_impulse(-1,0,0)" target="" /><area shape="poly" alt="Full impulse towards Z" title="Full impulse towards Z" coords="0,122,31,122,30,110,50,100,43,89,26,99,12,97" href="javascript:do_impulse(0,0,1)" target="" /><area shape="poly" alt="Full impulse towards -Z" title="Full impulse towards -Z" coords="140,41,124,71,115,60,105,68,97,58,110,51,110,37" href="javascript:do_impulse(0,0,-1)" target="" /><area shape="poly" alt="Full impulse towards Y" title="Full impulse towards Y" coords="70,1,86,25,76,31,77,53,62,54,64,31,54,23" href="javascript:do_impulse(0,1,0)" target="" /><area shape="poly" alt="Full impulse towards -Y" title="Full impulse towards -Y" coords="70,161,54,137,64,132,63,118,77,118,76,131,86,138" href="javascript:do_impulse(0,-1,0)" target="" /></map>
 <template id="details">
   <div class="details">
@@ -94,6 +155,7 @@ li:nth-child(2n-1) {
 	<div class="controls"></div>
   </div>
 </template>
+<script src="/ace/ace.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="/sylvester.js"></script>
 <script src="/common.js"></script>

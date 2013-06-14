@@ -3,42 +3,39 @@
 // players compete to create thriving industry, accumulate resources
 // and secure rare and efficient machines.
 
-// This game is operated mainly from built-in browser developer
-// tools. These are the commands that most probably brought you here:
+// This game is meant to be operated from built-in browser
+// console. You can invoke it depending on your browser:
 
-console.log('Welcome to SpaceBots. For a complete tutorial, navigate to ' +
-			'"Elements" tab and click on link to "client.js"');
+// Chrome: Shift + Ctrl + J
+// Firefox: Shift + Ctrl + K (you may disable CSS and Network buttons)
 
-var key = 'F12';
+// Once you are in the browser console, click on a link to
+// 'client.js':
 
-var FF = !(window.mozInnerScreenX == null);
+console.log('Click on a link to client.js:');
 
-if(FF) {
-	key = "Ctrl + Shift + S";
-}
+// If you have done everything properly, you should be reading the
+// same file but from the inside of your browser :)
 
-// You can also find some small ulitity functions in file common.js
-// If you'll find line starting with "common.", it's located in that file
+// We will show you how to interact with the game. Let's start with
+// disabling this annoying question mark.
 
-// To stop intro message from showing up every time you refresh the
-// page, try writing following command into the console:
-// localStorage.inhibitIntro = 'true';
+// Here are the lines that _may_ hide it:
 
-// If you set it this way, it will remove #intro element.
 if(localStorage.inhibitIntro) {
-	document.getElementById('intro').remove();
-} else {
-	// Otherwise it will show you the invitation and register click
-	// handler to hide it.
-	document.getElementById('intro').textContent = 
-		'Welcome to SpaceBots. For a complete tutorial, press ' + 
-		key + ' and navigate to "client.js".';
-
-	document.getElementById('intro').
-		addEventListener('click', function(e) {
-			e.target.remove();
-		}, false);
+	document.getElementById('intro').style.display = 'none';
 }
+
+// Go to the console, type following command:
+// localStorage.inhibitIntro = 'true';
+// ... and refresh the page.
+
+// Simple isn't it? You have just enabled the 'if' statement a few
+// lines upwards from here :D 
+
+// How to show help again? Go into the console and type:
+
+// help()
 
 // You will constantly be using Javascript to learn game mechanics, to
 // automate boring chores and to write any tools you like that help
@@ -1371,3 +1368,32 @@ onresize = function(e) {
 	background();
 };
 onresize();
+
+function help() {
+	document.getElementById('intro').classList.add('notransition');
+
+	var div = document.createElement('div');
+	div.classList.add('editor');
+	div.classList.add('details');
+
+	var subdiv = document.createElement('div');
+	subdiv.style.height = '100%';
+
+	
+	
+	var editor = ace.edit(subdiv);
+	editor.setTheme("ace/theme/monokai");
+	editor.getSession().setMode("ace/mode/javascript");
+	editor.setReadOnly(true);
+
+	document.getElementById('overlay').appendChild(div);
+	div.appendChild(subdiv);
+	var client = new XMLHttpRequest();
+	client.open('GET', '/client.js');
+	client.onreadystatechange = function() {
+		editor.setValue(client.responseText);
+		editor.clearSelection();
+		editor.scrollToLine(0, false, false);
+	}
+	client.send();
+}
