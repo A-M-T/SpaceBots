@@ -1,5 +1,5 @@
 
-var	fs = require('fs');
+var fs = require('fs');
 var sty = require('sty');
 
 var logger = require('./logger');
@@ -38,39 +38,12 @@ nesh.start({
 	});
 });
 
-var file = new (require('node-static').Server)('./static');
+var listener = require('./listener');
 
-if( process.getuid() === 0 ) {
-	app = require('https').createServer(
-		{
-			key: fs.readFileSync('privatekey.pem').toString(),
-			cert: fs.readFileSync('certificate.pem').toString()
-		}, 
-		function (req, res) {
-			file.serve(req, res);
-		}
-	);
-	port = 4430;
+var io = listener.io;
+var app = listener.app;
 
-	redirector = require('http').createServer(function (req, res) {
-		res.writeHead(302, {
-			'Location': 'https://' + req.headers['host'] + '/'
-		});
-		res.end();
-	});
-	redirector.listen(8000);
-} else {
-	app = require('http').createServer(function (req, res) {
-		file.serve(req, res);
-	});
-	port = 8000;
-}
-
-var io = require('socket.io').listen(app, { logger: logger });
-// io.set('log level', 1);
-
-app.listen(port);
-logger.info('Listening on port ' + port);
+logger.info('Listening on port ' + listener.port);
 
 // Begin game logic
 
