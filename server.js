@@ -313,7 +313,7 @@ io.sockets.on('connection', function (socket) {
 		if('skeleton_slots' in target) {
 			report.skeleton_slots = target.skeleton_slots.map(stub);
 		}
-		var copy = 'id features sprite radar_range impulse_drive_payload impulse_drive_impulse store_stored store_capacity battery_energy battery_capacity manipulator_range'.split(' ');
+		var copy = 'id features sprite integrity radar_range impulse_drive_payload impulse_drive_impulse store_stored store_capacity battery_energy battery_capacity manipulator_range'.split(' ');
 		var vectors = 'position velocity'.split(' ');
 		copy.forEach(function(key) {
 			report[key] = target[key];
@@ -387,13 +387,67 @@ io.sockets.on('connection', function (socket) {
 		}
 		
 		var ship_mass = resources.get_connected_mass(target);
-		
-		// TODO: fajne testy na rozerwanie przez przyspieszenie
 
 		// Warning: power === momentum!
 		var delta_v = momentum / ship_mass;
 
+		var apply_thrust_dmg = function(object, source) {
+			var mass = 0;
+			if(object.mass) {
+				mass += object.mass;
+			} else if(object.composition) {
+				mass += resources.get_mass(object.composition);
+			}
+			if(object.parent && object.parent !== source) {
+				mass += apply_thrust_dmg(object.parent, object);
+			}
+			if(object.skeleton_slots) {
+				for(var i = 0; i < object.skeleton_slots.length; ++i) {
+					if(object.skeleton_slots[i] && object.skeleton_slots[i] !== source) {
+						mass += apply_thrust_dmg(object.skeleton_slots[i], object);
+					}
+				}
+			}
+
+			// log('Damage to element ' + JSON.stringify(object.features) + '; integrity ' + object.integrity + ', mass = ' + mass + ', delta_v ' + delta_v);
+			
+			if(mass * delta_v > object.integrity * 5) { // Destruction!
+				log('Destruction!!!');
+				var pos = common.get_root(object).position;
+				var vel = common.get_root(object).velocity;
+
+				socket.emit('explosion', {
+					sprite: '/explosion45.png',
+					duration: 1,
+					position: pos
+				});
+
+				socket.emit('component destroyed', { id: object.id } );
+
+				if(object.skeleton_slots) {
+					for(var i = 0; i < object.skeleton_slots.length; ++i) {
+						var orphan = object.skeleton_slots[i];
+						orphan.parent = undefined;
+						orphan.velocity = Vector.create(vel);
+						orphan.position = Vector.create(pos);
+						object.skeleton_slots[i] = undefined;
+					}
+				}
+				if(object.parent) {
+					var me = object.parent.skeleton_slots.indexOf(object);
+					log('My index = ' + me);
+					object.parent.skeleton_slots[me] = undefined;
+					object.parent = undefined;
+				}
+				delete objects[object.id];
+				mass = 0;
+			}
+			return mass;
+		}
+
 		var root = common.get_root(target);
+
+		apply_thrust_dmg(target, target);
 
 		var trajectory = Vector.create(cmd.destination).subtract(root.position);
 
