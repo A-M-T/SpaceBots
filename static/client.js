@@ -282,6 +282,16 @@ socket.on('report', function(obj) {
 		// various parts of the game will create direct references to
 		// the old object and we don't want to invalidate them.
 
+		// Some fields are always sent by the server. Their old values
+		// may however remain from older reports. We should delete
+		// these possibly invalid properties.
+
+		var always_sent = { manipulator_slot: true, parent: true };
+
+		for(var key in always_sent) { delete objects[obj.id][key]; }
+
+		// Now we can update our object with new values.
+
 		for(var key in obj) { objects[obj.id][key] = obj[key]; }
 
 		// We should erase all references to the received
@@ -350,17 +360,30 @@ socket.on('report', function(obj) {
 
 	// Besides child elements, any object can control its own
 	// parent. We will do basically the same thing as with
-	// `skeleton_slots`. Only difference is that an object can have
-	// at most one parent so we don't need to iterate over the array.
+	// `skeleton_slots`. Only difference is that an object can have at
+	// most one parent so we don't need to iterate over the array.
 
-	if(obj.parent && obj.parent.id && typeof objects[obj.parent.id] === 'undefined') {
+	if(obj.parent &&
+	   obj.parent.id && 
+	   typeof objects[obj.parent.id] === 'undefined') {
 		objects[obj.parent.id] = obj.parent;
 		socket.emit('report', { target: obj.parent.id });
 	}
 
-	// Our object will have stub as a parent and more stubs as its
-	// children.  We can fix it by replacing them with objects from
-	// `objects` set.
+	// When manipulators hold other objects, they have stubs with
+	// their ids in manipulator_slot. If we don't have any information
+	// about these held objects, we should mark them in our objects
+	// set:
+
+	if(obj.manipulator_slot &&
+	   obj.manipulator_slot.id && 
+	   typeof objects[obj.manipulator_slot.id] === 'undefined') {
+		objects[obj.manipulator_slot.id] = obj.manipulator_slot;
+	}
+
+	// Our object will have stub as a parent, stub as a held object
+	// (if this is manipulator) and more stubs as its children. We can
+	// fix it by replacing them with objects from `objects` set.
 
 	if(obj.parent) {
 		obj.parent = objects[obj.parent.id];
@@ -372,16 +395,21 @@ socket.on('report', function(obj) {
 		});
 	}
 
-	// Now, that we are scanning our object, we could schedule a rescan - just
-	// to be safe - to run every 10 seconds.
+	if(obj.manipulator_slot) {
+		obj.manipulator_slot = objects[obj.manipulator_slot.id];
+	}
+
+	// Now, that we are scanning our object, we could schedule a
+	// rescan - just to be safe - to run every 10 seconds.
 	setTimeout(function() {
 		socket.emit('report', { target: obj.id });
 	}, 10000 * (Math.random() + 1)); // time in ms
 
-	// Now, we could check features of this object and check whether it
-	// deserves special attention
+	// Now, we could check features of this object and check whether
+	// it deserves special attention
 
-	// If it is our avatar, we'll save it in the global `avatar` variable.
+	// If it is our avatar, we'll save it in the global `avatar`
+	// variable.
 	if(obj.id == avatar_id) {
 		avatar = obj;
 	}
@@ -435,7 +463,7 @@ socket.on('radar result', function(result) {
 		var local = objects[object.id];
 		local.fetch_time = current_time;
 		local.position = $V(local.position);
-		local.velocity = $V(local.velocity);
+		if(local.velocity) local.velocity = $V(local.velocity);
 	});
 	
 	// Same as with the reports, radar also should do rescans - after all
@@ -603,7 +631,7 @@ var stop_tick = function() {
 		// The timer can't run too quickly, because of 10 commands per
 		// second limit.
 
-		stop_timer = setTimeout(stop_tick, 200);
+		stop_timer = setTimeout(stop_tick, 300);
 
 	} else {
 
@@ -641,9 +669,23 @@ var stop = function() {
 };
 
 var manipulator_grab = function() {
-	socket.emit('manipultor grab', {
+	socket.emit('manipulator grab', {
+		target: manipulator.id
+	});
+};
+
+socket.on('manipulator grabbed', function(data) {
+	var stub = data.manipulator_slot
+	objects[data.id].manipulator_slot = objects[stub.id];
+});
+
+var do_repulse = function(x, y, z, power) {
+	power = power || manipulator.integrity;
+	socket.emit('manipulator repulse', {
 		target: manipulator.id,
-		position: manipulator.position.elements
+		energy_source: battery.id,
+		power: power,
+		direction: [x, y, z]
 	});
 };
 
@@ -844,7 +886,9 @@ var get_current_pos = function(obj, time) {
 	obj = common.get(obj);
 	time = time || current_time;
 	var r = common.get_root(obj);
-	return r.position.add(r.velocity.x(time - r.fetch_time));
+	var p = r.position;
+	if(r.velocity) p = p.add(r.velocity.x(time - r.fetch_time));
+	return p;
 };
 
 var stars = [];
@@ -1024,6 +1068,24 @@ var tick = function(time) {
 		}
 		ctx.lineDashOffset = 0;
 		ctx.setLineDash([1,0]);
+
+		if(manipulator.manipulator_slot) {
+			var pos_a = common.get_position(manipulator.manipulator_slot);
+			var pos_b = common.get_position(manipulator);
+			if(pos_a.distanceFrom(pos_b) > manipulator.manipulator_range) {
+				delete manipulator.manipulator_slot.grabbed_by;
+				delete manipulator.manipulator_slot;
+			}
+		}
+
+		if(manipulator.manipulator_slot) {
+			ctx.strokeStyle = 'black';
+			ctx.lineWidth = 3;
+			line(manipulator.screen_position, manipulator.manipulator_slot.screen_position);
+			ctx.strokeStyle = '#00ffaa';
+			ctx.lineWidth = 2;
+			line(manipulator.screen_position, manipulator.manipulator_slot.screen_position);
+		}
 	}
 	
 

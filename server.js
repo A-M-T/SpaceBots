@@ -79,8 +79,8 @@ var get_or_create_player = function(hash) {
     if(!(hash in objects)) {
 
 		var hull = reg(bp.make('skeleton manipulator', 10));
-		hull.position = common.RV(200);
-		hull.velocity = common.RV(5);
+		hull.position = Vector.create([0, 30, 0]); //common.RV(200);
+		hull.velocity = Vector.create([0, 0, 0]); //common.RV(5);
 		hull.skeleton_slots = [null, null, null, null, null, null];
 		hull.sprite = '/hull.png';
 
@@ -116,6 +116,7 @@ var stub = function(obj) {
 
 attractor = reg(resources.make_asteroid());
 attractor.sprite = '/attractor151.png';
+delete attractor.velocity;
 
 apply_secret_force = function(object) {
 	for(var i = 1; i <= 3; ++i) {
@@ -153,6 +154,14 @@ attract = function() {
 			object.position = object.position.add(object.velocity.x(0.1));
 			apply_secret_force(object);
 		}
+		if(object.manipulator_slot) {
+			var pos_a = common.get_position(object.manipulator_slot);
+			var pos_b = common.get_position(object);
+			if(pos_a.distanceFrom(pos_b) > object.manipulator_range) {
+				delete object.manipulator_slot.grabbed_by;
+				delete object.manipulator_slot;
+			}
+		}
 	}
 	setTimeout(attract, 100);
 };
@@ -162,7 +171,6 @@ attract();
 var damage_object = function(obj, dmg) {
 	logger.info('damaging ' + obj.id + ' with ' + dmg);
 	if(obj.integrity && dmg > obj.integrity) {
-		logger.info('Destroying!');
 		destroy(obj);
 	}
 };
@@ -185,7 +193,8 @@ var damage_ship = function(root, dmg) {
 	damage_object(arr[i], dmg);
 };
 
-var destroy = function(object) {	
+var destroy = function(object) {
+	logger.info(object.id + ' destroyed');
 	var pos = common.get_root(object).position;
 	var vel = common.get_root(object).velocity;
 
@@ -204,6 +213,44 @@ var destroy = function(object) {
 		object.parent = undefined;
 	}
 	delete objects[object.id];
+};
+
+var apply_thrust_dmg = function(object, source, v, reduce_dmg) {
+	var mass = 0;
+	if(object.mass) {
+		mass += object.mass;
+	} else if(object.composition) {
+		mass += resources.get_mass(object.composition);
+	}
+	if(object.parent && object.parent !== source) {
+		mass += apply_thrust_dmg(object.parent, object, v, true);
+	}
+	if(object.skeleton_slots) {
+		for(var i = 0; i < object.skeleton_slots.length; ++i) {
+			if(object.skeleton_slots[i] && object.skeleton_slots[i] !== source) {
+				mass += apply_thrust_dmg(object.skeleton_slots[i], object, v, true);
+			}
+		}
+	}
+	var energy = mass * v;
+	if(reduce_dmg) {
+		energy /= 5;
+	}
+	if(energy > object.integrity) {
+		destroy(object);
+		mass = 0;
+	}
+	return mass;
+}
+
+var apply_thrust = function(object, direction, momentum, reduce_dmg) {
+	logger.info('thrust on ' + object.id.slice(0,4) + ' : ' + momentum);
+	var root = common.get_root(object);
+	if(typeof root.velocity === 'undefined') return;
+	var mass = resources.get_connected_mass(object);
+	var dv = momentum / mass;
+	apply_thrust_dmg(object, object, dv, reduce_dmg);
+	root.velocity = root.velocity.add( direction.toUnitVector().x(dv) );
 };
 
 var last_commands = {};
@@ -361,6 +408,9 @@ io.sockets.on('connection', function (socket) {
 		if('skeleton_slots' in target) {
 			report.skeleton_slots = target.skeleton_slots.map(stub);
 		}
+		if('manipulator_slot' in target) {
+			report.manipulator_slot = stub(target.manipulator_slot);
+		}
 		var copy = 'id features sprite integrity radar_range impulse_drive_payload impulse_drive_impulse store_stored store_capacity battery_energy battery_capacity manipulator_range'.split(' ');
 		var vectors = 'position velocity'.split(' ');
 		copy.forEach(function(key) {
@@ -392,7 +442,7 @@ io.sockets.on('connection', function (socket) {
 			if(d <= target.radar_range) {
 				var report = {};
 				radar_copy_fields.forEach(function(key) { report[key] = object[key]; });
-				radar_vector_fields.forEach(function(key) { report[key] = object[key].elements; });
+				radar_vector_fields.forEach(function(key) { if(key in object) report[key] = object[key].elements; });
 				
 				results.push(report);
 			}
@@ -400,15 +450,101 @@ io.sockets.on('connection', function (socket) {
 		socket.emit('radar result', results);
 	});
 
+	on('manipulator grab', function(target, data) {
+		if(!check_feature(target, 'manipulator')) return;
+
+		if(target.manipulator_slot) {
+			delete target.manipulator_slot.grabbed_by;
+			delete target.manipulator_slot;
+		}
+
+		var manipulator_position = common.get_position(target);
+		var grab_position = manipulator_position;
+		if(Array.isArray(data.position)) {
+			grab_position = Vector.create(data.position);
+		}
+
+		var total_range = target.manipulator_range;
+		var left_range = total_range - grab_position.distanceFrom(manipulator_position);
+
+		if(left_range < 0) {
+			return fail(999, 'Grab position outside manipulator range.');
+		}
+
+		var cc = common.walk(target, {}, true);
+
+		var closest = undefined;
+		var closest_dist = 999999;
+
+		for(var hash in objects) {
+			var object = objects[hash];
+			if(!('position' in object)) continue;
+			if(object.id in cc) continue;
+			var d = grab_position.distanceFrom(object.position);
+			if(d < closest_dist) {
+				closest_dist = d;
+				closest = object;
+			}
+		}
+
+		if(closest_dist > left_range) {
+			return fail(999, 'No valid object found around grab position.');
+		}
+
+		closest.grabbed_by = target;
+		target.manipulator_slot = closest;
+
+		socket.emit('manipulator grabbed', {
+			id: target.id,
+			manipulator_slot: { id: closest.id }
+		});
+	});
+
+	on('manipulator release', function(target, data) {
+		if(!check_feature(target, 'manipulator')) return;
+
+		if(typeof target.manipulator_slot === 'undefined') {
+			return fail(999, 'Manipulator empty.');
+		}
+
+		delete target.manipulator_slot.grabbed_by;
+		delete target.manipulator_slot;
+
+		socket.emit('manipulator released', { id: target.id });
+	});
+
 	var find_co_component = function(source, id, feature) {
 		var cc = common.walk(source);
 		if(!(id in cc)) {
-			return fail(10, 'Object ' + id + ' is not reachable from ' +
+			return fail(10, common.capitalize(feature) + ' ' + id + ' is not reachable from ' +
 						source.id);
 		}
 		if(!check_feature(cc[id], feature)) return undefined;
 		return cc[id];
 	};
+
+	on('manipulator repulse', function(target, data) {
+		if(!check_feature(target, 'manipulator')) 
+			return;
+		if(typeof target.manipulator_slot === 'undefined')
+			return fail(999, 'Manipulator empty.');
+		if(typeof data.power !== 'number')
+			return fail(999, 'Repulse power should be a number.');
+		if(!Array.isArray(data.direction))
+			return fail(999, 'Repulse direction should be an array.');
+		if(data.direction.length != 3)
+			return fail(999, 'Repulse direction should have length 3.');
+		var energy_source = find_co_component(target, data.energy_source, 'battery');
+		if(typeof energy_source === 'undefined') return;
+
+		var direction = Vector.create(data.direction);
+		var object = target.manipulator_slot;
+
+		apply_thrust(object, direction, data.power);
+		apply_thrust(target, direction.x(-1), data.power);
+		energy_source.battery_energy -= data.power;
+		
+	});
 
 	on('impulse_drive push', function(target, cmd) {
 		if(!check_feature(target, 'impulse_drive')) return;
@@ -433,46 +569,11 @@ io.sockets.on('connection', function (socket) {
 		if(momentum > energy_source.battery_energy) {
 			return fail(14, 'Ordered to use more power than available in battery.');
 		}
-		
-		var ship_mass = resources.get_connected_mass(target);
-
-		// Warning: power === momentum!
-		var delta_v = momentum / ship_mass;
-
-		var apply_thrust_dmg = function(object, source) {
-			var mass = 0;
-			if(object.mass) {
-				mass += object.mass;
-			} else if(object.composition) {
-				mass += resources.get_mass(object.composition);
-			}
-			if(object.parent && object.parent !== source) {
-				mass += apply_thrust_dmg(object.parent, object);
-			}
-			if(object.skeleton_slots) {
-				for(var i = 0; i < object.skeleton_slots.length; ++i) {
-					if(object.skeleton_slots[i] && object.skeleton_slots[i] !== source) {
-						mass += apply_thrust_dmg(object.skeleton_slots[i], object);
-					}
-				}
-			}
-
-			// log('Damage to element ' + JSON.stringify(object.features) + '; integrity ' + object.integrity + ', mass = ' + mass + ', delta_v ' + delta_v);
-			
-			if(mass * delta_v > object.integrity * 5) { // Destruction!
-				destroy(object);
-				mass = 0;
-			}
-			return mass;
-		}
 
 		var root = common.get_root(target);
+		var d = root.position.distanceFrom(cmd.destination);
+		var time = d / cmd.impulse;
 
-		apply_thrust_dmg(target, target);
-		
-		var trajectory = Vector.create(cmd.destination).subtract(root.position);
-
-		var time = trajectory.modulus() / cmd.impulse;
 		setTimeout(function() {
 			socket.emit('explosion', {
 				sprite: '/explosion45.png',
@@ -480,9 +581,7 @@ io.sockets.on('connection', function (socket) {
 				position: cmd.destination
 			});
 
-			var d = trajectory.modulus();
 			var r = d * reaction_mass * cmd.impulse / 100000 + 10;
-			var dmg = momentum;
 			var hit_point = Vector.create(cmd.destination);
 			var total = 0;
 			var hit = [];
@@ -498,50 +597,37 @@ io.sockets.on('connection', function (socket) {
 					}
 					if(l < r) {
 						m = resources.get_connected_mass(o);
-						logger.info('Adding object with mass '+m+' to hit...');
 						total += m / l;
 						hit.push(o);
 					}
 				}
 			}
 			if(hit.length == 0) return;
-			if(hit.length > 1) {
-				o = undefined;
-				var here = Math.random() * total;
-				var cumulative = 0;
-				for(var i = 0; i < hit.length; ++i) {
-					o = hit[i];
-					l = o.position.distanceFrom(hit_point);
-					m = resources.get_connected_mass(o);
-					cumulative += m / l;
-					if(cumulative > here) break;
-				}
-				var factor = m / l;
-				logger.info(dmg, m, l);
-				logger.info(factor, total);
-				dmg *= factor / total;
-			} else {
-				o = hit[0];
+			var here = Math.random() * total;
+			var cumulative = 0;
+			for(var i = 0; i < hit.length; ++i) {
+				o = hit[i];
+				l = o.position.distanceFrom(hit_point);
+				m = resources.get_connected_mass(o);
+				cumulative += m / l;
+				if(cumulative > here) break;
 			}
-			damage_ship(o, dmg);
+			var cc = common.walk(o); // TODO: more sophisticated
+			// selection of hit location
+			var arr = common.dict_to_array(cc);
+			var i = Math.floor(Math.random() * arr.length);
+			apply_thrust(arr[i], direction.x(-1), momentum, false);
 		}, time * 1000);
 
-		root.velocity = root.velocity.add( trajectory.toUnitVector().x(-delta_v) );
+
+		var direction = root.position.
+			subtract(cmd.destination).
+			toUnitVector();
+
+		apply_thrust(target, direction, momentum, true);
 
 		resources.subtract(matter_store.store_stored, cmd.composition);
 		energy_source.battery_energy -= momentum;
-
-		/*
-		console.log("Matter ejected: ", reaction_mass);
-		console.log("Impulse: ", cmd.impulse);
-		console.log("Momentum: ", momentum);
-
-		console.log("Ship mass: ", ship_mass);
-		console.log("Change of velocity: ", delta_v);
-
-		console.log("Ship position", root.position.elements);
-		console.log("Target position", cmd.destination);
-		*/
 		
 	});
 
