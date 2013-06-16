@@ -79,8 +79,8 @@ var get_or_create_player = function(hash) {
     if(!(hash in objects)) {
 
 		var hull = reg(bp.make('skeleton manipulator', 10));
-		hull.position = Vector.create([0, 30, 0]); //common.RV(200);
-		hull.velocity = Vector.create([0, 0, 0]); //common.RV(5);
+		hull.position = common.RV(200);
+		hull.velocity = common.RV(5);
 		hull.skeleton_slots = [null, null, null, null, null, null];
 		hull.sprite = '/hull.png';
 
