@@ -8,15 +8,15 @@
 * DONE Display range of manipulator in the client.js
 * DONE Display old objects as transparent
 * DONE Display strange objects with question marks
-* TODO Interface for manipulator
-* TODO Unify interface
+* DONE Interface for manipulator
 * DONE Stop for impulse drive
 * TODO Ability to communicate with other ships
+* TODO Prettify interface
 * TODO Implement assembler
 * TODO Implement refinery
 * TODO Implement spectrometer
 * TODO Implement laboratory
 * TODO Implement enriching reactor
 * TODO Implement burning reactor
-* TODO Implement destroying ships using impulse drive
+* DONE Implement destroying ships using impulse drive
 * DONE Documentation in common.js
