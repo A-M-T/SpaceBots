@@ -81,15 +81,19 @@
 		return sum;
 	};
 
+	var get_component_mass = e.get_component_mass = function(o) {
+		if(o.mass) {
+			return o.mass;
+		} else if(o.composition) {
+			return get_mass(o.composition);
+		}
+	};
+
 	var get_connected_mass = e.get_connected_mass = function(o) {
 		var cc = common.walk(o);
 		var mass = 0;
 		for(var id in cc) {
-			if(cc[id].mass) {
-				mass += cc[id].mass;
-			} else if(cc[id].composition) {
-				mass += get_mass(cc[id].composition);
-			}
+			mass += get_component_mass(cc[id]);
 		}
 		return mass;
 	};
