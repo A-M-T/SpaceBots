@@ -84,7 +84,7 @@
 	var tradeoffs_base = {
 		mass: function(b, v) {
 			var nf = count_features(b);
-			return nf * nf * 100 / Math.max(1, v);
+			return nf * nf * 25 / Math.max(1, v);
 		},
 		integrity: function(b, v) { return (v+1) * 1000; }
 	};
