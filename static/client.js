@@ -640,6 +640,13 @@ var stop = function() {
 	}
 };
 
+var manipulator_grab = function() {
+	socket.emit('manipultor grab', {
+		target: manipulator.id,
+		position: manipulator.position.elements
+	});
+};
+
 var navigate = function(destination) {
 	destination = common.get(destination);
 
@@ -936,9 +943,12 @@ var tick = function(time) {
 		return 'position' in o;
 	});
 	arr.sort(function(a, b) {
+		
 		return a.position.e(1) +
+			a.position.e(2) / 100 +
 			a.position.e(3) -
 			b.position.e(1) -
+			b.position.e(2) / 100 -
 			b.position.e(3);
 	});
 
@@ -1093,7 +1103,13 @@ controls.avatar = function(elem, object) {
 
 controls.radar = function(elem, object) {
 	elem.appendChild(document.createTextNode('Radar range: ' + Math.round(object.radar_range)));
-}
+};
+
+controls.manipulator = function(elem, object) {
+	elem.innerHTML = '<img src="/manipulator_axes.png" class="axes">';
+	var img = elem.querySelector('img');
+	img.setAttribute('usemap', '#manipulator_map');
+};
 
 controls.store = function(elem, object) {
 	var scvs = document.createElement('canvas');
@@ -1130,8 +1146,7 @@ controls.battery = function(elem, object) {
 controls.impulse_drive = function(elem, object) {
 	elem.innerHTML = '<img src="/axes.png" class="axes">';
 	var img = elem.querySelector('img');
-	
-	img.setAttribute('usemap', '#axes_map');
+	img.setAttribute('usemap', '#impulse_drive_map');
 
 	/*
 	*/
