@@ -6,11 +6,16 @@ lib-cov
 *.out
 *.pid
 *.gz
+*~
+*.blend1
+*.blend2
+*blendcache*
 
 pids
 logs
 results
 
 npm-debug.log
-.spacebots-history
-ecrypt.js
+.spacebots_history
+encrypt.js
+node_modules/
