@@ -159,6 +159,53 @@ attract = function() {
 
 attract();
 
+var damage_object = function(obj, dmg) {
+	logger.info('damaging ' + obj.id + ' with ' + dmg);
+	if(obj.integrity && dmg > obj.integrity) {
+		logger.info('Destroying!');
+		destroy(obj);
+	}
+};
+
+var damage_ship = function(root, dmg) {
+	logger.info('hit at ' + root.id + ' with ' + dmg);
+	var cc = common.walk(root);
+	var arr = common.dict_to_array(cc);
+	var total = 0;
+	var i;
+	for(i = 0; i < arr.length; ++i) {
+		total += resources.get_component_mass(arr[i]);
+	}
+	var here = Math.random() * total;
+	total = 0;
+	for(i = 0; i < arr.length; ++i) {
+		total += resources.get_component_mass(arr[i]);
+		if(total > here) break;
+	}
+	damage_object(arr[i], dmg);
+};
+
+var destroy = function(object) {	
+	var pos = common.get_root(object).position;
+	var vel = common.get_root(object).velocity;
+
+	if(object.skeleton_slots) {
+		for(var i = 0; i < object.skeleton_slots.length; ++i) {
+			var orphan = object.skeleton_slots[i];
+			orphan.parent = undefined;
+			orphan.velocity = Vector.create(vel);
+			orphan.position = Vector.create(pos);
+			object.skeleton_slots[i] = undefined;
+		}
+	}
+	if(object.parent) {
+		var me = object.parent.skeleton_slots.indexOf(object);
+		object.parent.skeleton_slots[me] = undefined;
+		object.parent = undefined;
+	}
+	delete objects[object.id];
+};
+
 var last_commands = {};
 var last_accounts = {};
 
@@ -263,6 +310,7 @@ io.sockets.on('connection', function (socket) {
 			visited[id] = objects[id];
 			count += 1;
 			var current = objects[id];
+			if(typeof current === 'undefined') continue;
 			if(id == command.target) return current;
 			if(current.parent) {
 				queue.push(current.parent.id);
@@ -412,34 +460,7 @@ io.sockets.on('connection', function (socket) {
 			// log('Damage to element ' + JSON.stringify(object.features) + '; integrity ' + object.integrity + ', mass = ' + mass + ', delta_v ' + delta_v);
 			
 			if(mass * delta_v > object.integrity * 5) { // Destruction!
-				log('Destruction!!!');
-				var pos = common.get_root(object).position;
-				var vel = common.get_root(object).velocity;
-
-				socket.emit('explosion', {
-					sprite: '/explosion45.png',
-					duration: 1,
-					position: pos
-				});
-
-				socket.emit('component destroyed', { id: object.id } );
-
-				if(object.skeleton_slots) {
-					for(var i = 0; i < object.skeleton_slots.length; ++i) {
-						var orphan = object.skeleton_slots[i];
-						orphan.parent = undefined;
-						orphan.velocity = Vector.create(vel);
-						orphan.position = Vector.create(pos);
-						object.skeleton_slots[i] = undefined;
-					}
-				}
-				if(object.parent) {
-					var me = object.parent.skeleton_slots.indexOf(object);
-					log('My index = ' + me);
-					object.parent.skeleton_slots[me] = undefined;
-					object.parent = undefined;
-				}
-				delete objects[object.id];
+				destroy(object);
 				mass = 0;
 			}
 			return mass;
@@ -448,7 +469,7 @@ io.sockets.on('connection', function (socket) {
 		var root = common.get_root(target);
 
 		apply_thrust_dmg(target, target);
-
+		
 		var trajectory = Vector.create(cmd.destination).subtract(root.position);
 
 		var time = trajectory.modulus() / cmd.impulse;
@@ -460,28 +481,52 @@ io.sockets.on('connection', function (socket) {
 			});
 
 			var d = trajectory.modulus();
-			var r = d * reaction_mass * cmd.impulse / 100000;
+			var r = d * reaction_mass * cmd.impulse / 100000 + 10;
 			var dmg = momentum;
 			var hit_point = Vector.create(cmd.destination);
-			var noluck = {};
 			var total = 0;
 			var hit = [];
+			var o, l, m;
 
 			for(var hash in objects) {
-				var o = objects[hash];
+				o = objects[hash];
 				if(o.position) {
-					var l = o.position.distanceFrom(hit_point);
+					l = o.position.distanceFrom(hit_point);
+					if(l == 0) {
+						hit = [o];
+						break;
+					}
 					if(l < r) {
-						var m = resources.get_connected_mass(o);
+						m = resources.get_connected_mass(o);
+						logger.info('Adding object with mass '+m+' to hit...');
 						total += m / l;
 						hit.push(o);
 					}
 				}
 			}
+			if(hit.length == 0) return;
+			if(hit.length > 1) {
+				o = undefined;
+				var here = Math.random() * total;
+				var cumulative = 0;
+				for(var i = 0; i < hit.length; ++i) {
+					o = hit[i];
+					l = o.position.distanceFrom(hit_point);
+					m = resources.get_connected_mass(o);
+					cumulative += m / l;
+					if(cumulative > here) break;
+				}
+				var factor = m / l;
+				logger.info(dmg, m, l);
+				logger.info(factor, total);
+				dmg *= factor / total;
+			} else {
+				o = hit[0];
+			}
+			damage_ship(o, dmg);
 		}, time * 1000);
 
-		trajectory = trajectory.toUnitVector().x(-delta_v);
-		root.velocity = root.velocity.add(trajectory);
+		root.velocity = root.velocity.add( trajectory.toUnitVector().x(-delta_v) );
 
 		resources.subtract(matter_store.store_stored, cmd.composition);
 		energy_source.battery_energy -= momentum;
