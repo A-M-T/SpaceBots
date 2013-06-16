@@ -20,8 +20,11 @@
 
 	// This function will walk the object hierarchy (parents and slots) and
 	// return object containing all elements found.
-	var walk = e.walk = function(start, dict) {
+	// When full parameter is set to true, the walk will cover also
+	// any components connected by manipulators.
+	var walk = e.walk = function(start, dict, full) {
 		var cc = dict || {};
+		full = full || false;
 		var browse = function(element) {
 			if(!element) return;
 			if(element.id in cc) return;
@@ -32,6 +35,14 @@
 			if(element.skeleton_slots) {
 				for(var i = 0; i < element.skeleton_slots.length; ++i) {
 					browse(element.skeleton_slots[i]);
+				}
+			}
+			if(full) {
+				if(element.manipulator_slot) {
+					browse(element.manipulator_slot);
+				}
+				if(element.grabbed_by) {
+					browse(element.grabbed_by);
 				}
 			}
 		};
@@ -113,6 +124,10 @@
 		// This will make console use substantially easier - you can use
 		// get('31') to retrieve first object that has id beginning with 31.
 	};
+
+	var capitalize = e.capitalize = function(string) {
+		return string.charAt(0).toUpperCase() + string.slice(1);
+	}
 
 })(typeof exports === 'undefined' ? this['common'] = {} : exports);
 
