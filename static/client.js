@@ -178,11 +178,38 @@ localStorage.tutorial_finished = localStorage.tutorial_finished || "false";
 // "localStorage.tutorial_finished == true"
 // to access it
 
-// Here are two functions called from HTML code: first one starts the tutorial,
+// We'll now define some text that will be shown in the tutorial
+
+var tutorial_strings = [
+"Welcome to SpaceBots! Blablablablabla",
+"TODO: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla eleifend turpis sed mauris blandit tincidunt. Donec a turpis a enim.",
+"TODO: Nulla justo odio, posuere in orci at, tincidunt blandit sem. Suspendisse ut pretium risus. Integer eu justo lectus. Nullam id.",
+"TODO: Sed condimentum neque quis nulla tincidunt scelerisque. Sed vitae turpis lobortis, posuere neque eget, sagittis metus. Praesent at magna eu.",
+"TODO: Pellentesque hendrerit bibendum neque, malesuada pellentesque nisl feugiat at. Integer molestie sit amet arcu non iaculis. Interdum et malesuada fames.",
+"That's all! You're now ready to enter the SpaceBots world!"
+];
+
+// We need to somehow store process of the tutorial. It'll be just a variable
+// with id of current text from tutorial_strings table
+
+var tutorial_process = 0
+
+// Here are three functions called from HTML code: first one starts the tutorial,
 // second one skips the tutorial and connect to the server
 
 var tutorial_start = function() {
-    // TODO - start the tutorial
+
+    // So, the user wants to see the tutorial. Let's show the tutorial info window.
+    
+    document.getElementById("tutwindow").style.display="table";
+    
+    // Set the window contents to the first tutorial text
+    
+    document.getElementById("tutwindow_text").innerHTML = tutorial_strings[0];
+    
+    // And hide the question window
+    
+    document.getElementById("tutorial").style.display="none";
 }
 
 var tutorial_skip = function() {
@@ -200,6 +227,34 @@ var tutorial_skip = function() {
     log_in();
     
     // That's all! We can play online!
+}
+
+// Now a function to continue to next tutorial step
+
+var tutorial_continue = function() {
+	// Increase current step id by one
+
+	tutorial_process++;
+	
+	// If it was a last step, end the tutorial
+	if(tutorial_process == tutorial_strings.length) {
+		// We basically do the same as in tutorial_skip
+		localStorage.tutorial_finished = "true";
+		document.getElementById("tutwindow").style.display="none";
+		log_in();
+		//End the function - we don't want to load new message
+		return;
+	}
+	
+	// But if it wasn't, maybe the next step will be last?
+	else if(tutorial_process == tutorial_strings.length - 1) {
+		// Change the button to say "End the tutorial"
+		document.getElementById("tutwindow_button").value = "End the tutorial and go ONLINE >"
+	}
+	
+	// Set the tutorial window text to the current one
+	
+	document.getElementById("tutwindow_text").innerHTML = tutorial_strings[tutorial_process];
 }
 
 // We should hide the tutorial question if we already finished it, shouldn't we?
@@ -1487,9 +1542,8 @@ canvas.addEventListener('mousewheel', function(e) {
 }, false);
 
 onresize = function(e) {
-	//???
-	//var dw = window.innerWidth - canvas.width;
-	//var dh = window.innerHeight - canvas.height;
+	var dw = window.innerWidth - canvas.width;
+	var dh = window.innerHeight - canvas.height;
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
 
