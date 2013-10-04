@@ -122,7 +122,7 @@ JSON.parse(localStorage.custom_scripts).forEach(function(url) {
 
 // chromium --allow-file-access
 
-// Enouth about plugins. Let's get back to the game.
+// Enough about plugins. Let's get back to the game.
 
 // The game is operated through a live connection with its
 // server. Here is the line that uses socket.io library to create
@@ -134,11 +134,10 @@ var socket = io.connect();
 // server will be done by sending and receiving messages using just
 // created socket.
 
-// After connection we should log in. We use the 'connect' event to
-// execute action right after connection is created.
+// After connection we should log in. Here we a function to log in
+// to the game
 
-socket.on('connect', function () {
-
+var log_in = function() {
 	// We don't have an account yet. A player is identified by a long
 	// (32 characters) hexadecimal number called id. SpaceBots uses
 	// such identifiers for most of the stuff found in the game. We
@@ -166,6 +165,64 @@ socket.on('connect', function () {
 	// Now that we have an id, we can send it to the server.
 
 	socket.emit('log in', { player_id: localStorage.player_id });
+}
+
+// Now we start with the tutorial code. Let's begin with defining default
+// values for some variables - we assume that if user starts the game
+// for the first time, he didn't finished the tutorial
+
+localStorage.tutorial_finished = localStorage.tutorial_finished || "false";
+
+// Notice that localStorage allows to store only a string value
+// so we'll need to use something like
+// "localStorage.tutorial_finished == true"
+// to access it
+
+// Here are two functions called from HTML code: first one starts the tutorial,
+// second one skips the tutorial and connect to the server
+
+var tutorial_start = function() {
+    // TODO - start the tutorial
+}
+
+var tutorial_skip = function() {
+    // Set the localStorage.tutorial_finished variable to say that user
+    // doesn't want a tutorial anymore
+    
+    localStorage.tutorial_finished = "true";
+    
+    // This line hides the question "Do you want to start the tutorial"
+    
+    document.getElementById("tutorial").style.display="none";
+    
+    // Finally, we log in to the game
+    
+    log_in();
+    
+    // That's all! We can play online!
+}
+
+// We should hide the tutorial question if we already finished it, shouldn't we?
+
+if(localStorage.tutorial_finished == "true") {
+    document.getElementById("tutorial").style.display="none";
+} else {
+    document.getElementById("tutorial").style.display="table";
+}
+
+// Now back to the networking stuff!
+
+// We use the 'connect' event to execute action right after
+// connection is created.
+
+socket.on('connect', function () {
+
+    // If user already finished the tutorial, let's log in instantly
+    // after connecting
+    
+    if(localStorage.tutorial_finished == "true") {
+        log_in()
+    }
 });
 
 // In the case something goes wrong (eventually it will) - server
@@ -1430,8 +1487,9 @@ canvas.addEventListener('mousewheel', function(e) {
 }, false);
 
 onresize = function(e) {
-	var dw = window.innerWidth - canvas.width;
-	var dh = window.innerHeight - canvas.height;
+	//???
+	//var dw = window.innerWidth - canvas.width;
+	//var dh = window.innerHeight - canvas.height;
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
 
@@ -1443,6 +1501,9 @@ onresize = function(e) {
 		}
 	}
 	background();
+
+	document.getElementById("intro").style.left = window.innerWidth/2;
+	document.getElementById("intro").style.top = window.innerHeight/2;
 };
 onresize();
 

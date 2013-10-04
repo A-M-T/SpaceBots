@@ -141,11 +141,39 @@ li:nth-child(2n-1) {
   left: 50px;
 }
 
+#tutorial {
+  width: 300px;
+  height: 100px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: -50px 0 0 -150px;
+  text-align: center;
+  
+  color: #FFFFFF;
+  border-style: double;
+  border-width: medium;
+  border-color: #000000;
+}
+
+#tutorial_title {
+  background-color: #DDDDDD;
+  border-style: solid;
+}
+#tutorial_text {
+  background-color: #BBBBBB;
+  border-style: double;
+}
 </style>
 <body>
 <!-- Welcome to SpaceBots. For complete tutorial click on a link to client.js -->
 <canvas id="canvas"></canvas>
 <div id="overlay"></div>
+<table id="tutorial">
+  <tr id="tutorial_title"><td>Tutorial</td></tr>
+  <tr id="tutorial_text"><td>Do you want to start a tutorial?<br />
+  <input type="button" onclick="tutorial_start()" value="Yes" /> <input type="button" onclick="tutorial_skip()" value="No" /></td></tr>
+</table>
 <div id="intro" onclick="help()">?</div>
 <audio src="/freestylemix_-_hisboyelroy_-_Revolve.mp3" controls autoplay loop id="music" />
 <map id="manipulator_map" name="manipulator_map">
