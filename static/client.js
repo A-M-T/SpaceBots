@@ -168,15 +168,18 @@ var log_in = function() {
 }
 
 // Now we start with the tutorial code. Let's begin with defining default
-// values for some variables - we assume that if user starts the game
-// for the first time, he didn't finished the tutorial
+// values for tutorial_finished variable - we assume that if user starts
+// the game for the first time, he didn't finished the tutorial
 
 localStorage.tutorial_finished = localStorage.tutorial_finished || "false";
 
 // Notice that localStorage allows to store only a string value
 // so we'll need to use something like
-// "localStorage.tutorial_finished == true"
+// localStorage.tutorial_finished == "true"
 // to access it
+
+// Some helper variables for tutorial functions
+var tutorial_canvas, tutorial_ctx
 
 // We'll now define some text that will be shown in the tutorial
 
@@ -184,6 +187,48 @@ localStorage.tutorial_finished = localStorage.tutorial_finished || "false";
 var tutorial_strings = [
 { text: "Welcome to SpaceBots! Blablablablabla", start: function() {
 	console.log("Starting the tutorial!")
+	var objid = common.uid()
+	objects[objid] = {
+		id: objid,
+		fetch_time: 999999999999,
+		integrity: 9999,
+		mass: 25,
+		manipulator_range: 50,
+		position: $V([0,0,0]),
+		velocity: $V([0,0,0]),
+		skeleton_slots: new Array(6),
+		sprite: "/hull.png",
+		features: { manipulator: true, skeleton: true },
+		screen_position: $V([0,0])
+	};
+}},
+{ text: "This is your ship. Click on it to show some options!", start: function() {
+	tutorial_canvas = document.createElement('canvas');
+	tutorial_canvas.width  = 100;
+	tutorial_canvas.height = 100;
+	tutorial_canvas.style.position = "fixed";
+	tutorial_canvas.style.left = window.innerWidth/2-tutorial_canvas.width/2+"px";
+	tutorial_canvas.style.top = window.innerHeight/2-tutorial_canvas.height-50+"px";
+	document.getElementById("overlay").appendChild(tutorial_canvas)
+	tutorial_ctx = tutorial_canvas.getContext('2d')
+}, resize: function() {
+	tutorial_canvas.style.left = window.innerWidth/2-tutorial_canvas.width/2+"px";
+	tutorial_canvas.style.top = window.innerHeight/2-tutorial_canvas.height-50+"px";
+}, animate: function() {
+	//TODO: Animate the arrow. Something like the "?" sign but in JavaScript.
+	tutorial_ctx.fillStyle = "rgba(255, 0, 0, 0.75)"
+	tutorial_ctx.beginPath()
+	tutorial_ctx.moveTo(25, 0)
+	tutorial_ctx.lineTo(75, 0)
+	tutorial_ctx.lineTo(75, 75)
+	tutorial_ctx.lineTo(100, 75)
+	tutorial_ctx.lineTo(50, 100)
+	tutorial_ctx.lineTo(0, 75)
+	tutorial_ctx.lineTo(25, 75)
+	tutorial_ctx.lineTo(25, 0)
+	tutorial_ctx.fill()
+}, stop: function() {
+	document.getElementById("overlay").removeChild(tutorial_canvas)
 }},
 { text: "TODO: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla eleifend turpis sed mauris blandit tincidunt. Donec a turpis a enim." },
 { text: "TODO: Nulla justo odio, posuere in orci at, tincidunt blandit sem. Suspendisse ut pretium risus. Integer eu justo lectus. Nullam id." },
@@ -255,6 +300,10 @@ var tutorial_continue = function() {
 		// We basically do the same as in tutorial_skip()
 		localStorage.tutorial_finished = "true";
 		document.getElementById("tutwindow").style.display="none";
+		
+		// Before logging in, we'll clear objects table, because example tutorial objects shouldn't be shown in online mode
+		objects = { }
+		
 		log_in();
 		//End the function - we don't want to load new message
 		return;
@@ -775,7 +824,7 @@ var stop_tick = function() {
 };
 
 // This function will be executed after clicking on stop orb.
-// Its only function will bi to set up our stop_tick timer.
+// Its only function will be to set up our stop_tick timer.
 
 var stop = function() {
 	if(stop_timer == 0) {
@@ -1221,6 +1270,10 @@ var tick = function(time) {
 
 	current_time = time;
 	ctx.restore();
+	
+	// Execute animate function from the tutorial
+	
+	if(tutorial_process < tutorial_strings.length && tutorial_strings[tutorial_process].animate) tutorial_strings[tutorial_process].animate()
 };
 animate(tick);
 
@@ -1574,8 +1627,12 @@ onresize = function(e) {
 	}
 	background();
 
-	document.getElementById("intro").style.left = window.innerWidth/2;
-	document.getElementById("intro").style.top = window.innerHeight/2;
+	document.getElementById("tutorial").style.left = window.innerWidth/2;
+	document.getElementById("tutorial").style.top = window.innerHeight/2;
+	
+	// Execute resize function from the tutorial
+	
+	if(tutorial_process < tutorial_strings.length && tutorial_strings[tutorial_process].resize) tutorial_strings[tutorial_process].resize()
 };
 onresize();
 
