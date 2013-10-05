@@ -179,17 +179,21 @@ localStorage.tutorial_finished = localStorage.tutorial_finished || "false";
 // to access it
 
 // Some helper variables for tutorial functions
-var tutorial_canvas, tutorial_ctx
+var tutorial_canvas, tutorial_ctx, tutorial_original_socket
 
 // We'll now define some text that will be shown in the tutorial
 
 //TODO
 var tutorial_strings = [
 { text: "Welcome to SpaceBots! Blablablablabla", start: function() {
-	console.log("Starting the tutorial!")
-	var objid = common.uid()
-	objects[objid] = {
-		id: objid,
+	console.log("Starting the tutorial!");
+	
+	tutorial_original_socket = socket;
+	socket = { emit: function(msg, data) { console.error("Tried to send in tutorial mode!") } };
+	
+	var shipid = common.uid();
+	manipulator = objects[shipid] = {
+		id: shipid,
 		fetch_time: 999999999999,
 		integrity: 9999,
 		mass: 25,
@@ -198,8 +202,58 @@ var tutorial_strings = [
 		velocity: $V([0,0,0]),
 		skeleton_slots: new Array(6),
 		sprite: "/hull.png",
-		features: { manipulator: true, skeleton: true },
+		features: { skeleton: true, manipulator: true },
 		screen_position: $V([0,0])
+	};
+	
+	var objid = common.uid();
+	avatar = objects[shipid].skeleton_slots[0] = objects[objid] = {
+		id: objid,
+		fetch_time: 999999999999,
+		integrity: 9999,
+		mass: 15,
+		radar_range: 1000,
+		sprite: "/avatar.png",
+		features: { avatar: true, radar: true },
+		parent: objects[shipid]
+	};
+	
+	objid = common.uid();
+	impulse_drive = store = battery = objects[shipid].skeleton_slots[1] = objects[objid] = {
+		id: objid,
+		fetch_time: 999999999999,
+		integrity: 9999,
+		mass: 75,
+		sprite: "/impulse_drive.png",
+		features: { battery: true, impulse_drive: true, store: true },
+		parent: objects[shipid],
+		battery_capacity: 9999999,
+		battery_energy: 9999999,
+		store_capacity: 9999,
+		store_stored: new Array(100)
+	};
+	objects[objid].store_stored[0] = 9999;
+	
+	objid = common.uid();
+	objects[shipid].skeleton_slots[2] = objects[objid] = {
+		id: objid,
+		fetch_time: 999999999999,
+		integrity: 9999,
+		mass: 100,
+		sprite: "/assembler.png",
+		features: { assembler: true, refinery: true, spectrometer: true },
+		parent: objects[shipid]
+	};
+	
+	objid = common.uid();
+	objects[shipid].skeleton_slots[3] = objects[objid] = {
+		id: objid,
+		fetch_time: 999999999999,
+		integrity: 9999,
+		mass: 200,
+		sprite: "/laboratory.png",
+		features: { burning_reactor: true, enriching_reactor: true, laboratory: true },
+		parent: objects[shipid]
 	};
 }},
 { text: "This is your ship. Click on it to show some options!", start: function() {
@@ -228,7 +282,13 @@ var tutorial_strings = [
 	tutorial_ctx.lineTo(25, 0)
 	tutorial_ctx.fill()
 }, stop: function() {
+	socket = tutorial_original_socket;
 	document.getElementById("overlay").removeChild(tutorial_canvas)
+}, finished: function() {
+	if(document.getElementById(avatar.parent.id))
+		return true
+	else
+		return false
 }},
 { text: "TODO: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla eleifend turpis sed mauris blandit tincidunt. Donec a turpis a enim." },
 { text: "TODO: Nulla justo odio, posuere in orci at, tincidunt blandit sem. Suspendisse ut pretium risus. Integer eu justo lectus. Nullam id." },
@@ -286,6 +346,9 @@ var tutorial_skip = function() {
 // Now a function to continue to next tutorial step
 
 var tutorial_continue = function() {
+	// Check if the step is finished
+	if(tutorial_strings[tutorial_process].finished) if(!tutorial_strings[tutorial_process].finished()) return;
+
 	// If we have function to end the current step, execute it
 	// This will be used for interacive exercises and arrows
 	// showing interface elemets
@@ -1274,6 +1337,19 @@ var tick = function(time) {
 	// Execute animate function from the tutorial
 	
 	if(tutorial_process < tutorial_strings.length && tutorial_strings[tutorial_process].animate) tutorial_strings[tutorial_process].animate()
+	
+	//Check if the step is finished, and set the button state
+	
+	var btn = document.getElementById("tutwindow_button");
+	if(tutorial_strings[tutorial_process].finished) {
+		if(tutorial_strings[tutorial_process].finished()) {
+			btn.disabled = false;
+		} else {
+			btn.disabled = true;
+		}
+	} else {
+		btn.disabled = false;
+	}
 };
 animate(tick);
 
