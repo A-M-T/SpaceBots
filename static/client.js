@@ -180,13 +180,18 @@ localStorage.tutorial_finished = localStorage.tutorial_finished || "false";
 
 // We'll now define some text that will be shown in the tutorial
 
+//TODO
 var tutorial_strings = [
-"Welcome to SpaceBots! Blablablablabla",
-"TODO: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla eleifend turpis sed mauris blandit tincidunt. Donec a turpis a enim.",
-"TODO: Nulla justo odio, posuere in orci at, tincidunt blandit sem. Suspendisse ut pretium risus. Integer eu justo lectus. Nullam id.",
-"TODO: Sed condimentum neque quis nulla tincidunt scelerisque. Sed vitae turpis lobortis, posuere neque eget, sagittis metus. Praesent at magna eu.",
-"TODO: Pellentesque hendrerit bibendum neque, malesuada pellentesque nisl feugiat at. Integer molestie sit amet arcu non iaculis. Interdum et malesuada fames.",
-"That's all! You're now ready to enter the SpaceBots world!"
+{ text: "Welcome to SpaceBots! Blablablablabla", start: function() {
+	console.log("Starting the tutorial!")
+}},
+{ text: "TODO: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla eleifend turpis sed mauris blandit tincidunt. Donec a turpis a enim." },
+{ text: "TODO: Nulla justo odio, posuere in orci at, tincidunt blandit sem. Suspendisse ut pretium risus. Integer eu justo lectus. Nullam id." },
+{ text: "TODO: Sed condimentum neque quis nulla tincidunt scelerisque. Sed vitae turpis lobortis, posuere neque eget, sagittis metus. Praesent at magna eu." },
+{ text: "TODO: Pellentesque hendrerit bibendum neque, malesuada pellentesque nisl feugiat at. Integer molestie sit amet arcu non iaculis. Interdum et malesuada fames." },
+{ text: "That's all! You're now ready to enter the SpaceBots world!", stop: function() {
+	console.log("Tutorial has ended, logging in...")
+}}
 ];
 
 // We need to somehow store process of the tutorial. It'll be just a variable
@@ -203,9 +208,13 @@ var tutorial_start = function() {
     
     document.getElementById("tutwindow").style.display="table";
     
+    // Exectute the function to start the first step (more details in tutorial_continue)
+    
+    if(tutorial_strings[0].start) tutorial_strings[0].start()
+    
     // Set the window contents to the first tutorial text
     
-    document.getElementById("tutwindow_text").innerHTML = tutorial_strings[0];
+    document.getElementById("tutwindow_text").innerHTML = tutorial_strings[0].text;
     
     // And hide the question window
     
@@ -232,13 +241,18 @@ var tutorial_skip = function() {
 // Now a function to continue to next tutorial step
 
 var tutorial_continue = function() {
+	// If we have function to end the current step, execute it
+	// This will be used for interacive exercises and arrows
+	// showing interface elemets
+	if(tutorial_strings[tutorial_process].stop) tutorial_strings[tutorial_process].stop()
+	
 	// Increase current step id by one
 
 	tutorial_process++;
 	
 	// If it was a last step, end the tutorial
 	if(tutorial_process == tutorial_strings.length) {
-		// We basically do the same as in tutorial_skip
+		// We basically do the same as in tutorial_skip()
 		localStorage.tutorial_finished = "true";
 		document.getElementById("tutwindow").style.display="none";
 		log_in();
@@ -254,7 +268,11 @@ var tutorial_continue = function() {
 	
 	// Set the tutorial window text to the current one
 	
-	document.getElementById("tutwindow_text").innerHTML = tutorial_strings[tutorial_process];
+	document.getElementById("tutwindow_text").innerHTML = tutorial_strings[tutorial_process].text;
+	
+	// And execute function to start current step
+	
+	if(tutorial_strings[tutorial_process].start) tutorial_strings[tutorial_process].start()
 }
 
 // We should hide the tutorial question if we already finished it, shouldn't we?
