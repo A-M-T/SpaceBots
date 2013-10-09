@@ -165,7 +165,7 @@ var log_in = function() {
 	// Now that we have an id, we can send it to the server.
 
 	socket.emit('log in', { player_id: localStorage.player_id });
-}
+};
 
 // Now we start with the tutorial code. Let's begin with defining default
 // values for tutorial_finished variable - we assume that if user starts
@@ -179,7 +179,7 @@ localStorage.tutorial_finished = localStorage.tutorial_finished || "false";
 // to access it
 
 // Some helper variables for tutorial functions
-var tutorial_canvas, tutorial_ctx, tutorial_original_socket
+var tutorial_canvas, tutorial_ctx, tutorial_original_socket;
 
 // We'll now define some text that will be shown in the tutorial
 
@@ -284,31 +284,31 @@ var tutorial_strings = [
 	tutorial_canvas.style.position = "fixed";
 	tutorial_canvas.style.left = window.innerWidth/2-tutorial_canvas.width/2+"px";
 	tutorial_canvas.style.top = window.innerHeight/2-tutorial_canvas.height-50+"px";
-	document.getElementById("overlay").appendChild(tutorial_canvas)
-	tutorial_ctx = tutorial_canvas.getContext('2d')
+	document.getElementById("overlay").appendChild(tutorial_canvas);
+	tutorial_ctx = tutorial_canvas.getContext('2d');
 }, resize: function() {
 	tutorial_canvas.style.left = window.innerWidth/2-tutorial_canvas.width/2+"px";
 	tutorial_canvas.style.top = window.innerHeight/2-tutorial_canvas.height-50+"px";
 }, animate: function() {
 	//TODO: Animate the arrow. Something like the "?" sign but in JavaScript.
-	tutorial_ctx.fillStyle = "rgba(255, 0, 0, 0.75)"
-	tutorial_ctx.beginPath()
-	tutorial_ctx.moveTo(25, 0)
-	tutorial_ctx.lineTo(75, 0)
-	tutorial_ctx.lineTo(75, 75)
-	tutorial_ctx.lineTo(100, 75)
-	tutorial_ctx.lineTo(50, 100)
-	tutorial_ctx.lineTo(0, 75)
-	tutorial_ctx.lineTo(25, 75)
-	tutorial_ctx.lineTo(25, 0)
-	tutorial_ctx.fill()
+	tutorial_ctx.fillStyle = "rgba(255, 0, 0, 0.75)";
+	tutorial_ctx.beginPath();
+	tutorial_ctx.moveTo(25, 0);
+	tutorial_ctx.lineTo(75, 0);
+	tutorial_ctx.lineTo(75, 75);
+	tutorial_ctx.lineTo(100, 75);
+	tutorial_ctx.lineTo(50, 100);
+	tutorial_ctx.lineTo(0, 75);
+	tutorial_ctx.lineTo(25, 75);
+	tutorial_ctx.lineTo(25, 0);
+	tutorial_ctx.fill();
 }, stop: function() {
-	document.getElementById("overlay").removeChild(tutorial_canvas)
+	document.getElementById("overlay").removeChild(tutorial_canvas);
 }, finished: function() {
 	if(document.getElementById(avatar.parent.id))
-		return true
+		return true;
 	else
-		return false
+		return false;
 }},
 { text: "Left icon (<img src=\"/features/skeleton.png\">) is a list of components attached to your ship's hull. Right icon (<img src=\"/features/manipulator.png\">) is a manipulator. Click on a left icon, we'll come back to the manipulator later.",
 on_controlschange: function(target, feature) {
@@ -331,14 +331,14 @@ on_controlschange: function(target, feature) {
 { text: "TODO" },
 { text: "That's all! You're now ready to enter the SpaceBots world!", stop: function() {
 	socket = tutorial_original_socket;
-	console.log("Tutorial has ended, logging in...")
+	console.log("Tutorial has ended, logging in...");
 }}
 ];
 
 // We need to somehow store process of the tutorial. It'll be just a variable
 // with id of current text from tutorial_strings table
 
-var tutorial_process = 0
+var tutorial_process = 0;
 
 // Here are three functions called from HTML code: first one starts the tutorial,
 // second one skips the tutorial and connect to the server
@@ -351,7 +351,7 @@ var tutorial_start = function() {
     
     // Exectute the function to start the first step (more details in tutorial_continue)
     
-    if(tutorial_strings[0].start) tutorial_strings[0].start()
+    if(tutorial_strings[0].start) tutorial_strings[0].start();
     
     // Set the window contents to the first tutorial text
     
@@ -360,7 +360,7 @@ var tutorial_start = function() {
     // And hide the question window
     
     document.getElementById("tutorial").style.display="none";
-}
+};
 
 var tutorial_skip = function() {
     // Set the localStorage.tutorial_finished variable to say that user
@@ -377,7 +377,7 @@ var tutorial_skip = function() {
     log_in();
     
     // That's all! We can play online!
-}
+};
 
 // Now a function to continue to next tutorial step
 
@@ -388,7 +388,7 @@ var tutorial_continue = function() {
 	// If we have function to end the current step, execute it
 	// This will be used for interacive exercises and arrows
 	// showing interface elemets
-	if(tutorial_strings[tutorial_process].stop) tutorial_strings[tutorial_process].stop()
+	if(tutorial_strings[tutorial_process].stop) tutorial_strings[tutorial_process].stop();
 	
 	// Increase current step id by one
 
@@ -401,7 +401,7 @@ var tutorial_continue = function() {
 		document.getElementById("tutwindow").style.display="none";
 		
 		// Before logging in, we'll clear objects table, because example tutorial objects shouldn't be shown in online mode
-		objects = { }
+		objects = { };
 		current_time = 0;
 		avatar = radar = impulse_drive = store = battery = manipulator = undefined;
 		
@@ -413,7 +413,7 @@ var tutorial_continue = function() {
 	// But if it wasn't, maybe the next step will be last?
 	else if(tutorial_process == tutorial_strings.length - 1) {
 		// Change the button to say "End the tutorial"
-		document.getElementById("tutwindow_button").value = "End the tutorial and go ONLINE >"
+		document.getElementById("tutwindow_button").value = "End the tutorial and go ONLINE >";
 	}
 	
 	// Set the tutorial window text to the current one
@@ -422,8 +422,8 @@ var tutorial_continue = function() {
 	
 	// And execute function to start current step
 	
-	if(tutorial_strings[tutorial_process].start) tutorial_strings[tutorial_process].start()
-}
+	if(tutorial_strings[tutorial_process].start) tutorial_strings[tutorial_process].start();
+};
 
 // We should hide the tutorial question if we already finished it, shouldn't we?
 
@@ -444,7 +444,7 @@ socket.on('connect', function () {
     // after connecting
     
     if(localStorage.tutorial_finished == "true") {
-        log_in()
+        log_in();
     }
 });
 
@@ -695,7 +695,7 @@ socket.on('report', function(obj) {
 	}
 
 	// If it is a radar, we'll save it into global `radar` variable...
-	if(('radar' in obj.features) && (radar == undefined)) {
+	if(('radar' in obj.features) && (radar === undefined)) {
 		radar = obj;
 		// ... and schedule a radar scan right away.
 		socket.emit('radar scan', {	target: radar.id });
@@ -703,15 +703,15 @@ socket.on('report', function(obj) {
 
 	// If this object is capable of hauling mass with high velocities,
 	// we'll save it into impulse_drive variable for later use.
-	if(('impulse_drive_payload' in obj) && (impulse_drive == undefined)) {
+	if(('impulse_drive_payload' in obj) && (impulse_drive === undefined)) {
 		impulse_drive = obj;
 	}
 
 	// We could alse remember our resource and energy stores:
-	if(('store_stored' in obj) && (store == undefined)) {
+	if(('store_stored' in obj) && (store === undefined)) {
 		store = obj;
 	}
-	if(('battery_energy' in obj) && (battery == undefined)) {
+	if(('battery_energy' in obj) && (battery === undefined)) {
 		battery = obj;
 	}
 
@@ -1377,7 +1377,7 @@ var tick = function(time) {
 	
 	// Execute animate function from the tutorial
 	
-	if(tutorial_process < tutorial_strings.length && tutorial_strings[tutorial_process].animate) tutorial_strings[tutorial_process].animate()
+	if(tutorial_process < tutorial_strings.length && tutorial_strings[tutorial_process].animate) tutorial_strings[tutorial_process].animate();
 	
 	// Check if the step is finished, and set the button state
 	
@@ -1498,7 +1498,7 @@ controls.store = function(elem, object) {
 	elem.appendChild(document.createTextNode(desc));
 
 	var sctx = scvs.getContext('2d');
-	sctx.lineWidth = 2
+	sctx.lineWidth = 2;
 	for(var i = 0; i < 100; ++i) {
 		sctx.beginPath();
 		sctx.moveTo(i*2+1, 100);
@@ -1567,7 +1567,7 @@ var show_details_for = function(object, event) {
 			time /= 1000;
 
 			if(!element_in_document(view)) return;
-			animate(draw)
+			animate(draw);
 			cx.clearRect(0,0, view.width, view.height);
 			var sprite_url = object.sprite || '/unknown.png';
 
@@ -1692,7 +1692,7 @@ document.addEventListener('mousedown', function(e) {
 			
 			// Notify the tutorial code that we're changing controls
 			
-			if(tutorial_process < tutorial_strings.length && tutorial_strings[tutorial_process].on_controlschange) tutorial_strings[tutorial_process].on_controlschange(details.id, feature)
+			if(tutorial_process < tutorial_strings.length && tutorial_strings[tutorial_process].on_controlschange) tutorial_strings[tutorial_process].on_controlschange(details.id, feature);
 			
 		} else if(details) {
 			drag = {
@@ -1762,7 +1762,7 @@ onresize = function(e) {
 	
 	// Execute resize function from the tutorial
 	
-	if(tutorial_process < tutorial_strings.length && tutorial_strings[tutorial_process].resize) tutorial_strings[tutorial_process].resize()
+	if(tutorial_process < tutorial_strings.length && tutorial_strings[tutorial_process].resize) tutorial_strings[tutorial_process].resize();
 };
 onresize();
 
@@ -1791,6 +1791,6 @@ function help() {
 		editor.setValue(client.responseText);
 		editor.clearSelection();
 		editor.scrollToLine(0, false, false);
-	}
+	};
 	client.send();
 }
