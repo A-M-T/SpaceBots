@@ -402,6 +402,8 @@ var tutorial_continue = function() {
 		
 		// Before logging in, we'll clear objects table, because example tutorial objects shouldn't be shown in online mode
 		objects = { }
+		current_time = 0;
+		avatar = radar = impulse_drive = store = battery = manipulator = undefined;
 		
 		log_in();
 		//End the function - we don't want to load new message
