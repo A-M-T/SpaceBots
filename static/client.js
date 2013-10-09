@@ -134,8 +134,8 @@ var socket = io.connect();
 // server will be done by sending and receiving messages using just
 // created socket.
 
-// After connection we should log in. Here we a function to log in
-// to the game
+// After connection we should log in. Here we have a function to
+// log in to the game
 
 var log_in = function() {
 	// We don't have an account yet. A player is identified by a long
