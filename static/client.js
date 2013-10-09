@@ -189,12 +189,31 @@ var tutorial_strings = [
 	console.log("Starting the tutorial!");
 	
 	tutorial_original_socket = socket;
-	socket = { emit: function(msg, data) { console.error("Tried to send in tutorial mode!") } };
+	socket = { emit: function(msg, data) {
+		if(msg == 'impulse_drive push') {
+			var reaction_mass = resources.get_mass(data.composition);
+			var momentum = reaction_mass * data.impulse;
+		
+			var root = common.get_root(common.get(data.target));
+			var d = root.position.distanceFrom(data.destination);
+			var time = d / data.impulse;
+
+			var direction = root.position.
+				subtract(data.destination).
+				toUnitVector();
+
+			var mass = resources.get_connected_mass(common.get(data.target));
+			var dv = momentum / mass;
+			root.velocity = root.velocity.add( direction.toUnitVector().x(dv) );
+		} else {
+			console.error("Tried to send unknown message in tutorial mode!");
+		}
+	} };
 	
 	var shipid = common.uid();
 	manipulator = objects[shipid] = {
 		id: shipid,
-		fetch_time: 999999999999,
+		fetch_time: -1,
 		integrity: 9999,
 		mass: 25,
 		manipulator_range: 50,
@@ -207,9 +226,9 @@ var tutorial_strings = [
 	};
 	
 	var objid = common.uid();
-	avatar = objects[shipid].skeleton_slots[0] = objects[objid] = {
+	radar = avatar = objects[shipid].skeleton_slots[0] = objects[objid] = {
 		id: objid,
-		fetch_time: 999999999999,
+		fetch_time: -1,
 		integrity: 9999,
 		mass: 15,
 		radar_range: 1000,
@@ -221,23 +240,25 @@ var tutorial_strings = [
 	objid = common.uid();
 	impulse_drive = store = battery = objects[shipid].skeleton_slots[1] = objects[objid] = {
 		id: objid,
-		fetch_time: 999999999999,
+		fetch_time: -1,
 		integrity: 9999,
 		mass: 75,
 		sprite: "/impulse_drive.png",
-		features: { battery: true, impulse_drive: true, store: true },
+		features: { impulse_drive: true, battery: true, store: true },
 		parent: objects[shipid],
 		battery_capacity: 9999999,
 		battery_energy: 9999999,
 		store_capacity: 9999,
-		store_stored: new Array(100)
+		store_stored: new Array(100),
+		impulse_drive_impulse: 3000,
+		impulse_drive_payload: 3
 	};
 	objects[objid].store_stored[0] = 9999;
 	
 	objid = common.uid();
 	objects[shipid].skeleton_slots[2] = objects[objid] = {
 		id: objid,
-		fetch_time: 999999999999,
+		fetch_time: -1,
 		integrity: 9999,
 		mass: 100,
 		sprite: "/assembler.png",
@@ -248,7 +269,7 @@ var tutorial_strings = [
 	objid = common.uid();
 	objects[shipid].skeleton_slots[3] = objects[objid] = {
 		id: objid,
-		fetch_time: 999999999999,
+		fetch_time: -1,
 		integrity: 9999,
 		mass: 200,
 		sprite: "/laboratory.png",
@@ -282,7 +303,6 @@ var tutorial_strings = [
 	tutorial_ctx.lineTo(25, 0)
 	tutorial_ctx.fill()
 }, stop: function() {
-	socket = tutorial_original_socket;
 	document.getElementById("overlay").removeChild(tutorial_canvas)
 }, finished: function() {
 	if(document.getElementById(avatar.parent.id))
@@ -290,11 +310,27 @@ var tutorial_strings = [
 	else
 		return false
 }},
-{ text: "TODO: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla eleifend turpis sed mauris blandit tincidunt. Donec a turpis a enim." },
-{ text: "TODO: Nulla justo odio, posuere in orci at, tincidunt blandit sem. Suspendisse ut pretium risus. Integer eu justo lectus. Nullam id." },
-{ text: "TODO: Sed condimentum neque quis nulla tincidunt scelerisque. Sed vitae turpis lobortis, posuere neque eget, sagittis metus. Praesent at magna eu." },
-{ text: "TODO: Pellentesque hendrerit bibendum neque, malesuada pellentesque nisl feugiat at. Integer molestie sit amet arcu non iaculis. Interdum et malesuada fames." },
+{ text: "Left icon (<img src=\"/features/skeleton.png\">) is a list of components attached to your ship's hull. Right icon (<img src=\"/features/manipulator.png\">) is a manipulator. Click on a left icon, we'll come back to the manipulator later.",
+on_controlschange: function(target, feature) {
+	if(target != common.get_root(avatar).id) return;
+	tutorial_strings[tutorial_process].var_finished = (feature == "skeleton");
+}, finished: function() {
+	return tutorial_strings[tutorial_process].var_finished;
+}, var_finished: false },
+{ text: "There are listed all of your ship's elements. Every row starts with first 4 chars of element ID, and is followed by pictures of element's features. We'll now shortly describe each of them." },
+{ text: "In the first row you have your avatar (<img src=\"/features/avatar.png\">) and radar (<img src=\"/features/radar.png\">)." },
+{ text: "<img src=\"/features/avatar.png\"> Avatar is basically your gateway to the ship, that can control other elements. You can have more than one avatar on the ship, but the web interface will allow you to control only the first one." },
+{ text: "<img src=\"/features/radar.png\"> Radar is a way of looking at the world around you. Without a radar, you're basically blind." },
+{ text: "In the second row you have your impulse drive (<img src=\"/features/impulse_drive.png\">), battery (<img src=\"/features/battery.png\">) and store (<img src=\"/features/store.png\">)." },
+{ text: "<img src=\"/features/impulse_drive.png\"> Impulse drive is an engine that will provide thrust by throwing matter out of the exhaust pipe with blazing speeds. It basically allows us to move. We'll learn how to use it in a second." },
+{ text: "<img src=\"/features/battery.png\"> Battery provides your ship with energy. It is used for example by impulse drive. There isn't any way of recharging the battery implemented yet - so use the energy reasonably!" },
+{ text: "<img src=\"/features/store.png\"> Store will store all resources you collect. They are for example used to be thrown with impulse drive. There isn't any way of refilling the store implemented yet - so use the resources reasonably!" },
+{ text: "In the third row you have the assembler (<img src=\"/features/assembler.png\">), refinery (<img src=\"/features/refinery.png\">) and spectrometer (<img src=\"/features/spectrometer.png\">). They all aren't implemented yet." },
+{ text: "In the fourth row you have burning reactor (<img src=\"/features/burning_reactor.png\">), enriching reactor (<img src=\"/features/enriching_reactor.png\">) and laboratory (<img src=\"/features/laboratory.png\">). They also aren't implemented yet." },
+{ text: "5th and 6th rows are empty and available to expand your ship" },
+{ text: "TODO" },
 { text: "That's all! You're now ready to enter the SpaceBots world!", stop: function() {
+	socket = tutorial_original_socket;
 	console.log("Tutorial has ended, logging in...")
 }}
 ];
@@ -882,7 +918,10 @@ var stop_tick = function() {
 
 	}
 
-	socket.emit('report', { target: common.get_root(avatar).id });
+	// TODO: Every execution of this line doubles the object rescan speed
+	// Stopping doesn't look too good visually with so slow rescans
+	// BTW, this was meant to be 'radar scan'
+	//socket.emit('report', { target: common.get_root(avatar).id });
 
 };
 
@@ -1338,10 +1377,10 @@ var tick = function(time) {
 	
 	if(tutorial_process < tutorial_strings.length && tutorial_strings[tutorial_process].animate) tutorial_strings[tutorial_process].animate()
 	
-	//Check if the step is finished, and set the button state
+	// Check if the step is finished, and set the button state
 	
 	var btn = document.getElementById("tutwindow_button");
-	if(tutorial_strings[tutorial_process].finished) {
+	if(tutorial_process < tutorial_strings.length && tutorial_strings[tutorial_process].finished) {
 		if(tutorial_strings[tutorial_process].finished()) {
 			btn.disabled = false;
 		} else {
@@ -1349,6 +1388,14 @@ var tick = function(time) {
 		}
 	} else {
 		btn.disabled = false;
+	}
+	
+	// Update fetch_time and position if in tutorial mode
+	if(document.getElementById("tutwindow").style.display != "none") {
+		for(var obj in objects) {
+			if(objects[obj].position) objects[obj].position = get_current_pos(objects[obj]);
+			objects[obj].fetch_time = current_time;
+		}
 	}
 };
 animate(tick);
@@ -1640,6 +1687,11 @@ document.addEventListener('mousedown', function(e) {
 			var feature = e.target.getAttribute('title');
 			var object = objects[details.id];
 			controls[feature](controls_div, object);
+			
+			// Notify the tutorial code that we're changing controls
+			
+			if(tutorial_process < tutorial_strings.length && tutorial_strings[tutorial_process].on_controlschange) tutorial_strings[tutorial_process].on_controlschange(details.id, feature)
+			
 		} else if(details) {
 			drag = {
 				dragged: details,
