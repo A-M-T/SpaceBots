@@ -1757,8 +1757,8 @@ onresize = function(e) {
 	}
 	background();
 
-	document.getElementById("tutorial").style.left = window.innerWidth/2;
-	document.getElementById("tutorial").style.top = window.innerHeight/2;
+	document.getElementById("tutorial").style.left = (window.innerWidth/2 - 150)+"px";
+	document.getElementById("tutorial").style.top = (window.innerHeight/2 - 50)+"px";
 	
 	// Execute resize function from the tutorial
 	
