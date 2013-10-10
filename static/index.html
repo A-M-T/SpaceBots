@@ -180,7 +180,6 @@ li:nth-child(2n-1) {
   /*background-color: #BBBBBB;*/
   border-style: double;
   height: 1em;
-  text-align: right;
 }
 </style>
 <body>
@@ -188,9 +187,9 @@ li:nth-child(2n-1) {
 <canvas id="canvas"></canvas>
 <div id="overlay">
   <table id="tutwindow" class="window details" style="display: none;">
-    <tr class="window_title features"><td>Tutorial</td></tr>
-    <tr class="window_text deep" style="text-align: left;"><td id="tutwindow_text" style="vertical-align: top; padding: 0.5em;">[SOME INFO]</td></tr>
-    <tr class="window_buttonline features"><td><input type="button" onclick="tutorial_continue()" value="Continue >" id="tutwindow_button" /></td></tr>
+    <tr class="window_title features"><td colspan="2">Tutorial</td></tr>
+    <tr class="window_text deep" style="text-align: left;"><td id="tutwindow_text" style="vertical-align: top; padding: 0.5em;" colspan="2">[SOME INFO]</td></tr>
+    <tr class="window_buttonline features"><td style="text-align: left;"><input type="button" onclick="tutorial_reset()" value="Reset" id="tutwindow_resetbutton" /><td style="text-align: right;"><input type="button" onclick="tutorial_continue()" value="Continue >" id="tutwindow_button" /></td></tr>
   </table>
 </div>
 <table id="tutorial" class="window details">

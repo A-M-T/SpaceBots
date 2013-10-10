@@ -179,7 +179,7 @@ localStorage.tutorial_finished = localStorage.tutorial_finished || "false";
 // to access it
 
 // Some helper variables for tutorial functions
-var tutorial_canvas, tutorial_ctx, tutorial_original_socket;
+var tutorial_canvas, tutorial_ctx, tutorial_original_socket, tutorial_target_id;
 
 // We'll now define some text that will be shown in the tutorial
 
@@ -328,6 +328,51 @@ on_controlschange: function(target, feature) {
 { text: "In the third row you have the assembler (<img src=\"/features/assembler.png\">), refinery (<img src=\"/features/refinery.png\">) and spectrometer (<img src=\"/features/spectrometer.png\">). They all aren't implemented yet." },
 { text: "In the fourth row you have burning reactor (<img src=\"/features/burning_reactor.png\">), enriching reactor (<img src=\"/features/enriching_reactor.png\">) and laboratory (<img src=\"/features/laboratory.png\">). They also aren't implemented yet." },
 { text: "5th and 6th rows are empty and available to expand your ship" },
+{ text: "OK, so now it's time to use our engines to move! Click on the ID of impulse drive (<img src=\"/features/impulse_drive.png\">).", finished: function() {
+	if(document.getElementById(impulse_drive.id))
+		return true;
+	else
+		return false;
+}},
+{ text: "Open impule drive controls by clicking on <img src=\"/features/impulse_drive.png\"> icon.",
+on_controlschange: function(target, feature) {
+	if(target != impulse_drive.id) return;
+	tutorial_strings[tutorial_process].var_finished = (feature == "impulse_drive");
+}, finished: function() {
+	return tutorial_strings[tutorial_process].var_finished;
+}, var_finished: false },
+{ text: "You can click on any of the arrows to move in specified direction. Ice orb in the center stops the ship. Click any of the arrows now!",
+finished: function() {
+	return !common.get_root(avatar).velocity.eql($V([0,0,0]));
+}},
+{ text: "Look, you're moving! Now we'll try to move to the specific target." },
+{ text: "Move towards that asteroid! It you'll get stuck, click \"Reset\" button to restore state form the beginning of the exercise",
+resetable: true,
+reset: function() {
+	if(tutorial_target_id !== undefined) {
+		delete objects[tutorial_target_id];
+	}
+	common.get_root(avatar).position = $V([0,0,0]);
+	common.get_root(avatar).velocity = $V([0,0,0]);
+	tutorial_target_id = common.uid();
+	var asteroid = objects[tutorial_target_id] = {
+		id: tutorial_target_id,
+		fetch_time: -1,
+		position: $V([-150, 0, 0]),
+		velocity: $V([0, 0, 0]),
+		screen_position: $V([0,0]),
+		sprite: "/asteroid100.png"
+	};
+}, start: function() {
+	tutorial_strings[tutorial_process].reset();
+}, stop: function() {
+	delete objects[tutorial_target_id];
+	common.get_root(avatar).position = $V([0,0,0]);
+	common.get_root(avatar).velocity = $V([0,0,0]);
+}, finished: function() {
+	if(!tutorial_strings[tutorial_process].finished_var) tutorial_strings[tutorial_process].finished_var = common.get_root(avatar).position.distanceFrom(objects[tutorial_target_id].position) < 25
+	return tutorial_strings[tutorial_process].finished_var
+}, finished_var: false},
 { text: "TODO" },
 { text: "That's all! You're now ready to enter the SpaceBots world!", stop: function() {
 	socket = tutorial_original_socket;
@@ -356,6 +401,14 @@ var tutorial_start = function() {
     // Set the window contents to the first tutorial text
     
     document.getElementById("tutwindow_text").innerHTML = tutorial_strings[0].text;
+    
+	// If the step is resetable, show the button, if not hide it
+	
+	if(tutorial_strings[tutorial_process].resetable === true) {
+		document.getElementById("tutwindow_resetbutton").style.display="inherit";
+	} else {
+		document.getElementById("tutwindow_resetbutton").style.display="none";
+	}
     
     // And hide the question window
     
@@ -420,10 +473,26 @@ var tutorial_continue = function() {
 	
 	document.getElementById("tutwindow_text").innerHTML = tutorial_strings[tutorial_process].text;
 	
+	// If the step is resetable, show the button, if not hide it
+	
+	if(tutorial_strings[tutorial_process].resetable === true) {
+		document.getElementById("tutwindow_resetbutton").style.display="inherit";
+	} else {
+		document.getElementById("tutwindow_resetbutton").style.display="none";
+	}
+	
 	// And execute function to start current step
 	
 	if(tutorial_strings[tutorial_process].start) tutorial_strings[tutorial_process].start();
 };
+
+var tutorial_reset = function() {
+	if(tutorial_strings[tutorial_process].resetable !== true) return;
+	
+	if(!tutorial_strings[tutorial_process].reset) return;
+	
+	tutorial_strings[tutorial_process].reset();
+}
 
 // We should hide the tutorial question if we already finished it, shouldn't we?
 
