@@ -14,7 +14,10 @@ var logger = new (winston.Logger)({
 	})],
 	exceptionHandlers : [new winston.transports.File({
 		filename : __dirname + '/exceptions.log',
-		json : false,
+		json : true,
+		stringify : function (obj) {
+			return JSON.stringify(obj, null, 2);
+		},
 		timestamp: ts
 	})],
 	exitOnError : false
