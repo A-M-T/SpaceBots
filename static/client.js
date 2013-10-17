@@ -399,7 +399,60 @@ reset: function() {
 	if(!tutorial_strings[tutorial_process].finished_var) tutorial_strings[tutorial_process].finished_var = common.get_root(avatar).position.distanceFrom(objects[tutorial_target_id].position) < 30;
 	return tutorial_strings[tutorial_process].finished_var;
 }, finished_var: false},
-{ text: "TODO" }, //TODO: More tutorial ;)
+{ text: "It's not so simple now: you need to move on two axes to go near the target",
+resetable: true,
+reset: function() {
+	if(tutorial_target_id !== undefined) {
+		delete objects[tutorial_target_id];
+	}
+	common.get_root(avatar).position = $V([0,0,0]);
+	common.get_root(avatar).velocity = $V([0,0,0]);
+	tutorial_target_id = common.uid();
+	var asteroid = objects[tutorial_target_id] = {
+		id: tutorial_target_id,
+		fetch_time: -1,
+		position: $V([-150, 0, -150]),
+		velocity: $V([0, 0, 0]),
+		screen_position: $V([0,0]),
+		sprite: "/asteroid100.png"
+	};
+}, start: function() {
+	tutorial_strings[tutorial_process].reset();
+}, stop: function() {
+	delete objects[tutorial_target_id];
+	common.get_root(avatar).position = $V([0,0,0]);
+	common.get_root(avatar).velocity = $V([0,0,0]);
+}, finished: function() {
+	if(!tutorial_strings[tutorial_process].finished_var) tutorial_strings[tutorial_process].finished_var = common.get_root(avatar).position.distanceFrom(objects[tutorial_target_id].position) < 50;
+	return tutorial_strings[tutorial_process].finished_var;
+}, finished_var: false},
+{ text: "This dashed line represents diffrence in height (Y axis). Now you need to use the green arrow to move in that direction.",
+resetable: true,
+reset: function() {
+	if(tutorial_target_id !== undefined) {
+		delete objects[tutorial_target_id];
+	}
+	common.get_root(avatar).position = $V([0,0,0]);
+	common.get_root(avatar).velocity = $V([0,0,0]);
+	tutorial_target_id = common.uid();
+	var asteroid = objects[tutorial_target_id] = {
+		id: tutorial_target_id,
+		fetch_time: -1,
+		position: $V([0, -150, 0]),
+		velocity: $V([0, 0, 0]),
+		screen_position: $V([0,0]),
+		sprite: "/asteroid100.png"
+	};
+}, start: function() {
+	tutorial_strings[tutorial_process].reset();
+}, stop: function() {
+	delete objects[tutorial_target_id];
+	common.get_root(avatar).position = $V([0,0,0]);
+	common.get_root(avatar).velocity = $V([0,0,0]);
+}, finished: function() {
+	if(!tutorial_strings[tutorial_process].finished_var) tutorial_strings[tutorial_process].finished_var = common.get_root(avatar).position.distanceFrom(objects[tutorial_target_id].position) < 50;
+	return tutorial_strings[tutorial_process].finished_var;
+}, finished_var: false},
 { text: "You can close windows by middle-clicking them. Close all windows you've opened before!", finished: function() {
 	var windows = document.getElementById("overlay").childNodes;
 	var ok = true;
@@ -411,7 +464,7 @@ reset: function() {
 	}
 	return ok;
 }},
-{ text: "That's all! You're now ready to enter the SpaceBots world!", stop: function() {
+{ text: "That's all! You're now ready to enter the SpaceBots world! You can find more informations about programming the game by clicking on the \"?\" sign in the upper-left corner", stop: function() {
 	socket = tutorial_original_socket;
 	
 	
