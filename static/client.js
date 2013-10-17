@@ -346,7 +346,7 @@ finished: function() {
 	return !common.get_root(avatar).velocity.eql($V([0,0,0]));
 }},
 { text: "Look, you're moving! Now we'll try to move to the specific target." },
-{ text: "Move towards that asteroid! It you'll get stuck, click \"Reset\" button to restore state form the beginning of the exercise",
+{ text: "Move towards that asteroid! It you'll get stuck, click \"Reset\" button to restore state from the beginning of the exercise",
 resetable: true,
 reset: function() {
 	if(tutorial_target_id !== undefined) {
@@ -373,7 +373,18 @@ reset: function() {
 	if(!tutorial_strings[tutorial_process].finished_var) tutorial_strings[tutorial_process].finished_var = common.get_root(avatar).position.distanceFrom(objects[tutorial_target_id].position) < 25
 	return tutorial_strings[tutorial_process].finished_var
 }, finished_var: false},
-{ text: "TODO" },
+{ text: "TODO" }, //TODO: More tutorial ;)
+{ text: "You can close windows by middle-clicking them. Close all windows you've opened before!", finished: function() {
+	var windows = document.getElementById("overlay").childNodes;
+	var ok = true
+	for (var i = 0; i < windows.length; ++i) {
+		var elem = windows[i];
+		if(elem.id != "tutwindow" && elem.id !== undefined) {
+			ok = false;
+		}
+	}
+	return ok;
+}},
 { text: "That's all! You're now ready to enter the SpaceBots world!", stop: function() {
 	socket = tutorial_original_socket;
 	console.log("Tutorial has ended, logging in...");
