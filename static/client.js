@@ -385,7 +385,7 @@ reset: function() {
 		id: tutorial_target_id,
 		fetch_time: -1,
 		position: $V([0, 0, -50]),
-		velocity: $V([0, 0, -15]),
+		velocity: $V([0, 0, -20]),
 		screen_position: $V([0,0]),
 		sprite: "/asteroid100.png"
 	};
@@ -402,7 +402,7 @@ reset: function() {
 { text: "TODO" }, //TODO: More tutorial ;)
 { text: "You can close windows by middle-clicking them. Close all windows you've opened before!", finished: function() {
 	var windows = document.getElementById("overlay").childNodes;
-	var ok = true
+	var ok = true;
 	for (var i = 0; i < windows.length; ++i) {
 		var elem = windows[i];
 		if(elem.id != "tutwindow" && elem.id !== undefined) {
@@ -413,6 +413,17 @@ reset: function() {
 }},
 { text: "That's all! You're now ready to enter the SpaceBots world!", stop: function() {
 	socket = tutorial_original_socket;
+	
+	
+	// Close all windows
+	var windows = document.getElementById("overlay").childNodes;
+	for (var i = 0; i < windows.length; ++i) {
+		var elem = windows[i];
+		if(elem.id != "tutwindow" && elem.id !== undefined) {
+			document.getElementById("overlay").removeChild(elem);
+		}
+	}
+	
 	console.log("Tutorial has ended, logging in...");
 }}
 ];
