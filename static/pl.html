@@ -1,9 +1,13 @@
 <!doctype html>
 <meta charset=utf-8>
 <title>SpaceBots - mechanika rozgrywki</title>
+<link href='http://fonts.googleapis.com/css?family=Open+Sans:300|Share+Tech+Mono&subset=latin-ext' rel='stylesheet' type='text/css'>
 <style>
 html {
   font-family: "Open Sans", sans-serif;
+}
+body {
+  margin: 10%;
 }
 p > span {
   display: inline-block;
@@ -15,10 +19,17 @@ p > span > span {
   display: block;
 }
 
+p {
+  line-height: 2em;
+}
+
 p > span > span:nth-child(2) {
   color: #888;
-  font-family: "Courier New";
+  font-family: "Share Tech Mono";
   font-size: .8em;
+}
+h1 {
+  font-weight: 300;
 }
 </style>
 <h1>Co to SpaceBots?</h1>
@@ -26,7 +37,8 @@ p > span > span:nth-child(2) {
 <p>Wyjątkową cechą SpaceBots jest możliwość pisania własnych skryptów - tam gdzie inne gry zabraniają automatów, tam SpaceBots pomaga graczom automatyzować grę. Jeśli tylko chcesz, możesz korzystać ze skryptów udostępnionych przez innych graczy - uważaj tylko żeby pewnego dnia nie zwróciły się przeciwko tobie :)
 <h1>Łańcuch badawczo - produkcyjny</h1>
 <p>To podstawowy łańcuch przetwarzania zasobów. Stanowi podstawę odkrywania i ulepszania nowych maszyn. Jeśli dopiero zaczynasz zabawę ze SpaceBots, możesz obrać go sobie za podstawowy cel gry.
-<p>Obraca się on dookoła kilku komponentów:
+<p>Obraca się on dookoła kilku komponentów:</p>
+<p style="text-align:center">
 <span><span>Awatar</span><span>avatar</span></span> →
 <span><span>Radar</span><span>radar</span></span> →
 <span><span>Napęd</span><span>drive</span></span> →
@@ -37,7 +49,7 @@ p > span > span:nth-child(2) {
 <span><span>Reaktor</span><span>burning reactor</span></span> →
 <span><span>Bateria</span><span>battery</span></span> →
 <span><span>Laboratorium</span><span>laboratory</span></span> →
-<span><span>Asembler</span><span>asembler</span></span>.
+<span><span>Asembler</span><span>asembler</span></span></p>
 <p>Idąc po kolei - awatar pozwala sterować wszyskimi maszynami znajdującymi się dalej w łańcuchu. Radar pozwala wyśledzić złom i asteroidy. Za pomocą napędu można się do nich zbliżyć. Analiza za pomocą spektrometru pozwala określić ich skład. Za pomocą manipulatora przenosi się je do rafinerii gdzie są dzielone na poszczególne pierwiastki oraz transportowane do magazynu. Stamtąd trafiają do jednego z reaktorów, gdzie są zamieniane w inne pierwiastki oraz służą do wytwarzania energii. Energia dostarczana jest do labolatorium, gdzie tworzone i ulepszane są plany maszyn. Ostatnim etapem jest dostarczenie do asemblera odpowiedniej ilości materiałów i energii gdzie plan jest ostatecznie realizowany.
 <h1>Materiały i energia</h1>
 <p>W grze występuje 100 różnych materiałów - różnych pierwiastków chemicznych. Mogą być one łączone i dzielone za pomocą reaktorów - w toku reakcji zmienia się rodzaj pierwiastków oraz wytwarzana bądź pobierana jest energia. Istnieją cztery rodzaje reaktorów - wzbogacające, spalające, rozszczepiające oraz fuzyjne. Pierwsze dwa pozwalają zamieniać pierwiastki na sąsiednie w tablicy okresowej - zwiększają lub zmniejszają liczbę atomową o jeden. Reaktory fuzyjne i rozszczepiające pozwalają łączyć i dzielić pierwiastki tak długo jak łączna liczba atomowa na początku i na końcu reakcji zostanie zachowana. Te drugie cechują się jednocześnie wyższą sprawnością - przez to że przechodzą mniej reakcji, więcej materii jest zachowywane oraz produkowane jest więcej energii.
