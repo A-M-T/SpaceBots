@@ -1068,7 +1068,7 @@ var speed_step = function(desired_v) {
 
 // Now, we can think about how to stop us from moving.
 // Let's start by declaring variable for stopping timer ID
-var stop_timer = 0;
+var move_timer = 0;
 // Then, we can create main stopping function.
 var stop_tick = function() {
 
@@ -1081,11 +1081,11 @@ var stop_tick = function() {
 		// The timer can't run too quickly, because of 10 commands per
 		// second limit.
 
-		stop_timer = setTimeout(stop_tick, 300);
+		move_timer = setTimeout(stop_tick, 300);
 
 	} else {
 
-		stop_timer = 0;
+		move_timer = 0;
 		console.log("Stopping finished");
 
 	}
@@ -1101,13 +1101,13 @@ var stop_tick = function() {
 // Its only function will be to set up our stop_tick timer.
 
 var stop = function() {
-	if(stop_timer == 0) {
+	if(move_timer == 0) {
 
 		// The timer isn't running. Let's start it immediatly after
 		// return from this function.
 
 		console.log("Stopping initiated");
-		stop_timer = setTimeout(stop_tick, 0);
+		move_timer = setTimeout(stop_tick, 0);
 
 	} else {
 
@@ -1115,8 +1115,8 @@ var stop = function() {
 		// clearing scheduled timer.
 
 		console.log("Aborted stopping!");
-		clearTimeout(stop_timer);
-		stop_timer = 0;
+		clearTimeout(move_timer);
+		move_timer = 0;
 
 	}
 };
@@ -1142,23 +1142,53 @@ var do_repulse = function(x, y, z, power) {
 	});
 };
 
-var navigate = function(destination) {
-	destination = common.get(destination);
+var get_position_now = function(x) {
+    var root = common.get_root(common.get(x));
+    return root.position.add(root.velocity.x(current_time - root.fetch_time));
+};
 
+var destination = null;
+
+var navigate_tick = function() {
 	// Now let's calculate how fast we are moving relative to our
 	// destination and the direction we should move towards...
-	var engine_pos = common.get_position(impulse_drive).now();
-	var target_pos = common.get_position(destination).now();
+	var engine_pos = get_position_now(impulse_drive);
+	var target_pos = get_position_now(destination);
 
-	var diff = (new space.Position).v(function(d) {
-		this[d] = target_pos[d] - engine_pos[d];
-	}).p(function(d) {
-		this[d] = target_pos[d] - engine_pos[d];
-	});
+	var diff = target_pos.subtract(engine_pos);
 
-	var distance = diff.length();
+	var distance = diff.modulus();
 
-	console.log(diff);
+    var target_velocity = destination.velocity.add( diff.x(0.4) );
+
+    if(distance < 10) {
+        target_velocity = destination.velocity;
+    }
+
+    var my_velocity = common.get_root(impulse_drive).velocity;
+    var velocity_diff = my_velocity.distanceFrom(target_velocity);
+    if(velocity_diff > 0.5) {
+        speed_step(target_velocity);
+    }
+    if((distance > 10) || (velocity_diff > 0.5)) {
+        move_timer = setTimeout(navigate_tick, 300);
+    } else {
+        console.log("Destination reached.");
+    }
+
+};
+
+var navigate = function(dest) {
+	destination = common.get(dest);
+
+	if(move_timer == 0) {
+		console.log("Navigation initiated");
+		move_timer = setTimeout(navigate_tick, 0);
+	} else {
+		console.log("Movement aborted!");
+		clearTimeout(move_timer);
+		move_timer = 0;
+	}
 
 };
 
