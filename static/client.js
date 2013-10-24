@@ -736,7 +736,7 @@ socket.on('report', function(obj) {
 		// may however remain from older reports. We should delete
 		// these possibly invalid properties.
 
-		var always_sent = { manipulator_slot: true, parent: true };
+		var always_sent = { manipulator_slot: true, parent: true, position: true, velocity: true };
 
 		for(var key in always_sent) { delete objects[obj.id][key]; }
 
@@ -793,7 +793,7 @@ socket.on('report', function(obj) {
 				// When we already have the object scanned - we don't
 				// need to issue 'report' command any more.
 				
-				if(typeof objects[child.id] === 'undefined') {
+				if(typeof objects[child.id] === 'undefined' || objects[child.id].position) {
 					objects[child.id] = child;
 					socket.emit('report', { target: child.id });
 				}
@@ -1651,12 +1651,14 @@ controls.skeleton = function(elem, object) {
 			link.href = '#' + child.id;
 			item.appendChild(link);
 
-			Object.keys(child.features).forEach(function(feature) {
-				var icon = document.createElement('img');
-				icon.src = '/features/' + feature + '.png';
-				icon.setAttribute('title', feature);
-				item.appendChild(icon);
-			});
+            if(child.features) {
+			    Object.keys(child.features).forEach(function(feature) {
+				    var icon = document.createElement('img');
+				    icon.src = '/features/' + feature + '.png';
+				    icon.setAttribute('title', feature);
+				    item.appendChild(icon);
+			    });
+            }
 
 		} else {
 			var text_node = document.createTextNode('empty');

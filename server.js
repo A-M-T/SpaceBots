@@ -68,7 +68,7 @@ var place = function(host, guest, pos) {
 
 var asteroids = global.asteroids = [];
 
-for(var i = 0; i < 30; ++i) {
+for(var i = 0; i < 60; ++i) {
 	var asteroid = reg(resources.make_asteroid());
 	asteroid.position = common.RV(3000);
 	asteroid.velocity = common.RV(5);
@@ -450,6 +450,7 @@ io.sockets.on('connection', function (socket) {
 		socket.emit('radar result', results);
 	});
 
+
 	on('manipulator grab', function(target, data) {
 		if(!check_feature(target, 'manipulator')) return;
 
@@ -498,6 +499,30 @@ io.sockets.on('connection', function (socket) {
 			id: target.id,
 			manipulator_slot: { id: closest.id }
 		});
+	});
+
+	on('manipulator attach', function(target, data) {
+		if(!check_feature(target, 'manipulator'))
+			return;
+		if(typeof target.manipulator_slot === 'undefined')
+			return fail(999, 'Manipulator empty - nothing to be attached.');
+		var skeleton = find_co_component(target, data.skeleton, 'skeleton');
+		if(typeof data.skeleton_slot !== 'number')
+			return fail(999, 'Skeleton slot should be a number.');
+        var idx = Math.round(data.skeleton_slot);
+        if(idx < 0)
+			return fail(999, 'Specified skeleton doesn\'t have negative slots.');
+        if(idx >= skeleton.skeleton_slots.length)
+			return fail(999, 'Specified skeleton doesn\'t have that many slots.');
+        if(skeleton.skeleton_slots[idx])
+			return fail(999, 'Skeleton '+data.skeleton+' slot '+idx+' occupied by '+skeleton.skeleton_slots[idx].id+'.');
+
+		skeleton.skeleton_slots[idx] = target.manipulator_slot;
+		target.manipulator_slot.parent = skeleton;
+		delete target.manipulator_slot.position;
+		delete target.manipulator_slot.velocity;
+		delete target.manipulator_slot.grabbed_by;
+		delete target.manipulator_slot;
 	});
 
 	on('manipulator release', function(target, data) {
