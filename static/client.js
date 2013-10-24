@@ -1159,7 +1159,7 @@ var navigate_tick = function() {
 
 	var distance = diff.modulus();
 
-    var target_velocity = destination.velocity.add( diff.x(0.4) );
+    var target_velocity = destination.velocity.add( diff.x(0.1) );
 
     if(distance < 10) {
         target_velocity = destination.velocity;
