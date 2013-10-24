@@ -336,6 +336,9 @@ io.sockets.on('connection', function (socket) {
 		if(typeof player === 'undefined') {
 			return fail(4, 'No player selected. You should first log in.');
 		}
+		if(typeof command === 'undefined') {
+			return fail(999, 'Command didn\'t have parameters defined.');
+		}
 		if(typeof command.target === 'undefined') {
 			return fail(5, 'Command didn\'t have `target` defined.');
 		}
@@ -541,10 +544,10 @@ io.sockets.on('connection', function (socket) {
 	var find_co_component = function(source, id, feature) {
 		var cc = common.walk(source);
 		if(!(id in cc)) {
-			return fail(10, common.capitalize(feature) + ' ' + id + ' is not reachable from ' +
+			return fail(10, (feature ? common.capitalize(feature) : "Object") + ' ' + id + ' is not reachable from ' +
 						source.id);
 		}
-		if(!check_feature(cc[id], feature)) return undefined;
+        if(feature && !check_feature(cc[id], feature)) return undefined;
 		return cc[id];
 	};
 
@@ -654,6 +657,36 @@ io.sockets.on('connection', function (socket) {
 		resources.subtract(matter_store.store_stored, cmd.composition);
 		energy_source.battery_energy -= momentum;
 		
+	});
+
+	on('refinery refine', function(target, data) {
+		if(!check_feature(target, 'refinery')) return;
+		var store = find_co_component(target, data.store, 'store');
+        if(typeof store === 'undefined') return;
+		var material = find_co_component(target, data.material);
+        if(typeof material === 'undefined') return;
+
+        var stored = resources.get_mass(store.store_stored);
+        var left = store.store_capacity - stored;
+        var avail = resources.get_mass(material.composition);
+        var ratio = Math.min(avail / left, 1);
+        var refined = resources.mul(material.composition, ratio);
+
+        resources.move(store.store_stored, material.composition, ratio);
+        var after = resources.get_mass(material.composition);
+        var removed_ratio = 1 - after / avail;
+        if(material.features) {
+            var remove_features = Math.ceil(removed_ratio * material.features.length);
+            for(var i = 0; i < remove_features; ++i) {
+                var desiredIndex = Math.floor(Math.random() * material.features.length);
+                material.features.splice(desiredIndex, 1);
+            }
+        }
+        if(after == 0) {
+            destroy(material);
+        }
+        
+		socket.emit('refinery refined', { id: target.id, refined: refined });
 	});
 
 	(function() {

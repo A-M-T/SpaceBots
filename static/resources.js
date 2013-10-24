@@ -110,5 +110,24 @@
 		}
 	};
 
+	var mul  = e.mul = function(what, factor) {
+        var arr = make_empty();
+		for(var i = 0; i < 100; ++i) {
+			if(typeof what[i] === 'number') {
+                arr[i] = what[i] * factor;
+            }
+		}
+	};
+
+	var move  = e.move = function(to, what, alpha) {
+        if(typeof alpha === 'undefined') alpha = 1;
+		for(var i = 0; i < 100; ++i) {
+			if(typeof what[i] === 'number') {
+				to[i] = what[i] * alpha + (typeof to[i] === 'number' ? to[i] : 0);
+                what[i] = what[i] * (1-alpha);
+            }
+		}
+	};
+
 })(typeof exports === 'undefined' ? this['resources'] = {} : exports);
 
