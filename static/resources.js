@@ -5,29 +5,64 @@
 		common = require('./common');
 	}
 
-	var rnd_snd = function() {
-		return (Math.random()+Math.random()+Math.random())*2-3;
+    /*
+
+      This module contains functions to manage 'composition' of
+      objects.
+
+      API Rules:
+      
+      Constructors are methods starting with 'make_'. They always
+      return newly created arrays.
+
+      Methods (actually functions) may MODIFY parameters. Only methods
+      starting with 'get_' are guaranteed not to modify parameters.
+
+      Parameters should be passed as arrays or objects with field
+      'composition'.
+     */
+
+    var get_array = function(arg) {
+        if(Array.isArray(arg)) return arg;
+        if(typeof arg === 'object') {
+            if('composition' in arg) return arg.composition;
+            if('mass' in arg) return [ arg.mass ];
+        }
+        throw 'Argument isn\'t an array or object with composition.';
+    };
+
+    var num = function(x) {
+        return (typeof x === 'number' ? x : 0);
+    };
+
+	var get_mass = e.get_mass = function(o) {
+        return get_array(o).reduce(function(a, b) { return a+b; });
 	};
 
-	var rnd = function(mean, stddev) {
-		return rnd_snd() * stddev + mean;
+    var init_arr = function(arr) {
+		Object.defineProperty(arr, 'inspect', {
+			value: function() {
+				return '['+Math.round(get_mass(this))+' resources]';
+			}
+		});
+        return arr;
+    };
+
+	var make_empty = e.make_empty = function() {
+		return init_arr(new Array(100));
 	};
 
-	var rnd_exp = function(top) {
-		return Math.exp(Math.random() * top);
+	var make_copy = e.make_copy = function(o) {
+        var arr = get_array(o);
+        return init_arr(arr.slice(0));
 	};
 
 	var make_resources = e.make_resources = function(total, most_probable, range) {
 		var parts = 10;
 		var t1 = total / parts;
-		var arr = new Array(100);
-		Object.defineProperty(arr, 'inspect', {
-			value: function() {
-				return '['+Math.round(total)+' resources with median at '+most_probable+']';
-			}
-		});
+		var arr = make_empty();
 		for(var i = 0; i < parts; ++i) {
-			var pos = Math.round(rnd(most_probable, range));
+			var pos = Math.round(common.rnd(most_probable, range));
 			if(pos < 0 || pos >= 100) {
 				--i;
 				continue;
@@ -38,96 +73,53 @@
 		return arr;
 	};
 
-	var make_asteroid = e.make_asteroid = function() {
-		return {
-			id: common.uid(),
-			features: {},
-			composition: make_resources(rnd_exp(5), 14, 20),
-			sprite: '/asteroid100.png',
-			position: sylvester.Vector.Zero(3),
-			velocity: sylvester.Vector.Zero(3)
-		};
-	};
-
 	var valid = e.valid = function(r) {
-		return r.length == 100;
+		return r.length == 100 && r.every(function(v) { return v >= 0; });
 	};
 
 	var lte = e.lte = function(a, b) {
-		for(var i = 0; i < 100; ++i) {
-			if(a[i] > b[i]) {
-				return false;
-			}
-		}
-		return true;
+        return a.every(function(v, i) { return v <= num(b[i]); });
 	};
 
 	var gte = e.gte = function(a, b) {
-		for(var i = 0; i < 100; ++i) {
-			if(a[i] < b[i]) {
-				return false;
-			}
-		}
-		return true;
-	};
-
-	var get_mass = e.get_mass = function(arr) {
-		var sum = 0
-		for(var i = 0; i < 100; ++i) {
-			if(typeof arr[i] === 'number') {
-				sum += arr[i];
-			}
-		}
-		return sum;
-	};
-
-	var get_component_mass = e.get_component_mass = function(o) {
-		if(o.mass) {
-			return o.mass;
-		} else if(o.composition) {
-			return get_mass(o.composition);
-		}
+        return b.every(function(v, i) { return v < num(a[i]); });
 	};
 
 	var get_connected_mass = e.get_connected_mass = function(o) {
 		var cc = common.walk(o);
 		var mass = 0;
 		for(var id in cc) {
-			mass += get_component_mass(cc[id]);
+			mass += get_mass(cc[id]);
 		}
 		return mass;
 	};
 
-	var make_empty = e.make_empty = function() {
-		return new Array(100);
+	var add  = e.add = function(o, p) {
+        var arr = get_array(o);
+        var brr = get_array(p);
+        brr.forEach(function(v, i) { arr[i] = num(arr[i]) + v; });
 	};
 
-	var subtract  = e.subtract = function(from, what) {
-		for(var i = 0; i < 100; ++i) {
-			if(typeof from[i] === 'number' && typeof what[i] === 'number') {
-				from[i] -= what[i];
-			}
-		}
+	var subtract  = e.subtract = function(o, p) {
+        var arr = get_array(o);
+        var brr = get_array(p);
+        brr.forEach(function(v, i) { 
+            arr[i] = num(arr[i]) - v; 
+            if(arr[i] < 0) 
+                throw 'Negative value after resource subtraction (at index ' + i + ')';
+        });
 	};
 
-	var mul  = e.mul = function(what, factor) {
-        var arr = make_empty();
-		for(var i = 0; i < 100; ++i) {
-			if(typeof what[i] === 'number') {
-                arr[i] = what[i] * factor;
-            }
-		}
-	};
+    var clear = e.clear = function(o) {
+        var arr = get_array(o);
+        arr.forEach(function(v, i) { delete arr[i]; });
+    };
 
-	var move  = e.move = function(to, what, alpha) {
-        if(typeof alpha === 'undefined') alpha = 1;
-		for(var i = 0; i < 100; ++i) {
-			if(typeof what[i] === 'number') {
-				to[i] = what[i] * alpha + (typeof to[i] === 'number' ? to[i] : 0);
-                what[i] = what[i] * (1-alpha);
-            }
-		}
+	var multiply  = e.multiply = function(o, factor) {
+        if(factor < 0)
+            throw 'Scaling resources by negative factor: ' + factor;
+        var arr = get_array(o);
+        arr.forEach(function(v, i) { arr[i] = v * factor; });
 	};
 
 })(typeof exports === 'undefined' ? this['resources'] = {} : exports);
-

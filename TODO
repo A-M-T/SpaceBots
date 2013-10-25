@@ -10,14 +10,22 @@
 * DONE Display strange objects with question marks
 * DONE Interface for manipulator
 * DONE Stop for impulse drive
+* DONE Implement destroying ships using impulse drive
+* DONE Documentation in common.js
+* DONE Tutorial
+* DONE Implement refinery
+* DONE Finish resources.js implementation
+* DONE Fix issues with refinery
+** DONE corrupting composition array
+** DONE corrupting features object
+* TODO More robust component reporting in client
+* TODO More robust radar scanning in client
+* maybe process management?
+* TODO Command tracker in client (visualising how many commands per second are fired)
 * TODO Ability to communicate with other ships
 * TODO Prettify interface
 * TODO Implement assembler
-* TODO Implement refinery
 * TODO Implement spectrometer
 * TODO Implement laboratory
 * TODO Implement enriching reactor
 * TODO Implement burning reactor
-* DONE Implement destroying ships using impulse drive
-* DONE Documentation in common.js
-* DONE Tutorial

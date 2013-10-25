@@ -896,6 +896,12 @@ socket.on('report', function(obj) {
 // found within the `radar_range`. Each object found will have only
 // most basic fields - id, position, velocity and sprite.
 
+// After each radar update, we are up-to date with all objects
+// positions and we are able to execute some additional action that is
+// guaranteed to operate on correct values. We will store this action
+// in `radar_callback`.
+var radar_callback;
+
 socket.on('radar result', function(result) {
 
 	// Let's integrate new information into our own structures. We
@@ -915,6 +921,8 @@ socket.on('radar result', function(result) {
 		local.position = $V(local.position);
 		if(local.velocity) local.velocity = $V(local.velocity);
 	});
+
+    if(typeof radar_callback === 'function') radar_callback();
 	
 	// Same as with the reports, radar also should do rescans - after all
 	// not everything moves along straight lines.
@@ -1066,9 +1074,6 @@ var speed_step = function(desired_v) {
 	}
 };
 
-// Now, we can think about how to stop us from moving.
-// Let's start by declaring variable for stopping timer ID
-var move_timer = 0;
 // Then, we can create main stopping function.
 var stop_tick = function() {
 
@@ -1078,45 +1083,36 @@ var stop_tick = function() {
 
 		// If it hasn't finished, we have to shedule it again.
 
-		// The timer can't run too quickly, because of 10 commands per
-		// second limit.
-
-		move_timer = setTimeout(stop_tick, 300);
+		radar_callback = stop_tick;
 
 	} else {
 
-		move_timer = 0;
 		console.log("Stopping finished");
 
-	}
+		radar_callback = undefined;
 
-	// TODO: Every execution of this line doubles the object rescan speed
-	// Stopping doesn't look too good visually with so slow rescans
-	// BTW, this was meant to be 'radar scan'
-	//socket.emit('report', { target: common.get_root(avatar).id });
+	}
 
 };
 
 // This function will be executed after clicking on stop orb.
-// Its only function will be to set up our stop_tick timer.
+// Its only function will be to set up our `radar_callback`.
 
 var stop = function() {
-	if(move_timer == 0) {
+	if(typeof radar_callback === 'undefined') {
 
-		// The timer isn't running. Let's start it immediatly after
-		// return from this function.
+		// The callback isn't set. Let's set it.
 
 		console.log("Stopping initiated");
-		move_timer = setTimeout(stop_tick, 0);
+		radar_callback = stop_tick;
 
 	} else {
 
-		// It timer is already running, let's abort stopping by
-		// clearing scheduled timer.
+		// It callback is already running, let's abort stopping by
+		// clearing it.
 
 		console.log("Aborted stopping!");
-		clearTimeout(move_timer);
-		move_timer = 0;
+		radar_callback = undefined;
 
 	}
 };
@@ -1144,7 +1140,11 @@ var do_repulse = function(x, y, z, power) {
 
 var get_position_now = function(x) {
     var root = common.get_root(common.get(x));
-    return root.position.add(root.velocity.x(current_time - root.fetch_time));
+    if('velocity' in root) {
+        return root.position.add(root.velocity.x(current_time - root.fetch_time));
+    } else {
+        return root.position;
+    }
 };
 
 var destination = null;
@@ -1159,10 +1159,13 @@ var navigate_tick = function() {
 
 	var distance = diff.modulus();
 
-    var target_velocity = destination.velocity.add( diff.x(0.1) );
+    var target_velocity = diff.x(0.1);
+    if('velocity' in destination) {
+        target_velocity = target_velocity.add( destination.velocity );
 
-    if(distance < 10) {
-        target_velocity = destination.velocity;
+        if(distance < 10) {
+            target_velocity = destination.velocity;
+        }
     }
 
     var my_velocity = common.get_root(impulse_drive).velocity;
@@ -1171,8 +1174,9 @@ var navigate_tick = function() {
         speed_step(target_velocity);
     }
     if((distance > 10) || (velocity_diff > 0.5)) {
-        move_timer = setTimeout(navigate_tick, 300);
+        radar_callback = navigate_tick;
     } else {
+        radar_callback = undefined;
         console.log("Destination reached.");
     }
 
@@ -1181,13 +1185,12 @@ var navigate_tick = function() {
 var navigate = function(dest) {
 	destination = common.get(dest);
 
-	if(move_timer == 0) {
+	if(typeof radar_callback === 'undefined') {
 		console.log("Navigation initiated");
-		move_timer = setTimeout(navigate_tick, 0);
+		radar_callback = navigate_tick;
 	} else {
 		console.log("Movement aborted!");
-		clearTimeout(move_timer);
-		move_timer = 0;
+		radar_callback = undefined;
 	}
 
 };

@@ -68,8 +68,19 @@ var place = function(host, guest, pos) {
 
 var asteroids = global.asteroids = [];
 
+var make_asteroid = function() {
+	return {
+		id: common.uid(),
+		features: {},
+		composition: resources.make_resources(common.rnd_exp(5), 14, 20),
+		sprite: '/asteroid100.png',
+		position: sylvester.Vector.Zero(3),
+		velocity: sylvester.Vector.Zero(3)
+	};
+};
+
 for(var i = 0; i < 60; ++i) {
-	var asteroid = reg(resources.make_asteroid());
+	var asteroid = reg(make_asteroid());
 	asteroid.position = common.RV(3000);
 	asteroid.velocity = common.RV(5);
 	asteroids.push(asteroid);
@@ -114,7 +125,7 @@ var stub = function(obj) {
 	if(obj) return { id: obj.id };
 };
 
-attractor = reg(resources.make_asteroid());
+attractor = reg(make_asteroid());
 attractor.sprite = '/attractor151.png';
 delete attractor.velocity;
 
@@ -182,12 +193,12 @@ var damage_ship = function(root, dmg) {
 	var total = 0;
 	var i;
 	for(i = 0; i < arr.length; ++i) {
-		total += resources.get_component_mass(arr[i]);
+		total += resources.get_mass(arr[i]);
 	}
 	var here = Math.random() * total;
 	total = 0;
 	for(i = 0; i < arr.length; ++i) {
-		total += resources.get_component_mass(arr[i]);
+		total += resources.get_mass(arr[i]);
 		if(total > here) break;
 	}
 	damage_object(arr[i], dmg);
@@ -582,7 +593,7 @@ io.sockets.on('connection', function (socket) {
 		var matter_store = find_co_component(target, cmd.matter_source, 'store');
 		if(typeof matter_store === 'undefined') return;
 
-		if(!resources.lte(cmd.composition,matter_store.composition)) {
+		if(!resources.lte(cmd.composition, matter_store.store_stored)) {
 			return fail(11, 'Ordered to grab more materials than available in store.');
 		}
 		var reaction_mass = resources.get_mass(cmd.composition);
@@ -667,26 +678,32 @@ io.sockets.on('connection', function (socket) {
         if(typeof material === 'undefined') return;
 
         var stored = resources.get_mass(store.store_stored);
-        var left = store.store_capacity - stored;
-        var avail = resources.get_mass(material.composition);
-        var ratio = Math.min(avail / left, 1);
-        var refined = resources.mul(material.composition, ratio);
+        var space_left = store.store_capacity - stored;
 
-        resources.move(store.store_stored, material.composition, ratio);
-        var after = resources.get_mass(material.composition);
-        var removed_ratio = 1 - after / avail;
-        if(material.features) {
-            var remove_features = Math.ceil(removed_ratio * material.features.length);
-            for(var i = 0; i < remove_features; ++i) {
-                var desiredIndex = Math.floor(Math.random() * material.features.length);
-                material.features.splice(desiredIndex, 1);
+        var material_mass = resources.get_mass(material.composition);
+
+        if(material_mass > space_left) {
+            var ratio = space_left / material_mass;
+            var move_arr = resources.make_copy(material.composition);
+            resources.multiply(move_arr, ratio);
+            resources.subtract(material.composition, move_arr);
+            resources.add(store.store_stored, move_arr);
+            if(material.features) {
+                var farr = Object.keys(material.features);
+                var remove_features = Math.ceil(ratio * farr.length);
+                for(var i = 0; i < remove_features; ++i) {
+                    var desiredIndex = Math.floor(Math.random() * farr.length);
+                    delete material.features[farr[desiredIndex]];
+                    farr.splice(desiredIndex, 1);
+                }
             }
-        }
-        if(after == 0) {
+
+        } else {
+            resources.add(store.store_stored, material.composition);
             destroy(material);
         }
         
-		socket.emit('refinery refined', { id: target.id, refined: refined });
+		socket.emit('refinery refined', { id: target.id, refined: Math.min(material_mass, space_left) });
 	});
 
 	(function() {

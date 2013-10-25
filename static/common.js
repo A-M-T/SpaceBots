@@ -100,9 +100,26 @@
 	};
 
 	// This function will return random number from -1 to 1
-	var rand = e.rand = function() {
+	var rnd11 = e.rnd11 = function() {
 		return Math.random() * 2 - 1;
 	};
+
+	var rnd1 = e.rnd1 = function() {
+		return Math.random() * 2 - 1;
+	};
+
+	var rnd_snd = e.rnd_snd = function() {
+		return (Math.random()+Math.random()+Math.random())*2-3;
+	};
+
+	var rnd = e.rnd = function(mean, stddev) {
+		return rnd_snd() * stddev + mean;
+	};
+
+	var rnd_exp = e.rnd_exp = function(top) {
+		return Math.exp(Math.random() * top);
+	};
+
 
 	// Here is a small utility function. It will return object associated
 	// with the argument.
