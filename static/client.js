@@ -1153,7 +1153,12 @@ var navigate_tick = function() {
 	// Now let's calculate how fast we are moving relative to our
 	// destination and the direction we should move towards...
 	var engine_pos = get_position_now(impulse_drive);
-	var target_pos = get_position_now(destination);
+	var target_pos;
+	if(destination.position !== undefined) {
+		target_pos = get_position_now(destination);
+	} else {
+		target_pos = destination;
+	}
 
 	var diff = target_pos.subtract(engine_pos);
 
