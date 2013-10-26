@@ -754,6 +754,28 @@ io.sockets.on('connection', function (socket) {
         
 		socket.emit('store moved', { id: target.id, moved: composition });
 	});
+	
+	on('battery move', function(target, data) {
+		if(!check_feature(target, 'battery')) return;
+		var battery = find_co_component(target, data.battery, 'battery');
+        if(typeof battery === 'undefined') return;
+		var amount = data.amount;
+        if(typeof amount === 'undefined') return;
+        
+		if(battery.battery_energy < amount) {
+			return fail(999, 'Not enough energy in battery.');
+		}
+
+        var space_left = target.battery_capacity - target.battery_energy;
+
+        if(amount > space_left)
+        	return fail(999, 'Not enough space left in target battery');
+
+		battery.battery_energy -= amount;
+		target.battery_energy += amount;
+        
+		socket.emit('battery moved', { id: target.id, moved: amount });
+	});
 
 	(function() {
 
