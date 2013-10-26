@@ -736,6 +736,10 @@ io.sockets.on('connection', function (socket) {
         if(typeof store === 'undefined') return;
 		var composition = data.composition;
         if(typeof composition === 'undefined') return;
+        
+		if(!resources.lte(composition, store.store_stored)) {
+			return fail(999, 'Not enough resources in store.');
+		}
 
         var stored = resources.get_mass(target.store_stored);
         var space_left = target.store_capacity - stored;
