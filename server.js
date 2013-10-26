@@ -705,6 +705,27 @@ io.sockets.on('connection', function (socket) {
         
 		socket.emit('refinery refined', { id: target.id, refined: Math.min(material_mass, space_left) });
 	});
+	
+	on('store move', function(target, data) {
+		if(!check_feature(target, 'store')) return;
+		var store = find_co_component(target, data.store, 'store');
+        if(typeof store === 'undefined') return;
+		var composition = data.composition;
+        if(typeof composition === 'undefined') return;
+
+        var stored = resources.get_mass(target.store_stored);
+        var space_left = target.store_capacity - stored;
+
+        var material_mass = resources.get_mass(composition);
+
+        if(material_mass > space_left)
+        	return fail(999, 'Not enough space left in target store');
+
+        resources.subtract(store.store_stored, composition);
+        resources.add(target.store_stored, composition);
+        
+		socket.emit('store moved', { id: target.id, moved: composition });
+	});
 
 	(function() {
 
