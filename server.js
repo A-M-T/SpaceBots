@@ -99,7 +99,7 @@ var get_or_create_player = function(hash) {
 		avatar.radar_range = 1000;
 
 		var drive = place(hull, reg(bp.make('impulse_drive store battery', 10)), 1);
-		drive.store_stored[0] = drive.store_capacity;
+		drive.store_stored[0] = drive.store_capacity*0.75;
 		drive.battery_energy = drive.battery_capacity;
 		place(hull, reg(bp.make('assembler refinery spectrometer', 10)), 2);
 		place(hull, reg(bp.make('laboratory enriching_reactor burning_reactor', 10)), 3);
