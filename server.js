@@ -538,6 +538,30 @@ io.sockets.on('connection', function (socket) {
 		delete target.manipulator_slot.grabbed_by;
 		delete target.manipulator_slot;
 	});
+	
+	on('manipulator detach', function(target, data) {
+		if(!check_feature(target, 'manipulator'))
+			return;
+		if(typeof target.manipulator_slot !== 'undefined')
+			return fail(999, 'Manipulator not empty');
+		var skeleton = find_co_component(target, data.skeleton, 'skeleton');
+		if(typeof data.skeleton_slot !== 'number')
+			return fail(999, 'Skeleton slot should be a number.');
+        var idx = Math.round(data.skeleton_slot);
+        if(idx < 0)
+			return fail(999, 'Specified skeleton doesn\'t have negative slots.');
+        if(idx >= skeleton.skeleton_slots.length)
+			return fail(999, 'Specified skeleton doesn\'t have that many slots.');
+        if(!skeleton.skeleton_slots[idx])
+			return fail(999, 'Nothing in skeleton '+data.skeleton+' slot '+idx+'.');
+
+		target.manipulator_slot = skeleton.skeleton_slots[idx];
+		skeleton.skeleton_slots[idx] = null;
+		delete target.manipulator_slot.parent;
+		target.manipulator_slot.grabbed_by = target;
+		target.manipulator_slot.position = $V(common.get_root(target).position.elements);
+		target.manipulator_slot.velocity = $V(common.get_root(target).velocity.elements);
+	});
 
 	on('manipulator release', function(target, data) {
 		if(!check_feature(target, 'manipulator')) return;
