@@ -99,7 +99,7 @@ var get_or_create_player = function(hash) {
 		avatar.radar_range = 1000;
 
 		var drive = place(hull, reg(bp.make('impulse_drive store battery', 10)), 1);
-		drive.store_stored[0] = drive.store_capacity;
+		drive.store_stored[0] = drive.store_capacity*0.75;
 		drive.battery_energy = drive.battery_capacity;
 		place(hull, reg(bp.make('assembler refinery spectrometer', 10)), 2);
 		place(hull, reg(bp.make('laboratory enriching_reactor burning_reactor', 10)), 3);
@@ -736,6 +736,10 @@ io.sockets.on('connection', function (socket) {
         if(typeof store === 'undefined') return;
 		var composition = data.composition;
         if(typeof composition === 'undefined') return;
+        
+		if(!resources.lte(composition, store.store_stored)) {
+			return fail(999, 'Not enough resources in store.');
+		}
 
         var stored = resources.get_mass(target.store_stored);
         var space_left = target.store_capacity - stored;
@@ -749,6 +753,28 @@ io.sockets.on('connection', function (socket) {
         resources.add(target.store_stored, composition);
         
 		socket.emit('store moved', { id: target.id, moved: composition });
+	});
+	
+	on('battery move', function(target, data) {
+		if(!check_feature(target, 'battery')) return;
+		var battery = find_co_component(target, data.battery, 'battery');
+        if(typeof battery === 'undefined') return;
+		var amount = data.amount;
+        if(typeof amount === 'undefined') return;
+        
+		if(battery.battery_energy < amount) {
+			return fail(999, 'Not enough energy in battery.');
+		}
+
+        var space_left = target.battery_capacity - target.battery_energy;
+
+        if(amount > space_left)
+        	return fail(999, 'Not enough space left in target battery');
+
+		battery.battery_energy -= amount;
+		target.battery_energy += amount;
+        
+		socket.emit('battery moved', { id: target.id, moved: amount });
 	});
 
 	(function() {
