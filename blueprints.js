@@ -100,13 +100,13 @@
 			//stealth: function(b, v) { return to_one(0, 50, v); }
 		},
 		avatar: {
-			//range: function(b, v) { 
-			//	return Math.round(Math.pow(v, 0.4)); 
+			//range: function(b, v) {
+			//	return Math.round(Math.pow(v, 0.4));
 			//},
 			//sensitivity: function(b, v) { return Math.sqrt(v) / 2; }
 		},
 		skeleton: {
-			slots: function(b, v) { 
+			slots: function(b, v) {
 				return new Array(Math.round(Math.pow(v, 0.5)));
 			}
 		},
@@ -134,8 +134,8 @@
 		},
 		assembler: {
 			speed: function(b, v) { return Math.sqrt(v); },
-			material_efficiency: function(b, v) { 
-				return to_one(0, 50, v); 
+			material_efficiency: function(b, v) {
+				return to_one(0, 50, v);
 			},
 			power_efficiency: function(b, v) { return to_one(0, 50, v); }
 		},
@@ -251,7 +251,7 @@
 				up[k] = {};
 				for(var l in blueprint[k]) {
 					if(k == a && l == b) {
-						up[k][l] = mod(blueprint[k][l], inc);	
+						up[k][l] = mod(blueprint[k][l], inc);
 					} else {
 						up[k][l] = mod(blueprint[k][l], Math.random() * dec);
 					}
@@ -266,7 +266,7 @@
 		walk(blueprint, 'number', function(o, f, n) { points += pts(n); });
 		return lvl(points);
 	};
-	
+
 	var estimate_materials = function(blueprint) {
 		if(typeof blueprint.resources === 'undefined') {
 			var mass = tradeoffs_base.mass(blueprint, blueprint.mass);
@@ -275,7 +275,7 @@
 			var low = blueprint.mass;
 			var high = blueprint.mass;
 			walk(blueprint, 'number', function(o, f, n) {
-				points += pts(n); 
+				points += pts(n);
 				high = Math.max(high, n);
 				low = Math.min(low, n);
 			});
@@ -283,7 +283,7 @@
 			var level = lvl(points);
 			blueprint.resources = resources.make_resources(mass, 28, range);
 		}
-		return blueprint.resources;	
+		return blueprint.resources;
 	};
 
 	// TODO: dodać zasoby?
@@ -293,12 +293,12 @@
 		object.features = {};
 		object.id = common.uid();
 		object.composition = estimate_materials(blueprint);
-		
+
 		for(var feature in blueprint) {
 			if(typeof blueprint[feature] === 'object') {
 				if(Array.isArray(blueprint[feature])) continue;
 				object.features[feature] = true;
-				
+
 				if(typeof object.sprite === 'undefined') {
 					object.sprite = '/' + feature + '.png';
 				}
@@ -335,6 +335,7 @@
 	e.upgrade_blueprint = upgrade_blueprint;
 	e.realize_blueprint = realize_blueprint;
 	e.make = make;
+	e.mod = mod;
 
 	/*
 
@@ -350,7 +351,7 @@
 	console.log("Materials:", estimate_materials(bp));
 	var o = realize_blueprint(bp);
 	console.log("Object:", o);
-	
+
 	*/
 
 })(typeof exports === 'undefined' ? this['blueprints'] = {} : exports);
