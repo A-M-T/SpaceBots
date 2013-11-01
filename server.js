@@ -812,9 +812,31 @@ io.sockets.on('connection', function (socket) {
     check(json.slot, "Slot number must be >= 0").min(0);
     check(json.slot, "Slot number must not exceed laboratory capacity").max(laboratory.laboratory_slots.length - 1);
     var slot = sanitize(json.slot).toInt();
-    check(laboratory.laboratory_slots[slot], "Laboratory slot free").notNull();
+    check(laboratory.laboratory_slots[slot], "Laboratory slot already empty").notNull();
     socket.emit('laboratory abandoned', laboratory.laboratory_slots[slot]);
     laboratory.laboratory_slots[slot] = undefined;
+  });
+
+  on('assembler build', function(target, json) {
+    if(!check_feature(target, 'assembler')) return;
+    var laboratory = find_co_component(target, json.laboratory, 'laboratory');
+    check(json.slot, "Slot number must be an integer").isInt();
+    check(json.slot, "Slot number must be >= 0").min(0);
+    check(json.slot, "Slot number must not exceed laboratory capacity").max(laboratory.laboratory_slots.length - 1);
+    var slot = sanitize(json.slot).toInt();
+    check(laboratory.laboratory_slots[slot], "Laboratory slot can't be empty").notNull();
+    var blueprint = laboratory.laboratory_slots[slot];
+    var materials = bp.estimate_materials(blueprint);
+    var store = find_co_component(target, json.store, 'store');
+    if(!resources.lte(materials, store.store_stored))
+      return fail(999, 'Not enough resources in store.');
+    resources.subtract(store.store_stored, materials);
+    var object = bp.realize_blueprint(blueprint);
+    socket.emit('assembler built', object);
+    var root = common.get_root(target);
+    object.position = Vector.create(root.position);
+    object.velocity = Vector.create(root.velocity);
+    reg(object);
   });
 
   (function() {
