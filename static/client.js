@@ -31,7 +31,7 @@ if(localStorage.inhibitIntro) {
 // ... and refresh the page.
 
 // Simple isn't it? You have just enabled the 'if' statement a few
-// lines upwards from here :D 
+// lines upwards from here :D
 
 // How to show help again? Go into the console and type:
 
@@ -186,13 +186,13 @@ var tutorial_canvas, tutorial_ctx, tutorial_original_socket, tutorial_target_id;
 var tutorial_strings = [
 { text: "Welcome to SpaceBots! Blablablablabla", start: function() {
 	console.log("Starting the tutorial!");
-	
+
 	tutorial_original_socket = socket;
 	socket = { emit: function(msg, data) {
 		if(msg == 'impulse_drive push') {
 			var reaction_mass = resources.get_mass(data.composition);
 			var momentum = reaction_mass * data.impulse;
-		
+
 			var root = common.get_root(common.get(data.target));
 			var d = root.position.distanceFrom(data.destination);
 			var time = d / data.impulse;
@@ -208,7 +208,7 @@ var tutorial_strings = [
 			console.error("Tried to send unknown message in tutorial mode!");
 		}
 	} };
-	
+
 	var shipid = common.uid();
 	manipulator = objects[shipid] = {
 		id: shipid,
@@ -223,7 +223,7 @@ var tutorial_strings = [
 		features: { skeleton: true, manipulator: true },
 		screen_position: $V([0,0])
 	};
-	
+
 	var objid = common.uid();
 	radar = avatar = objects[shipid].skeleton_slots[0] = objects[objid] = {
 		id: objid,
@@ -235,7 +235,7 @@ var tutorial_strings = [
 		features: { avatar: true, radar: true },
 		parent: objects[shipid]
 	};
-	
+
 	objid = common.uid();
 	impulse_drive = store = battery = objects[shipid].skeleton_slots[1] = objects[objid] = {
 		id: objid,
@@ -253,7 +253,7 @@ var tutorial_strings = [
 		impulse_drive_payload: 3
 	};
 	objects[objid].store_stored[0] = 9999;
-	
+
 	objid = common.uid();
 	objects[shipid].skeleton_slots[2] = objects[objid] = {
 		id: objid,
@@ -264,7 +264,7 @@ var tutorial_strings = [
 		features: { assembler: true, refinery: true, spectrometer: true },
 		parent: objects[shipid]
 	};
-	
+
 	objid = common.uid();
 	objects[shipid].skeleton_slots[3] = objects[objid] = {
 		id: objid,
@@ -476,8 +476,8 @@ reset: function() {
 }},
 { text: "That's all! You're now ready to enter the SpaceBots world! You can find more informations about programming the game by clicking on the \"?\" sign in the upper-left corner", stop: function() {
 	socket = tutorial_original_socket;
-	
-	
+
+
 	// Close all windows
 	var windows = document.getElementById("overlay").childNodes;
 	for (var i = 0; i < windows.length; ++i) {
@@ -486,7 +486,7 @@ reset: function() {
 			document.getElementById("overlay").removeChild(elem);
 		}
 	}
-	
+
 	console.log("Tutorial has ended, logging in...");
 }}
 ];
@@ -502,44 +502,44 @@ var tutorial_process = 0;
 var tutorial_start = function() {
 
     // So, the user wants to see the tutorial. Let's show the tutorial info window.
-    
+
     document.getElementById("tutwindow").style.display="table";
-    
+
     // Exectute the function to start the first step (more details in tutorial_continue)
-    
+
     if(tutorial_strings[0].start) tutorial_strings[0].start();
-    
+
     // Set the window contents to the first tutorial text
-    
+
     document.getElementById("tutwindow_text").innerHTML = tutorial_strings[0].text;
-    
+
 	// If the step is resetable, show the button, if not hide it
-	
+
 	if(tutorial_strings[tutorial_process].resetable === true) {
 		document.getElementById("tutwindow_resetbutton").style.display="inherit";
 	} else {
 		document.getElementById("tutwindow_resetbutton").style.display="none";
 	}
-    
+
     // And hide the question window
-    
+
     document.getElementById("tutorial").style.display="none";
 };
 
 var tutorial_skip = function() {
     // Set the localStorage.tutorial_finished variable to say that user
     // doesn't want a tutorial anymore
-    
+
     localStorage.tutorial_finished = "true";
-    
+
     // This line hides the question "Do you want to start the tutorial"
-    
+
     document.getElementById("tutorial").style.display="none";
-    
+
     // Finally, we log in to the game
-    
+
     log_in();
-    
+
     // That's all! We can play online!
 };
 
@@ -553,55 +553,55 @@ var tutorial_continue = function() {
 	// This will be used for interacive exercises and arrows
 	// showing interface elemets
 	if(tutorial_strings[tutorial_process].stop) tutorial_strings[tutorial_process].stop();
-	
+
 	// Increase current step id by one
 
 	tutorial_process++;
-	
+
 	// If it was a last step, end the tutorial
 	if(tutorial_process == tutorial_strings.length) {
 		// We basically do the same as in tutorial_skip()
 		localStorage.tutorial_finished = "true";
 		document.getElementById("tutwindow").style.display="none";
-		
+
 		// Before logging in, we'll clear objects table, because example tutorial objects shouldn't be shown in online mode
 		objects = { };
 		current_time = 0;
 		avatar = radar = impulse_drive = store = battery = manipulator = undefined;
-		
+
 		log_in();
 		//End the function - we don't want to load new message
 		return;
 	}
-	
+
 	// But if it wasn't, maybe the next step will be last?
 	else if(tutorial_process == tutorial_strings.length - 1) {
 		// Change the button to say "End the tutorial"
 		document.getElementById("tutwindow_button").value = "End the tutorial and go ONLINE >";
 	}
-	
+
 	// Set the tutorial window text to the current one
-	
+
 	document.getElementById("tutwindow_text").innerHTML = tutorial_strings[tutorial_process].text;
-	
+
 	// If the step is resetable, show the button, if not hide it
-	
+
 	if(tutorial_strings[tutorial_process].resetable === true) {
 		document.getElementById("tutwindow_resetbutton").style.display="inherit";
 	} else {
 		document.getElementById("tutwindow_resetbutton").style.display="none";
 	}
-	
+
 	// And execute function to start current step
-	
+
 	if(tutorial_strings[tutorial_process].start) tutorial_strings[tutorial_process].start();
 };
 
 var tutorial_reset = function() {
 	if(tutorial_strings[tutorial_process].resetable !== true) return;
-	
+
 	if(!tutorial_strings[tutorial_process].reset) return;
-	
+
 	tutorial_strings[tutorial_process].reset();
 }
 
@@ -622,7 +622,7 @@ socket.on('connect', function () {
 
     // If user already finished the tutorial, let's log in instantly
     // after connecting
-    
+
     if(localStorage.tutorial_finished == "true") {
         log_in();
     }
@@ -645,7 +645,7 @@ socket.on('fail', function(report) {
 	].join('');
 
 	console.error(msg);
-	
+
 });
 
 // After properly logging in, server will send us a list of
@@ -726,6 +726,8 @@ var manipulator;
 // weapons, labs, various secret modules and even create our own,
 // custom components.
 
+var refinery, laboratory, assembler;
+
 // Ok, let's get back to scanning our machine.
 
 // When component scanning will be done, we will get our answer as
@@ -802,7 +804,7 @@ socket.on('report', function(obj) {
 
 				// When we already have the object scanned - we don't
 				// need to issue 'report' command any more.
-				
+
 				if(typeof objects[child.id] === 'undefined' || objects[child.id].position) {
 					objects[child.id] = child;
 					socket.emit('report', { target: child.id });
@@ -824,7 +826,7 @@ socket.on('report', function(obj) {
 	// most one parent so we don't need to iterate over the array.
 
 	if(obj.parent &&
-	   obj.parent.id && 
+	   obj.parent.id &&
 	   typeof objects[obj.parent.id] === 'undefined') {
 		objects[obj.parent.id] = obj.parent;
 		socket.emit('report', { target: obj.parent.id });
@@ -836,7 +838,7 @@ socket.on('report', function(obj) {
 	// set:
 
 	if(obj.manipulator_slot &&
-	   obj.manipulator_slot.id && 
+	   obj.manipulator_slot.id &&
 	   typeof objects[obj.manipulator_slot.id] === 'undefined') {
 		objects[obj.manipulator_slot.id] = obj.manipulator_slot;
 	}
@@ -900,6 +902,18 @@ socket.on('report', function(obj) {
 	if('manipulator_range' in obj) {
 		manipulator = obj;
 	}
+
+  if('laboratory_tech_level' in obj) {
+    laboratory = obj;
+  }
+
+  if(obj.features && obj.features.refinery) {
+    refinery = obj;
+  }
+
+  if(obj.features && obj.features.assembler) {
+    assembler = obj;
+  }
 });
 
 // When radar scanning is done, we get the array containing all items
@@ -933,7 +947,7 @@ socket.on('radar result', function(result) {
 	});
 
     if(typeof radar_callback === 'function') radar_callback();
-	
+
 	// Same as with the reports, radar also should do rescans - after all
 	// not everything moves along straight lines.
 
@@ -944,7 +958,7 @@ socket.on('radar result', function(result) {
 
 		// Radar rescans will be performed more often than avatar
 		// scans - every second.
-		
+
 	}, 1000);
 });
 
@@ -967,7 +981,7 @@ socket.on('location challenge', function(q) {
 // decoys, using mass as a propellant and others yet undisclosed.
 
 var get_resources_for_waste = function(n) {
-	
+
 	// First - we create empty resource array. Each entry in this array
 	// specifies amount of given element: from hydrogen (0) to fermium (99)
 
@@ -1066,7 +1080,7 @@ var speed_step = function(desired_v) {
 
 	var direction = change_v.toUnitVector();
 
-	// If our speed change is achievable, we could reduce engine power to 
+	// If our speed change is achievable, we could reduce engine power to
 	// save some resources.
 	var achievable = change_v_l < delta_v_l;
 
@@ -1330,15 +1344,15 @@ var ellipse = function(x, y, w) {
 var background = function() {
 
 	var x = canvas.width/2, y = canvas.height/2;
-	
+
 	var r = Math.sqrt(x*x + y*y);
-	
+
 	var grd = ctx.createRadialGradient(x, y, 20, x, y, r);
 	grd.addColorStop(0, '#aaa');
 	grd.addColorStop(0.2, '#556');
 	grd.addColorStop(0.4, '#334');
 	grd.addColorStop(1, '#422');
-	
+
 	ctx.fillStyle = grd;
 	ctx.rect(0, 0, canvas.width, canvas.height);
 	ctx.fill();
@@ -1484,11 +1498,11 @@ var tick = function(time) {
 		});
 	}
 
-	var arr = common.dict_to_array(objects).filter(function(o) { 
+	var arr = common.dict_to_array(objects).filter(function(o) {
 		return 'position' in o;
 	});
 	arr.sort(function(a, b) {
-		
+
 		return a.position.e(1) +
 			a.position.e(2) / 100 +
 			a.position.e(3) -
@@ -1512,14 +1526,14 @@ var tick = function(time) {
 				anomaly = true;
 			}
 		}
-		
+
 		var pos = obj.position;
 		if(obj.velocity) {
 			pos = pos.add(obj.velocity.x(time - obj.fetch_time));
 		}
 		shadow(pos, 'white');
 		obj.screen_position = worldToScreen(pos);
-		
+
 		var sprite_url = obj.sprite || '/unknown.png';
 		var sprite = get_image(sprite_url);
 
@@ -1530,7 +1544,7 @@ var tick = function(time) {
 
 		var sx = (Math.round(time * 30) % frames) * fw;
 		var sy = 0;
-		
+
 		ctx.drawImage(
 			sprite,
 			sx, sy, fw, fh,
@@ -1588,17 +1602,17 @@ var tick = function(time) {
 			line(manipulator.screen_position, manipulator.manipulator_slot.screen_position);
 		}
 	}
-	
+
 
 	current_time = time;
 	ctx.restore();
-	
+
 	// Execute animate function from the tutorial
-	
+
 	if(tutorial_process < tutorial_strings.length && tutorial_strings[tutorial_process].animate) tutorial_strings[tutorial_process].animate();
-	
+
 	// Check if the step is finished, and set the button state
-	
+
 	var btn = document.getElementById("tutwindow_button");
 	if(tutorial_process < tutorial_strings.length && tutorial_strings[tutorial_process].finished) {
 		if(tutorial_strings[tutorial_process].finished()) {
@@ -1609,7 +1623,7 @@ var tick = function(time) {
 	} else {
 		btn.disabled = false;
 	}
-	
+
 	// Update fetch_time and position if in tutorial mode
 	if(document.getElementById("tutwindow").style.display != "none") {
 		for(var obj in objects) {
@@ -1728,7 +1742,7 @@ controls.store = function(elem, object) {
 };
 
 controls.battery = function(elem, object) {
-	
+
 	var desc = 'Filled ' + Math.round(object.battery_energy) + '/' + Math.round(object.battery_capacity);
 	elem.appendChild(document.createTextNode(desc));
 };
@@ -1762,7 +1776,7 @@ var show_details_for = function(object, event) {
 		var t = document.getElementById('details');
 
 		t.content.querySelector('h2').textContent = object.id.slice(0, 4);
-		
+
 		var features = t.content.querySelector('.features');
 		while(features.hasChildNodes()) {
 			features.removeChild(features.lastChild);
@@ -1824,15 +1838,15 @@ var show_details_for = function(object, event) {
 		animate(draw);
 
 		document.getElementById('overlay').appendChild(details);
-		
-		
+
+
 	}
 	details.style['z-index'] = top_index++;
 
 	var rect = details.getBoundingClientRect();
 	var w2 = (rect.right - rect.left) / 2;
 	var h2 = (rect.bottom - rect.top) / 2;
-	
+
 	details.style.left = (event.x - w2) + 'px';
 	details.style.top = (event.y - h2) + 'px';
 
@@ -1905,15 +1919,15 @@ document.addEventListener('mousedown', function(e) {
 			while (controls_div.hasChildNodes()) {
 				controls_div.removeChild(controls_div.lastChild);
 			}
-			
+
 			var feature = e.target.getAttribute('title');
 			var object = objects[details.id];
 			controls[feature](controls_div, object);
-			
+
 			// Notify the tutorial code that we're changing controls
-			
+
 			if(tutorial_process < tutorial_strings.length && tutorial_strings[tutorial_process].on_controlschange) tutorial_strings[tutorial_process].on_controlschange(details.id, feature);
-			
+
 		} else if(details) {
 			drag = {
 				dragged: details,
@@ -1938,7 +1952,7 @@ canvas.addEventListener('mousedown', function(e) {
 		for(var hash in objects) {
 			var o = objects[hash];
 			if(o.screen_position) {
-				
+
 				var p = o.screen_position.subtract(half_canvas).x(scale.current).add(half_canvas);
 				var d = p.distanceFrom($V([e.x, e.y]));
 				if(d < closest) {
@@ -1979,9 +1993,9 @@ onresize = function(e) {
 
 	document.getElementById("tutorial").style.left = (window.innerWidth/2 - 150)+"px";
 	document.getElementById("tutorial").style.top = (window.innerHeight/2 - 50)+"px";
-	
+
 	// Execute resize function from the tutorial
-	
+
 	if(tutorial_process < tutorial_strings.length && tutorial_strings[tutorial_process].resize) tutorial_strings[tutorial_process].resize();
 };
 onresize();
@@ -1996,8 +2010,8 @@ function help() {
 	var subdiv = document.createElement('div');
 	subdiv.style.height = '100%';
 
-	
-	
+
+
 	var editor = ace.edit(subdiv);
 	editor.setTheme("ace/theme/monokai");
 	editor.getSession().setMode("ace/mode/javascript");
