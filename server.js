@@ -797,12 +797,24 @@ io.sockets.on('connection', function (socket) {
     check(json.energy, "Energy can't be nagative").min(0);
     check(json.energy, "Specified energy exceeds battery contents").max(battery.battery_energy);
     var energy = sanitize(json.energy).toFloat();
-
     battery.battery_energy -= energy;
     var level = bp.mod(laboratory.laboratory_tech_level, energy);
     var features = bp.random_features(level);
     var blueprint = bp.randomize_blueprint(bp.make_blueprint(features, level));
     laboratory.laboratory_slots[slot] = blueprint;
+    socket.emit('laboratory invented', blueprint);
+  });
+
+  on('laboratory abandon', function(target, json) {
+    if(!check_feature(target, 'laboratory')) return;
+    var laboratory = target;
+    check(json.slot, "Slot number must be an integer").isInt();
+    check(json.slot, "Slot number must be >= 0").min(0);
+    check(json.slot, "Slot number must not exceed laboratory capacity").max(laboratory.laboratory_slots.length - 1);
+    var slot = sanitize(json.slot).toInt();
+    check(laboratory.laboratory_slots[slot], "Laboratory slot free").notNull();
+    socket.emit('laboratory abandoned', laboratory.laboratory_slots[slot]);
+    laboratory.laboratory_slots[slot] = undefined;
   });
 
   (function() {
