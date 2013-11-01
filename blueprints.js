@@ -326,6 +326,7 @@
 	};
 
 	e.random_features = random_features;
+	e.estimate_materials = estimate_materials;
 	e.make_blueprint = make_blueprint;
 	e.randomize_blueprint = randomize_blueprint;
 	e.upgrade_blueprint = upgrade_blueprint;
