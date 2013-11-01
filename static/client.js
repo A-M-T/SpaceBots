@@ -1233,6 +1233,18 @@ socket.on('broadcast', function(message) {
 	console.log("Broadcast: " + message);
 });
 
+socket.on('laboratory invented', function(blueprint) {
+  console.log("Laboratory has invented " + JSON.stringify(blueprint, null, '  '));
+});
+
+socket.on('laboratory abandoned', function(blueprint) {
+  console.log("Laboratory has abandoned " + JSON.stringify(blueprint, null, '  '));
+});
+
+socket.on('assembler built', function(object) {
+  console.log("Assembler has built " + JSON.stringify(object, null, '  '));
+});
+
 // # Rendering
 
 // Now, that we can communicate and manage our robot, we should create GUI
