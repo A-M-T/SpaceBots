@@ -217,12 +217,8 @@
 			if(typeof feature === 'number') {
 				b[k] = blueprint[k] * (Math.random() + .5);
 			} else if(typeof feature === 'object') {
-				b[k] = {};
-				for(var l in blueprint[k]) {
-					b[k][l] = blueprint[k][l] * (Math.random() + .5);
-				}
+				b[k] = randomize_blueprint(blueprint[k]);
 			}
-
 		}
 		return b;
 	};
