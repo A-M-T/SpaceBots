@@ -72,78 +72,11 @@ localStorage.custom_scripts = localStorage.custom_scripts || "[]";
 
 // TODO: write docs for editors
 
-var make_userscript_editor = function(number) {
-  var id =  "userscript_editor_" + number;
-  var div = document.getElementById(id);
-  if(!div) {
-    var subdiv = document.createElement('div');
-
-    var editor = ace.edit(subdiv);
-    editor.setTheme("ace/theme/monokai");
-    editor.getSession().setMode("ace/mode/javascript");
-
-    var save = document.createElement('span');
-    save.classList.add('save');
-    save.classList.add('button');
-    save.textContent = 'Save';
-    save.onclick = function() {
-      var arr = JSON.parse(localStorage.custom_scripts);
-      arr[number] = editor.getValue();
-      localStorage.custom_scripts = JSON.stringify(arr);
-    };
-
-    var div = document.createElement('div');
-    div.id = id;
-    div.classList.add('editor');
-    div.classList.add('details');
-    div.classList.add('userscript');
-    div.appendChild(subdiv);
-    div.appendChild(save);
-
-    document.getElementById('overlay').appendChild(div);
-    return editor;
-  } else {
-    return ace.edit(div.firstChild);
-  }
-};
-
-var make_userscript_button = function(number) {
-  var id =  "userscript_button_" + number;
-  var button = document.getElementById(id);
-  if(!button) {
-    button = document.createElement('span');
-    button.classList.add('button');
-    button.id = id;
-    button.textContent = number;
-    var list = document.getElementById('userscripts');
-    list.insertBefore(button, list.firstChild);
-    button.onclick = function() {
-      var editor = make_userscript_editor(number);
-      var arr = JSON.parse(localStorage.custom_scripts);
-      editor.setValue(arr[number]);
-      editor.clearSelection();
-      editor.scrollToLine(0, false, false);
-    };
-  }
-  return button;
-};
-
-var userscript_new = function() {
-  var arr = JSON.parse(localStorage.custom_scripts);
-  arr.push("");
-  make_userscript_button(arr.length - 1);
-  make_userscript_editor(arr.length - 1);
-};
-
-
-// Now we can iterate over all URLs and add them to the website:
-
-JSON.parse(localStorage.custom_scripts).forEach(function(data, i) {
+var run_script = function(data) {
 
 	// Create new html element for the script
 
 	var script = document.createElement('script');
-  make_userscript_button(i);
 
   // Let's check if this script is a reference to other address.
   // If it's contents start with 'http', it is probably a url.
@@ -182,7 +115,88 @@ JSON.parse(localStorage.custom_scripts).forEach(function(data, i) {
   // yet downloaded.
 
   document.body.removeChild(script);
+};
 
+var make_script_editor = function(number) {
+  var id =  "script_editor_" + number;
+  var div = document.getElementById(id);
+  if(!div) {
+    var subdiv = document.createElement('div');
+
+    var editor = ace.edit(subdiv);
+    editor.setTheme("ace/theme/monokai");
+    editor.getSession().setMode("ace/mode/javascript");
+
+    var save = document.createElement('span');
+    save.classList.add('button');
+    save.textContent = 'Save';
+    save.onclick = function() {
+      var arr = JSON.parse(localStorage.custom_scripts);
+      arr[number] = editor.getValue();
+      localStorage.custom_scripts = JSON.stringify(arr);
+    };
+
+    var run = document.createElement('span');
+    run.classList.add('button');
+    run.textContent = 'Run';
+    run.onclick = function() {
+      run_script(editor.getValue());
+    };
+
+
+    var button_row = document.createElement('div');
+    button_row.classList.add('button_row');
+    button_row.appendChild(run);
+    button_row.appendChild(save);
+
+    var div = document.createElement('div');
+    div.id = id;
+    div.classList.add('editor');
+    div.classList.add('details');
+    div.appendChild(subdiv);
+    div.appendChild(button_row);
+
+    document.getElementById('overlay').appendChild(div);
+    return editor;
+  } else {
+    return ace.edit(div.firstChild);
+  }
+};
+
+var make_script_button = function(number) {
+  var id =  "script_button_" + number;
+  var button = document.getElementById(id);
+  if(!button) {
+    button = document.createElement('span');
+    button.classList.add('button');
+    button.id = id;
+    button.textContent = number;
+    var list = document.getElementById('scripts');
+    list.insertBefore(button, list.firstChild);
+    button.onclick = function() {
+      var editor = make_script_editor(number);
+      var arr = JSON.parse(localStorage.custom_scripts);
+      editor.setValue(arr[number]);
+      editor.clearSelection();
+      editor.scrollToLine(0, false, false);
+    };
+  }
+  return button;
+};
+
+var script_new = function() {
+  var arr = JSON.parse(localStorage.custom_scripts);
+  arr.push("");
+  make_script_button(arr.length - 1);
+  make_script_editor(arr.length - 1);
+};
+
+
+// Now we can iterate over all URLs and add them to the website:
+
+JSON.parse(localStorage.custom_scripts).forEach(function(data, i) {
+  make_script_button(i);
+  run_script(data);
 });
 
 // As you can see, the custom scripts are loaded from arbitrary urls -
