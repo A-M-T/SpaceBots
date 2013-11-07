@@ -2191,7 +2191,8 @@ canvas.addEventListener('mousedown', function(e) {
 			show_details_for(clicked, e);
 		} else {
       focused_obj = undefined;
-      document.querySelector('.focused').classList.remove('focused');
+      var focused = document.querySelector('.focused');
+      if(focused) focused.classList.remove('focused');
     }
 		e.stopPropagation();
 		e.preventDefault();
