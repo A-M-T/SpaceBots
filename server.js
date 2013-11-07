@@ -307,8 +307,18 @@ io.sockets.on('connection', function (socket) {
 
   log('connected');
 
+  // true if limit exceeded, false if ok
+  var check_command_limit = function() {
+    var now = (new Date).getTime() / 1000;
+    var ten_before = last_commands[address].shift();
+    last_commands[address].push(now);
+    return now - ten_before < 1;
+  };
 
   socket.on('broadcast', function(data) {
+    if(check_command_limit()) {
+      return fail(9, 'Exceeded limit of ' + last_commands[address].length + ' commands per second.');
+    }
     log_in('broadcast');
     var str = JSON.stringify(data);
     if(str.length > 140) {
@@ -400,15 +410,11 @@ io.sockets.on('connection', function (socket) {
 
   var on = function(name, handler) {
     socket.on(name, function(cmd) {
-      var now = (new Date).getTime() / 1000;
       if(typeof player === 'undefined') {
         return fail(18, 'You have to log in first!');
       }
-      var ten_before = last_commands[address].shift();
-      last_commands[address].push(now);
-      if(now - ten_before < 1) {
+      if(check_command_limit())
         return fail(9, 'Exceeded limit of ' + last_commands[address].length + ' commands per second.');
-      }
       log_in(name);
       var target = find_target(cmd);
       if(!target) return;
