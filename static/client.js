@@ -1664,6 +1664,7 @@ var tick = function(time) {
 		if(obj.velocity) {
 			pos = pos.add(obj.velocity.x(time - obj.fetch_time));
 		}
+
 		shadow(pos, 'white');
 		obj.screen_position = worldToScreen(pos);
 
@@ -1756,6 +1757,15 @@ var tick = function(time) {
 	} else {
 		btn.disabled = false;
 	}
+
+
+  if(focused_obj) {
+    var root = common.get_root(focused_obj);
+    var current_pos = get_current_pos(root);
+    document.querySelectorAll('.set_x').text(Math.round(current_pos.elements[0]));
+    document.querySelectorAll('.set_y').text(Math.round(current_pos.elements[1]));
+    document.querySelectorAll('.set_z').text(Math.round(current_pos.elements[2]));
+  }
 
 	// Update fetch_time and position if in tutorial mode
 	if(document.getElementById("tutwindow").style.display != "none") {
@@ -1904,17 +1914,22 @@ var element_in_document = function( element ) {
 	return false;
 };
 
+var top_index = 1;
+var focused_obj;
+
 var focus_details = function(details) {
-  var focused = document.querySelector('.focused');
-  if(focused) {
-    focused.classList.remove('focused');
+  if(details.id.match(/[0-9A-F]{32}/i)) {
+    focused_obj = common.get(details.id);
+    var focused = document.querySelector('.focused');
+    if(focused) {
+      focused.classList.remove('focused');
+    }
+    details.classList.add('focused');
+    document.querySelectorAll('.set_id').text(details.id.substr(0, 4));
   }
-  details.classList.add('focused');
-  document.getElementById('overlay').appendChild(details);
-  document.querySelectorAll('.set_id').text(details.id.substr(0, 4));
+  details.style['z-index'] = top_index++;
 };
 
-var top_index = 1;
 var drag;
 var show_details_for = function(object, event) {
 	var details = document.getElementById(object.id);
@@ -1940,6 +1955,7 @@ var show_details_for = function(object, event) {
 
 		details = t.content.cloneNode(true).querySelector('.details');
 		details.id = object.id;
+    document.getElementById('overlay').appendChild(details);
 
 
 		var view = details.querySelector('canvas.sprite');
@@ -2048,6 +2064,10 @@ document.addEventListener('mousedown', function(e) {
 	var details = find_parent(e.target, 'details');
 
 	if(details && e.button == 1) {
+    if(details.classList.contains('focused')) {
+      focused_obj = undefined;
+      details.classList.remove('focused');
+    }
 		details.remove();
 		e.stopPropagation();
 		e.preventDefault();
@@ -2121,7 +2141,10 @@ canvas.addEventListener('mousedown', function(e) {
 		}
 		if(clicked) {
 			show_details_for(clicked, e);
-		}
+		} else {
+      focused_obj = undefined;
+      document.querySelector('.focused').classList.remove('focused');
+    }
 		e.stopPropagation();
 		e.preventDefault();
 	} else if(e.button == 1) {
