@@ -178,7 +178,7 @@ var make_script_button = function(number) {
       var arr = JSON.parse(localStorage.custom_scripts);
       editor.setValue(arr[number]);
       editor.clearSelection();
-      editor.scrollToLine(0, false, false);
+      editor.focus();
     };
   }
   return button;
@@ -188,7 +188,7 @@ var script_new = function() {
   var arr = JSON.parse(localStorage.custom_scripts);
   arr.push("");
   make_script_button(arr.length - 1);
-  make_script_editor(arr.length - 1);
+  make_script_editor(arr.length - 1).focus();
 };
 
 
