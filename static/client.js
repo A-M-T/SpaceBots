@@ -2086,6 +2086,7 @@ var dont_drag_by = {
 };
 
 var can_drag = function(element) {
+  if(element.classList.contains('ace_content')) return false;
   if(element.contentEditable == "true") return false;
   if(dont_drag_by[element.tagName]) return false;
   return true;
