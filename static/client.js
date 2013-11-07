@@ -1342,6 +1342,30 @@ socket.on('assembler built', function(object) {
   console.log("Assembler has built " + JSON.stringify(object, null, '  '));
 });
 
+// TODO: write docs about polyfills
+
+Element.prototype.remove = function() {
+    this.parentElement.removeChild(this);
+};
+NodeList.prototype.remove = HTMLCollection.prototype.remove = function() {
+    for(var i = 0, len = this.length; i < len; i++) {
+        if(this[i] && this[i].parentElement) {
+            this[i].parentElement.removeChild(this[i]);
+        }
+    }
+};
+Element.prototype.remove = function(text) {
+    this.parentElement.removeChild(this);
+};
+NodeList.prototype.text = HTMLCollection.prototype.text = function(text) {
+    for(var i = 0, len = this.length; i < len; i++) {
+        if(this[i]) {
+            this[i].textContent = text;
+        }
+    }
+};
+
+
 // # Rendering
 
 // Now, that we can communicate and manage our robot, we should create GUI
@@ -1857,9 +1881,13 @@ controls.battery = function(elem, object) {
 };
 
 controls.impulse_drive = function(elem, object) {
-	elem.innerHTML = '<img src="/axes.png" class="axes">';
-	var img = elem.querySelector('img');
-	img.setAttribute('usemap', '#impulse_drive_map');
+  var template = document.getElementById("impulse_drive_controls").content;
+  template.querySelectorAll('.set_id').text(document.querySelector('.focused').id.substr(0, 4));
+  elem.appendChild(template.cloneNode(true));
+
+
+	//elem.innerHTML = '<img src="/axes.png" class="axes" usemap="#impulse_drive_map">';
+	//var img = elem.querySelector('img');
 
 	/*
 	*/
@@ -1874,6 +1902,16 @@ var element_in_document = function( element ) {
 		return element_in_document ( element );
 	}
 	return false;
+};
+
+var focus_details = function(details) {
+  var focused = document.querySelector('.focused');
+  if(focused) {
+    focused.classList.remove('focused');
+  }
+  details.classList.add('focused');
+  document.getElementById('overlay').appendChild(details);
+  document.querySelectorAll('.set_id').text(details.id.substr(0, 4));
 };
 
 var top_index = 1;
@@ -1946,11 +1984,9 @@ var show_details_for = function(object, event) {
 		};
 		animate(draw);
 
-		document.getElementById('overlay').appendChild(details);
-
-
 	}
-	details.style['z-index'] = top_index++;
+
+  focus_details(details);
 
 	var rect = details.getBoundingClientRect();
 	var w2 = (rect.right - rect.left) / 2;
@@ -1967,10 +2003,6 @@ var show_details_for = function(object, event) {
 	return details;
 };
 
-document.addEventListener('click', function(e) {
-
-}, true);
-
 var find_parent = function(element, className) {
 	while(!element.classList.contains(className)) {
 		element = element.parentElement;
@@ -1979,6 +2011,19 @@ var find_parent = function(element, className) {
 		}
 	}
 	return element;
+};
+
+var dont_drag_by = {
+  "A": true,
+  "BUTTON": true,
+  "INPUT": true,
+  "TEXTAREA": true
+};
+
+var can_drag = function(element) {
+  if(element.contentEditable == "true") return false;
+  if(dont_drag_by[element.tagName]) return false;
+  return true;
 };
 
 document.addEventListener('mousemove', function(e) {
@@ -1994,7 +2039,6 @@ document.addEventListener('mousemove', function(e) {
 
 document.addEventListener('mousedown', function(e) {
 	if(find_parent(e.target, 'nobubble')) {
-		console.log('stopping propagation');
 		e.stopPropagation();
 	}
 }, true);
@@ -2037,7 +2081,11 @@ document.addEventListener('mousedown', function(e) {
 
 			if(tutorial_process < tutorial_strings.length && tutorial_strings[tutorial_process].on_controlschange) tutorial_strings[tutorial_process].on_controlschange(details.id, feature);
 
-		} else if(details) {
+		} else if (e.target.classList.contains('run')) {
+      var command = find_parent(e.target, 'command');
+      console.log(command.textContent);
+      eval(command.textContent);
+    } else if(details && can_drag(e.target)) {
 			drag = {
 				dragged: details,
 				x: e.x,
@@ -2045,6 +2093,7 @@ document.addEventListener('mousedown', function(e) {
 			};
 			e.preventDefault();
 			e.stopPropagation();
+      focus_details(details);
 		}
 	}
 }, false);
@@ -2110,7 +2159,8 @@ onresize = function(e) {
 onresize();
 
 function help() {
-	document.getElementById('intro').classList.add('notransition');
+	var intro = document.getElementById('intro');
+  if(intro) intro.classList.add('notransition');
 
 	var div = document.createElement('div');
 	div.classList.add('editor');

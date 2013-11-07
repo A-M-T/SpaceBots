@@ -81,8 +81,12 @@ body {
   background: white;
   box-shadow: inset 0 0 30px #ccc;
   color: #222;
-  min-width: 150px;
+  min-width: 100px;
   border: 1px solid white;
+  white-space: nowrap;
+}
+.details.focused {
+  outline: 1px dashed white;
 }
 .details .ace_editor {
   height: 100%;
@@ -217,6 +221,27 @@ li:nth-child(2n-1) {
   border-style: double;
   height: 1em;
 }
+.param {
+  display: inline-block;
+  font-family: inherit;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  background: white;
+  min-width: 1em;
+  text-align: center;
+  padding: 0 2px;
+}
+.command {
+  padding: 5px;
+}
+.command .run {
+  cursor: pointer;
+  border-radius: 3px;
+  background: #444;
+  color: white;
+  padding: 0 4px;
+  margin: 0 2px;
+}
 </style>
 <body>
 <!-- Welcome to SpaceBots. For complete tutorial click on a link to client.js -->
@@ -254,11 +279,16 @@ li:nth-child(2n-1) {
 	  <canvas width="50" height="50" class="sprite"></canvas>
 	</div>
 	<div style="position: absolute">
-	  <h2>#0000</h2>
+      <h2>#0000</h2>
 	</div>
 	<div class="features"></div>
 	<div class="controls"></div>
   </div>
+</template>
+<template id="impulse_drive_controls">
+    <div class="command"><span class=run>do_impulse</span>(<span class="param" contenteditable>x</span>, <span class="param" contenteditable>y</span>, <span class="param" contenteditable>z</span>, <span class="param" contenteditable>mass</span>, <span class="param" contenteditable>speed</span>)</div>
+    <div class="command"><span class=run>navigate</span>("<span class="param set_id" contenteditable></span>")</div>
+    <div class="command"><span class=run>stop</span>()</div>
 </template>
 <script src="/ace/ace.js"></script>
 <script src="/socket.io/socket.io.js"></script>
