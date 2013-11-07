@@ -231,7 +231,7 @@ var tutorial_strings = [
 		integrity: 9999,
 		mass: 15,
 		radar_range: 1000,
-		sprite: "/avatar.png",
+		sprite: "/avatar28.png",
 		features: { avatar: true, radar: true },
 		parent: objects[shipid]
 	};
@@ -260,7 +260,7 @@ var tutorial_strings = [
 		fetch_time: -1,
 		integrity: 9999,
 		mass: 100,
-		sprite: "/assembler.png",
+		sprite: "/assembler101.png",
 		features: { assembler: true, refinery: true, spectrometer: true },
 		parent: objects[shipid]
 	};
