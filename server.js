@@ -537,12 +537,14 @@ io.sockets.on('connection', function (socket) {
     if(skeleton.skeleton_slots[idx])
       return fail(999, 'Skeleton '+data.skeleton+' slot '+idx+' occupied by '+skeleton.skeleton_slots[idx].id+'.');
 
-    skeleton.skeleton_slots[idx] = target.manipulator_slot;
-    target.manipulator_slot.parent = skeleton;
+    var o = target.manipulator_slot;
+    skeleton.skeleton_slots[idx] = o;
+    o.parent = skeleton;
     delete target.manipulator_slot.position;
     delete target.manipulator_slot.velocity;
     delete target.manipulator_slot.grabbed_by;
     delete target.manipulator_slot;
+    socket.emit('manipulator attached', { manipulator: { id: target.id }, skeleton: { id: skeleton.id }, slot: idx, object: { id: o.id } });
   });
 
   on('manipulator detach', function(target, data) {
@@ -567,6 +569,7 @@ io.sockets.on('connection', function (socket) {
     target.manipulator_slot.grabbed_by = target;
     target.manipulator_slot.position = $V(common.get_root(target).position.elements);
     target.manipulator_slot.velocity = $V(common.get_root(target).velocity.elements);
+    socket.emit('manipulator detached', { manipulator: { id: target.id }, skeleton: { id: skeleton.id }, slot: idx, object: { id: o.id } });
   });
 
   on('manipulator release', function(target, data) {
@@ -587,7 +590,7 @@ io.sockets.on('connection', function (socket) {
     var name = feature ? common.capitalize(feature) : "Object";
     check(id, name + ' id (' + id + ') doesn\'t match /[0-9A-F]{32}/i').is(/[0-9A-F]{32}/i);
     check(cc[id], name + ' ' + id + ' is not reachable from ' + source.id).notNull();
-    check(cc[id].features[feature], 'Object ' + id + ' can\'t act as a ' + feature).notNull();
+    if(feature) check(cc[id].features[feature], 'Object ' + id + ' can\'t act as a ' + feature).notNull();
     return cc[id];
   };
 

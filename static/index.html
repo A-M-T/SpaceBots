@@ -231,7 +231,7 @@ li:nth-child(2n-1) {
   text-align: center;
   padding: 0 2px;
 }
-.command {
+.command, .info {
   padding: 5px;
 }
 .command .run {
@@ -289,6 +289,15 @@ li:nth-child(2n-1) {
     <div class="command"><span class=run>do_impulse</span>(<span class="param set_x" contenteditable>x</span>, <span class="param set_y" contenteditable>y</span>, <span class="param set_z" contenteditable>z</span>, <span class="param" contenteditable title="mass factor to use">1</span>, <span class="param" contenteditable title="speed factor to use">1</span>)</div>
     <div class="command"><span class=run>navigate</span>("<span class="param set_id" contenteditable></span>")</div>
     <div class="command"><span class=run>stop</span>()</div>
+</template>
+<template id="manipulator_controls">
+    <div class="info">Slot: <a class="manipulator_slot">empty</a></div>
+    <div class="command"><span class=run>grab</span>(<span class="param set_x" contenteditable>x</span>, <span class="param set_y" contenteditable>y</span>, <span class="param set_z" contenteditable>z</span>)</div>
+    <div class="command"><span class=run>grab</span>()</div>
+    <div class="command"><span class=run>release</span>()</div>
+    <div class="command"><span class=run>attach</span>("<span class="param set_id" contenteditable title="skeleton"></span>", <span class="param" contenteditable title="slot"></span>)</div>
+    <div class="command"><span class=run>detach</span>("<span class="param set_id" contenteditable title="skeleton"></span>", <span class="param" contenteditable title="slot"></span>)</div>
+    <div class="command"><span class=run>repulse</span>(<span class="param set_x" contenteditable>x</span>, <span class="param set_y" contenteditable>y</span>, <span class="param set_z" contenteditable>z</span>, <span class="param" title="power" contenteditable></span>)</div>
 </template>
 <script src="/ace/ace.js"></script>
 <script src="/socket.io/socket.io.js"></script>

@@ -1247,10 +1247,11 @@ var stop = function() {
 	}
 };
 
-var manipulator_grab = function() {
-	socket.emit('manipulator grab', {
-		target: manipulator.id
-	});
+
+var grab = function(x, y, z) {
+  var json = { target: manipulator.id };
+  if(x || y || z) json.position = [x, y, z];
+  socket.emit('manipulator grab', json)
 };
 
 socket.on('manipulator grabbed', function(data) {
@@ -1258,7 +1259,50 @@ socket.on('manipulator grabbed', function(data) {
 	objects[data.id].manipulator_slot = objects[stub.id];
 });
 
-var do_repulse = function(x, y, z, power) {
+var release = function() {
+  socket.emit('manipulator release', {target:manipulator.id});
+};
+
+socket.on('manipulator released', function(data) {
+	delete objects[data.id].manipulator_slot;
+});
+
+var attach = function(skeleton, slot) {
+  skeleton = common.get(skeleton);
+  socket.emit('manipulator attach', {target: manipulator.id, skeleton: skeleton.id, skeleton_slot: slot});
+};
+
+socket.on('manipulator attached', function(data) {
+  var s = common.get(data.skeleton.id);
+  var o = common.get(data.object.id);
+  var m = common.get(data.manipulator.id);
+  s.skeleton_slots[data.slot] = o;
+  o.parent = s;
+  delete o.position;
+  delete o.velocity;
+  delete o.grabbed_by;
+  delete m.manipulator_slot;
+});
+
+var detach = function(skeleton, slot) {
+  skeleton = common.get(skeleton);
+  socket.emit('manipulator detch', {target: manipulator.id, skeleton: skeleton.id, skeleton_slot: slot});
+};
+
+socket.on('manipulator detached', function(data) {
+  var s = common.get(data.skeleton.id);
+  var o = common.get(data.object.id);
+  var m = common.get(data.manipulator.id);
+
+  m.manipulator_slot = s.skeleton_slots[idx];
+  s.skeleton_slots[idx] = null;
+  delete o.parent;
+  o.grabbed_by = target;
+  o.position = $V(common.get_root(target).position.elements);
+  o.velocity = $V(common.get_root(target).velocity.elements);
+});
+
+var repulse = function(x, y, z, power) {
 	power = power || manipulator.integrity;
 	socket.emit('manipulator repulse', {
 		target: manipulator.id,
@@ -1329,6 +1373,8 @@ var navigate = function(dest) {
 	}
 
 };
+
+// TODO: docs
 
 // TODO!!!
 var broadcast = function(msg) {
@@ -1862,9 +1908,9 @@ controls.radar = function(elem, object) {
 };
 
 controls.manipulator = function(elem, object) {
-	elem.innerHTML = '<img src="/manipulator_axes.png" class="axes">';
-	var img = elem.querySelector('img');
-	img.setAttribute('usemap', '#manipulator_map');
+  var template = document.getElementById("manipulator_controls").content;
+  template.querySelectorAll('.set_id').text(document.querySelector('.focused').id.substr(0, 4));
+  elem.appendChild(template.cloneNode(true));
 };
 
 controls.store = function(elem, object) {
@@ -1903,13 +1949,6 @@ controls.impulse_drive = function(elem, object) {
   var template = document.getElementById("impulse_drive_controls").content;
   template.querySelectorAll('.set_id').text(document.querySelector('.focused').id.substr(0, 4));
   elem.appendChild(template.cloneNode(true));
-
-
-	//elem.innerHTML = '<img src="/axes.png" class="axes" usemap="#impulse_drive_map">';
-	//var img = elem.querySelector('img');
-
-	/*
-	*/
 };
 
 var element_in_document = function( element ) {
