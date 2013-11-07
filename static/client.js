@@ -1100,6 +1100,17 @@ var get_resources_for_waste = function(n) {
 	return comp;
 };
 
+// TODO: document
+
+var relative_to_absolute = function(vector) {
+  var p = get_position_now(avatar);
+  return [
+    p.e(1) - vector[0] * 1000,
+    p.e(2) - vector[1] * 1000,
+    p.e(3) - vector[2] * 1000
+  ]
+};
+
 // Our first command will perform single full-powered impulse using
 // our impulse drive toward direction indicated in parameters - x, y
 // and z. With mass and speed specified by fraction of drive capabilities.
@@ -1127,11 +1138,7 @@ var do_impulse = function(x,y,z,mass,speed) {
 		matter_source: store.id,
 		composition: composition,
 		impulse: impulse,
-		destination: [
-			camera.e(1) - x * 1000,
-			camera.e(2) - y * 1000,
-			camera.e(3) - z * 1000
-		]
+		destination: [ x, y, z ]
 	});
 
 	// Excercise: the above command uses camera location as an origin
@@ -1181,16 +1188,18 @@ var speed_step = function(desired_v) {
 	// save some resources.
 	var achievable = change_v_l < delta_v_l;
 
+  var target = relative_to_absolute(direction.elements);
+
 	if(achievable) {
 		do_impulse(
-			direction.e(1),
-			direction.e(2),
-			direction.e(3),
+      target[0],
+			target[1],
+			target[2],
 			change_v_l / delta_v_l
 		);
 		return false;
 	} else {
-		do_impulse.apply(undefined, direction.elements);
+		do_impulse.apply(undefined, target);
 		return true;
 	}
 };
