@@ -70,35 +70,118 @@ localStorage.custom_scripts = localStorage.custom_scripts || "[]";
 // only string values. We will use `JSON.parse` to convert them back
 // into usable form.
 
+// TODO: write docs for editors
+
+var make_userscript_editor = function(number) {
+  var id =  "userscript_editor_" + number;
+  var div = document.getElementById(id);
+  if(!div) {
+    var subdiv = document.createElement('div');
+
+    var editor = ace.edit(subdiv);
+    editor.setTheme("ace/theme/monokai");
+    editor.getSession().setMode("ace/mode/javascript");
+
+    var save = document.createElement('span');
+    save.classList.add('save');
+    save.classList.add('button');
+    save.textContent = 'Save';
+    save.onclick = function() {
+      var arr = JSON.parse(localStorage.custom_scripts);
+      arr[number] = editor.getValue();
+      localStorage.custom_scripts = JSON.stringify(arr);
+    };
+
+    var div = document.createElement('div');
+    div.id = id;
+    div.classList.add('editor');
+    div.classList.add('details');
+    div.classList.add('userscript');
+    div.appendChild(subdiv);
+    div.appendChild(save);
+
+    document.getElementById('overlay').appendChild(div);
+    return editor;
+  } else {
+    return ace.edit(div.firstChild);
+  }
+};
+
+var make_userscript_button = function(number) {
+  var id =  "userscript_button_" + number;
+  var button = document.getElementById(id);
+  if(!button) {
+    button = document.createElement('span');
+    button.classList.add('button');
+    button.id = id;
+    button.textContent = number;
+    var list = document.getElementById('userscripts');
+    list.insertBefore(button, list.firstChild);
+    button.onclick = function() {
+      var editor = make_userscript_editor(number);
+      var arr = JSON.parse(localStorage.custom_scripts);
+      editor.setValue(arr[number]);
+      editor.clearSelection();
+      editor.scrollToLine(0, false, false);
+    };
+  }
+  return button;
+};
+
+var userscript_new = function() {
+  var arr = JSON.parse(localStorage.custom_scripts);
+  arr.push("");
+  make_userscript_button(arr.length - 1);
+  make_userscript_editor(arr.length - 1);
+};
+
+
 // Now we can iterate over all URLs and add them to the website:
 
-JSON.parse(localStorage.custom_scripts).forEach(function(url) {
+JSON.parse(localStorage.custom_scripts).forEach(function(data, i) {
 
 	// Create new html element for the script
 
 	var script = document.createElement('script');
+  make_userscript_button(i);
 
-	// Set the script to async - it will run when it'll be ready.
+  // Let's check if this script is a reference to other address.
+  // If it's contents start with 'http', it is probably a url.
 
-	script.async = true;
+  if(data.substr(0,4) === 'http') {
 
-	// Set the url to proper address
+    // Set the script to async - it will run when it'll be ready,
+    // without blocking the browser.
 
-	script.src = url;
+    script.async = true;
 
-	// Find any valid element that already is on the site (contents of
-	// body might still being loaded when this code is run). First
-	// script is a safe choice.
+    // Set the url to proper address
 
-	var first_script = document.getElementsByTagName('script')[0];
+    script.src = data;
 
-	// Finally, insert script before the first script.
+  } else {
 
-	// This line will actually load and run the script. If you got
-	// 404, then probably url you entered in
-	// `localStorage.custom_scripts` is down.
+    // In the case that our custom_script was plain code, we set
+    // the script contents.
 
-	first_script.parentNode.insertBefore(script, first_script);
+    script.textContent = data;
+
+  }
+
+  // Finally, let's insert our script into the page.
+
+  // This line will actually load and run the script. If you got
+  // 404, then probably url you entered in
+  // `localStorage.custom_scripts` is down.
+
+  document.body.appendChild(script);
+
+  // After script was run, we can remove it to keep the page
+  // clean.
+  // This should work even for async scripts that hasn't been
+  // yet downloaded.
+
+  document.body.removeChild(script);
 
 });
 
@@ -2021,8 +2104,6 @@ function help() {
 
 	var subdiv = document.createElement('div');
 	subdiv.style.height = '100%';
-
-
 
 	var editor = ace.edit(subdiv);
 	editor.setTheme("ace/theme/monokai");

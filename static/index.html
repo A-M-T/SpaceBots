@@ -6,26 +6,46 @@
 html {
   overflow: hidden;
 }
-body { 
+body {
   margin: 0;
   color: white;
   font-family: 'Share Tech', sans-serif;
 }
-#intro {
+.button {
   padding: 0 .2em;
-  text-shadow: 2px 2px 0 #bbb;
+  color: white;
+  text-shadow: 1px 1px 0 #bbb, 2px 2px 0 #bbb;
   text-align: left;
   font-size: 3em;
-  position: fixed;
   font-weight: bold;
+}
+.button {
+  cursor: pointer;
+  vertical-align: top;
+  transition: all .2s;
+}
+.button:hover {
+  font-size: 4em;
+}
+#intro, #userscripts {
+  position: fixed;
   top: 0;
+}
+#intro {
   cursor:help;
-
   -webkit-animation-duration: .5s;
   -webkit-animation-name: jump;
   -webkit-animation-iteration-count: infinite;
   -webkit-animation-timing-function: ease-in;
   -webkit-animation-direction:alternate;
+}
+#userscripts {
+  right: 0;
+}
+.save {
+  position: absolute;
+  bottom: 0;
+  right: 0;
 }
 
 @-webkit-keyframes jump {
@@ -54,6 +74,9 @@ body {
   color: #222;
   min-width: 150px;
   border: 1px solid white;
+}
+.details .ace_editor {
+  height: 100%;
 }
 .details h2 {
   margin: 0; padding: 0; font-weight: normal;
@@ -174,7 +197,7 @@ li:nth-child(2n-1) {
   /*background-color: #DDDDDD;*/
   border-style: solid;
   height: 1em;
-  
+
 }
 .window_text {
   /*background-color: #BBBBBB;*/
@@ -201,7 +224,10 @@ li:nth-child(2n-1) {
   <tr class="window_text deep"><td>Do you want to start a tutorial?<br />
   <input type="button" onclick="tutorial_start()" value="Yes" /> <input type="button" onclick="tutorial_skip()" value="No" /></td></tr>
 </table>
-<div id="intro" onclick="help()">?</div>
+<div id="intro" class="button" onclick="help()">?</div>
+<div id="userscripts">
+  <span class="button" onclick="userscript_new()">+</span>
+</div>
 <audio src="/freestylemix_-_hisboyelroy_-_Revolve.mp3" controls autoplay loop id="music" />
 <map id="manipulator_map" name="manipulator_map">
   <area shape="circle" alt="Grab" title="Grab" coords="70,81,37" href="javascript:manipulator_grab()" target="" />
