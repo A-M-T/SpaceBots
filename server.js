@@ -170,7 +170,7 @@ attract = function() {
     if(object.manipulator_slot) {
       var pos_a = common.get_position(object.manipulator_slot);
       var pos_b = common.get_position(object);
-      if(pos_a.distanceFrom(pos_b) > object.manipulator_range) {
+      if(pos_a && pos_b && pos_a.distanceFrom(pos_b) > object.manipulator_range) {
         delete object.manipulator_slot.grabbed_by;
         delete object.manipulator_slot;
       }
