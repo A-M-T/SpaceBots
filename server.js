@@ -408,6 +408,13 @@ io.sockets.on('connection', function (socket) {
     return true;
   };
 
+  var battery_check = function(battery, energy) {
+    check_feature(battery, 'battery');
+    check(energy, "Energy must be a number").isFloat();
+    check(energy, "Energy can't be nagative").min(0);
+    check(energy, "Required energy exceeds available in battery").max(battery.battery_energy);
+  };
+
   var on = function(name, handler) {
     socket.on(name, function(cmd) {
       if(typeof player === 'undefined') {
@@ -605,8 +612,6 @@ io.sockets.on('connection', function (socket) {
       return;
     if(typeof target.manipulator_slot === 'undefined')
       return fail(999, 'Manipulator empty.');
-    if(typeof data.power !== 'number')
-      return fail(999, 'Repulse power should be a number.');
     if(!Array.isArray(data.direction))
       return fail(999, 'Repulse direction should be an array.');
     if(data.direction.length != 3)
@@ -614,12 +619,15 @@ io.sockets.on('connection', function (socket) {
     var energy_source = find_co_component(target, data.energy_source, 'battery');
     if(typeof energy_source === 'undefined') return;
 
+    battery_check(energy_source, data.energy);
+    var energy = Number(data.energy);
+
     var direction = Vector.create(data.direction);
     var object = target.manipulator_slot;
 
-    apply_thrust(object, direction, data.power);
-    apply_thrust(target, direction.x(-1), data.power);
-    energy_source.battery_energy -= data.power;
+    apply_thrust(object, direction, energy);
+    apply_thrust(target, direction.x(-1), energy);
+    energy_source.battery_energy -= energy;
 
   });
 
@@ -639,13 +647,13 @@ io.sockets.on('connection', function (socket) {
       return fail(12, 'Ordered payload exceeds drive capabilities.');
     }
     if(cmd.impulse > target.impulse_drive_impulse) {
-      return fail(13, 'Ordered power exceeds drive capabilities.');
+      return fail(13, 'Ordered impulse exceeds drive capabilities.');
     }
-    var momentum = reaction_mass * cmd.impulse;
-
-    if(momentum > energy_source.battery_energy) {
-      return fail(14, 'Ordered to use more power than available in battery.');
+    if(cmd.impulse <= 0) {
+      return fail(999, 'Impulse must be greather than 0.');
     }
+    var energy = reaction_mass * cmd.impulse;
+    battery_check(energy_source, energy);
 
     var root = common.get_root(target);
     var d = root.position.distanceFrom(cmd.destination);
@@ -693,7 +701,7 @@ io.sockets.on('connection', function (socket) {
       // selection of hit location
       var arr = common.dict_to_array(cc);
       var i = Math.floor(Math.random() * arr.length);
-      apply_thrust(arr[i], direction.x(-1), momentum, false);
+      apply_thrust(arr[i], direction.x(-1), energy, false);
     }, time * 1000);
 
 
@@ -701,10 +709,10 @@ io.sockets.on('connection', function (socket) {
     subtract(cmd.destination).
     toUnitVector();
 
-    apply_thrust(target, direction, momentum, true);
+    apply_thrust(target, direction, energy, true);
 
     resources.subtract(matter_store.store_stored, cmd.composition);
-    energy_source.battery_energy -= momentum;
+    energy_source.battery_energy -= energy;
 
   });
 
@@ -773,22 +781,18 @@ io.sockets.on('connection', function (socket) {
     if(!check_feature(target, 'battery')) return;
     var battery = find_co_component(target, data.battery, 'battery');
     if(typeof battery === 'undefined') return;
-    var amount = data.amount;
-    if(typeof amount === 'undefined') return;
-
-    if(battery.battery_energy < amount) {
-      return fail(999, 'Not enough energy in battery.');
-    }
+    battery_check(battery, data.energy);
+    var energy = data.energy;
 
     var space_left = target.battery_capacity - target.battery_energy;
 
-    if(amount > space_left)
+    if(energy > space_left)
       return fail(999, 'Not enough space left in target battery');
 
-    battery.battery_energy -= amount;
-    target.battery_energy += amount;
+    battery.battery_energy -= energy;
+    target.battery_energy += energy;
 
-    socket.emit('battery moved', { id: target.id, moved: amount });
+    socket.emit('battery moved', { id: target.id, moved: energy });
   });
 
 
@@ -802,10 +806,8 @@ io.sockets.on('connection', function (socket) {
     check(laboratory.laboratory_slots[slot], "Laboratory slot taken").isNull();
     var battery = find_co_component(laboratory, json.battery, 'battery');
     if(typeof battery === 'undefined') return;
-    check(json.energy, "Energy must be a number").isFloat();
-    check(json.energy, "Energy can't be nagative").min(0);
-    check(json.energy, "Specified energy exceeds battery contents").max(battery.battery_energy);
-    var energy = sanitize(json.energy).toFloat();
+    battery_check(battery, json.energy);
+    var energy = Number(json.energy);
     battery.battery_energy -= energy;
     var level = bp.mod(laboratory.laboratory_tech_level, energy);
     var features = bp.random_features(level);
