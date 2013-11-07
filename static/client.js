@@ -1282,6 +1282,7 @@ socket.on('manipulator attached', function(data) {
   delete o.velocity;
   delete o.grabbed_by;
   delete m.manipulator_slot;
+  socket.emit('report', { target: o.id });
 });
 
 var detach = function(skeleton, slot) {
