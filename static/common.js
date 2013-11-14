@@ -116,8 +116,8 @@
 		return rnd_snd() * stddev + mean;
 	};
 
-	var rnd_exp = e.rnd_exp = function(top) {
-		return Math.exp(Math.random() * top);
+	var rnd_exp = e.rnd_exp = function(min, max) {
+		return Math.exp(min + (max - min)*Math.random());
 	};
 
 

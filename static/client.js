@@ -830,7 +830,8 @@ var refinery, laboratory, assembler;
 // When component scanning will be done, we will get our answer as
 // 'report' message.
 
-socket.on('report', function(obj) {
+var got_report;
+socket.on('report', got_report = function(obj) {
 
 	// We can save it to our `objects` collection:
 
@@ -1286,8 +1287,8 @@ socket.on('manipulator attached', function(data) {
 });
 
 var detach = function(skeleton, slot) {
-  skeleton = common.get(skeleton);
-  socket.emit('manipulator detch', {target: manipulator.id, skeleton: skeleton.id, skeleton_slot: slot});
+  var s = common.get(skeleton);
+  socket.emit('manipulator detach', {target: manipulator.id, skeleton: s.id, skeleton_slot: slot});
 };
 
 socket.on('manipulator detached', function(data) {
@@ -1375,6 +1376,53 @@ var navigate = function(dest) {
 
 };
 
+var invent = function(slot, energy) {
+  socket.emit('laboratory invent', { target: laboratory.id, slot: slot, battery: battery.id, energy: energy });
+};
+
+socket.on('laboratory invented', function(data) {
+  var slots = objects[data.laboratory.id].laboratory_slots
+  slots[data.slot] = data.blueprint;
+  var details = document.getElementById(data.laboratory.id);
+  if(details) {
+    details.querySelector('.laboratory_slots').innerHTML = stringify(slots);
+  }
+});
+
+var abandon = function(slot) {
+  socket.emit('laboratory abandon', { target: laboratory.id, slot: slot });
+};
+
+socket.on('laboratory abandoned', function(data) {
+  var slots = objects[data.laboratory.id].laboratory_slots;
+  slots[data.slot] = null;
+  var details = document.getElementById(data.laboratory.id);
+  if(details) {
+    details.querySelector('.laboratory_slots').innerHTML = stringify(slots);
+  }
+});
+
+var estimate = function(slot) {
+  socket.emit('assembler estimate', { target: assembler.id, laboratory: laboratory.id, slot: slot });
+};
+
+socket.on('assembler estimated', function(data) {
+  console.log('Assemblet estimated blueprint to', data.materials);
+});
+
+var build = function(slot) {
+  socket.emit('assembler build', { 
+    target: assembler.id,
+    laboratory: laboratory.id,
+    slot: slot,
+    store: store.id
+  });
+};
+
+socket.on('assembler built', function(data) {
+  got_report(data.object);
+});
+
 // TODO: docs
 
 // TODO!!!
@@ -1384,14 +1432,6 @@ var broadcast = function(msg) {
 
 socket.on('broadcast', function(message) {
 	console.log("Broadcast: " + message);
-});
-
-socket.on('laboratory invented', function(blueprint) {
-  console.log("Laboratory has invented " + JSON.stringify(blueprint, null, '  '));
-});
-
-socket.on('laboratory abandoned', function(blueprint) {
-  console.log("Laboratory has abandoned " + JSON.stringify(blueprint, null, '  '));
 });
 
 socket.on('assembler built', function(object) {
@@ -1941,7 +1981,6 @@ controls.store = function(elem, object) {
 };
 
 controls.battery = function(elem, object) {
-
 	var desc = 'Filled ' + Math.round(object.battery_energy) + '/' + Math.round(object.battery_capacity);
 	elem.appendChild(document.createTextNode(desc));
 };
@@ -1949,6 +1988,26 @@ controls.battery = function(elem, object) {
 controls.impulse_drive = function(elem, object) {
   var template = document.getElementById("impulse_drive_controls").content;
   template.querySelectorAll('.set_id').text(document.querySelector('.focused').id.substr(0, 4));
+  elem.appendChild(template.cloneNode(true));
+};
+
+var stringify = function(o) {
+  return JSON.stringify(o, function(key, value) {
+    if(typeof value === 'number') {
+      return Math.round(value*100)/100;
+    }
+    return value;
+  }, '  ').replace(/\n/g, '<br>').replace(/ /g, '&nbsp;')
+};
+
+controls.laboratory = function(elem, object) {
+  var template = document.getElementById("laboratory_controls").content;
+  template.querySelector('.laboratory_slots').innerHTML = stringify(object.laboratory_slots);
+  elem.appendChild(template.cloneNode(true));
+};
+
+controls.assembler = function(elem, object) {
+  var template = document.getElementById("assembler_controls").content;
   elem.appendChild(template.cloneNode(true));
 };
 

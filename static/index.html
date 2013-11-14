@@ -263,16 +263,6 @@ li:nth-child(2n-1) {
   <span class="button" onclick="script_new()">+</span>
 </div>
 <audio src="/freestylemix_-_hisboyelroy_-_Revolve.mp3" controls autoplay loop id="music"></audio>
-<map id="manipulator_map" name="manipulator_map">
-  <area shape="circle" alt="Grab" title="Grab" coords="70,81,37" href="javascript:manipulator_grab()" target="" />
-  <area shape="poly" alt="Full repulse towards X" title="Full repulse towards X" coords="140,121,109,123,110,110,90,99,96,89,113,99,126,95" href="javascript:do_repulse(1,0,0)" target="" />
-  <area shape="poly" alt="Full repulse towards -X" title="Full repulse towards -X" coords="0,41,29,39,31,52,40,57,34,69,22,60,14,67" href="javascript:do_repulse(-1,0,0)" target="" />
-  <area shape="poly" alt="Full repulse towards Z" title="Full repulse towards Z" coords="0,122,31,122,30,110,50,100,43,89,26,99,12,97" href="javascript:do_repulse(0,0,1)" target="" />
-  <area shape="poly" alt="Full repulse towards -Z" title="Full repulse towards -Z" coords="140,41,124,71,115,60,105,68,97,58,110,51,110,37" href="javascript:do_repulse(0,0,-1)" target="" />
-  <area shape="poly" alt="Full repulse towards Y" title="Full repulse towards Y" coords="70,1,86,25,76,31,77,53,62,54,64,31,54,23" href="javascript:do_repulse(0,1,0)" target="" />
-  <area shape="poly" alt="Full repulse towards -Y" title="Full repulse towards -Y" coords="70,161,54,137,64,132,63,118,77,118,76,131,86,138" href="javascript:do_repulse(0,-1,0)" target="" />
-</map>
-<map id="impulse_drive_map" name="impulse_drive_map"><area shape="circle" alt="Stop" title="Stop" coords="70,81,37" href="javascript:stop()" target="" /><area shape="poly" alt="Full impulse towards X" title="Full impulse towards X" coords="140,121,109,123,110,110,90,99,96,89,113,99,126,95" href="javascript:do_impulse(1,0,0)" target="" /><area shape="poly" alt="Full impulse towards -X" title="Full impulse towards -X" coords="0,41,29,39,31,52,40,57,34,69,22,60,14,67" href="javascript:do_impulse(-1,0,0)" target="" /><area shape="poly" alt="Full impulse towards Z" title="Full impulse towards Z" coords="0,122,31,122,30,110,50,100,43,89,26,99,12,97" href="javascript:do_impulse(0,0,1)" target="" /><area shape="poly" alt="Full impulse towards -Z" title="Full impulse towards -Z" coords="140,41,124,71,115,60,105,68,97,58,110,51,110,37" href="javascript:do_impulse(0,0,-1)" target="" /><area shape="poly" alt="Full impulse towards Y" title="Full impulse towards Y" coords="70,1,86,25,76,31,77,53,62,54,64,31,54,23" href="javascript:do_impulse(0,1,0)" target="" /><area shape="poly" alt="Full impulse towards -Y" title="Full impulse towards -Y" coords="70,161,54,137,64,132,63,118,77,118,76,131,86,138" href="javascript:do_impulse(0,-1,0)" target="" /></map>
 <template id="details">
   <div class="details">
 	<div class="deep">
@@ -298,6 +288,15 @@ li:nth-child(2n-1) {
     <div class="command"><span class=run>attach</span>("<span class="param set_id" contenteditable title="skeleton"></span>", <span class="param" contenteditable title="slot"></span>)</div>
     <div class="command"><span class=run>detach</span>("<span class="param set_id" contenteditable title="skeleton"></span>", <span class="param" contenteditable title="slot"></span>)</div>
     <div class="command"><span class=run>repulse</span>(<span class="param set_x" contenteditable>x</span>, <span class="param set_y" contenteditable>y</span>, <span class="param set_z" contenteditable>z</span>, <span class="param" title="power" contenteditable></span>)</div>
+</template>
+<template id="laboratory_controls">
+  <div class="command"><span class="run">invent</span>(<span class="param" title="slot" contenteditable>0</span>, <span class="param" title="energy" contenteditable>100</span>)</div>
+  <div class="command"><span class="run">abandon</span>(<span class="param" title="slot" contenteditable>0</span>)</div>
+  <div class="info">Slots: <a class="laboratory_slots">empty</a></div>
+</template>
+<template id="assembler_controls">
+  <div class="command"><span class="run">estimate</span>(<span class="param" title="slot" contenteditable>0</span>)</div>
+  <div class="command"><span class="run">build</span>(<span class="param" title="slot" contenteditable>0</span>)</div>
 </template>
 <script src="/ace/ace.js"></script>
 <script src="/socket.io/socket.io.js"></script>

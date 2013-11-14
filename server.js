@@ -74,7 +74,7 @@ var make_asteroid = function() {
   return {
     id: common.uid(),
     features: {},
-    composition: resources.make_resources(common.rnd_exp(5), 14, 20),
+    composition: resources.make_resources(common.rnd_exp(5, 10), 14, 20),
     sprite: '/asteroid100.png',
     position: sylvester.Vector.Zero(3),
     velocity: sylvester.Vector.Zero(3)
@@ -582,7 +582,7 @@ io.sockets.on('connection', function (socket) {
     target.manipulator_slot.grabbed_by = target;
     target.manipulator_slot.position = $V(common.get_root(target).position.elements);
     target.manipulator_slot.velocity = $V(common.get_root(target).velocity.elements);
-    socket.emit('manipulator detached', { manipulator: { id: target.id }, skeleton: { id: skeleton.id }, slot: idx, object: { id: o.id } });
+    socket.emit('manipulator detached', { manipulator: stub(target), skeleton: stub(skeleton), slot: idx, object: stub(target.manipulator_slot) });
   });
 
   on('manipulator release', function(target, data) {
@@ -813,7 +813,7 @@ io.sockets.on('connection', function (socket) {
     var features = bp.random_features(level);
     var blueprint = bp.randomize_blueprint(bp.make_blueprint(features, level));
     laboratory.laboratory_slots[slot] = blueprint;
-    socket.emit('laboratory invented', blueprint);
+    socket.emit('laboratory invented', { laboratory: stub(laboratory), slot: slot, blueprint: blueprint});
   });
 
   on('laboratory abandon', function(target, json) {
@@ -824,8 +824,21 @@ io.sockets.on('connection', function (socket) {
     check(json.slot, "Slot number must not exceed laboratory capacity").max(laboratory.laboratory_slots.length - 1);
     var slot = sanitize(json.slot).toInt();
     check(laboratory.laboratory_slots[slot], "Laboratory slot already empty").notNull();
-    socket.emit('laboratory abandoned', laboratory.laboratory_slots[slot]);
+    socket.emit('laboratory abandoned', { laboratory: stub(laboratory), slot: slot, blueprint: laboratory.laboratory_slots[slot] });
     laboratory.laboratory_slots[slot] = undefined;
+  });
+
+  on('assembler estimate', function(target, json) {
+    if(!check_feature(target, 'assembler')) return;
+    var laboratory = find_co_component(target, json.laboratory, 'laboratory');
+    check(json.slot, "Slot number must be an integer").isInt();
+    check(json.slot, "Slot number must be >= 0").min(0);
+    check(json.slot, "Slot number must not exceed laboratory capacity").max(laboratory.laboratory_slots.length - 1);
+    var slot = sanitize(json.slot).toInt();
+    check(laboratory.laboratory_slots[slot], "Laboratory slot can't be empty").notNull();
+    var blueprint = laboratory.laboratory_slots[slot];
+    var materials = bp.estimate_materials(blueprint);
+    socket.emit('assembler estimated', { assembler: stub(target), laboratory: stub(laboratory), slot: slot, materials: materials });
   });
 
   on('assembler build', function(target, json) {
@@ -843,10 +856,10 @@ io.sockets.on('connection', function (socket) {
       return fail(999, 'Not enough resources in store.');
     resources.subtract(store.store_stored, materials);
     var object = bp.realize_blueprint(blueprint);
-    socket.emit('assembler built', object);
     var root = common.get_root(target);
     object.position = Vector.create(root.position);
     object.velocity = Vector.create(root.velocity);
+    socket.emit('assembler built', { assembler: stub(target), laboratory: stub(laboratory), slot: slot, materials: materials, object: object });
     reg(object);
   });
 
