@@ -23,9 +23,9 @@ nesh.start({
   historyFile: '.spacebots_history',
   historyMaxInputSize: 1024 * 1024,
   welcome: sty.b('SpaceBots')+' Copyright (C) 2013  Marek Rogalski\n' +
-  'This program comes with ABSOLUTELY NO WARRANTY; for details type "warranty()".\n' +
-  'This is free software, and you are welcome to redistribute it under certain\n' +
-  'conditions; type "copyright()" for details.'
+    'This program comes with ABSOLUTELY NO WARRANTY; for details type "warranty()".\n' +
+    'This is free software, and you are welcome to redistribute it under certain\n' +
+    'conditions; type "copyright()" for details.'
 }, function(err, repl) {
   if(err) {
     logger.error(err);
@@ -48,14 +48,14 @@ logger.info('Listening on port ' + listener.port);
 // Begin game logic
 
 var common = require('./static/common'),
-    sylvester = require('sylvester'),
-    resources = require('./static/resources'),
-    bp = require('./blueprints'),
-    check = require('validator').check,
-    sanitize = require('validator').sanitize;
+sylvester = require('sylvester'),
+resources = require('./static/resources'),
+bp = require('./blueprints'),
+check = require('validator').check,
+sanitize = require('validator').sanitize;
 
 var objects = global.objects = {},
-    Vector = sylvester.Vector;
+Vector = sylvester.Vector;
 
 var reg = function(obj) {
   objects[obj.id] = obj;
@@ -148,7 +148,7 @@ apply_secret_force = function(object) {
 if('ATTRACTOR_KEY' in process.env) {
   try {
     var decipher = require('crypto').
-    createDecipher('aes256', process.env.ATTRACTOR_KEY);
+      createDecipher('aes256', process.env.ATTRACTOR_KEY);
     decipher.end('k7S4ZzSGD7L4v7rOZXAiHgNJHbBGSbAUzwb+EWEjYau5//l0Rep1Hq' +
                  'hZFDI7qKOH6gqmsyr+plzaqL+1MNrHkzepOcMVkeCjWbwIU+xF19g=',
                  'base64');
@@ -206,25 +206,37 @@ var damage_ship = function(root, dmg) {
   damage_object(arr[i], dmg);
 };
 
-var destroy = function(object) {
+var destroy = global.destroy = function(object) {
   logger.info(object.id + ' destroyed');
   var pos = common.get_root(object).position;
   var vel = common.get_root(object).velocity;
 
+  var cc = common.walk(object);
+  for(var k in cc) {
+    var o = cc[k];
+    if('avatar' in o.features) {
+      io.sockets.in(k).emit('destroyed', stub(object));
+    }
+  }
+
   if(object.skeleton_slots) {
     for(var i = 0; i < object.skeleton_slots.length; ++i) {
       var orphan = object.skeleton_slots[i];
-      orphan.parent = undefined;
-      orphan.velocity = Vector.create(vel);
-      orphan.position = Vector.create(pos);
-      object.skeleton_slots[i] = undefined;
+      if(orphan) {
+        orphan.parent = undefined;
+        orphan.velocity = Vector.create(vel);
+        orphan.position = Vector.create(pos);
+        object.skeleton_slots[i] = undefined;
+      }
     }
   }
+
   if(object.parent) {
     var me = object.parent.skeleton_slots.indexOf(object);
     object.parent.skeleton_slots[me] = undefined;
     object.parent = undefined;
   }
+
   delete objects[object.id];
 };
 
@@ -351,6 +363,9 @@ io.sockets.on('connection', function (socket) {
     if(!('avatars' in player)) {
       player = undefined;
       return fail(3, 'This account doesn\'t have an avatar list');
+    }
+    for(var k in player.avatars) {
+      socket.join(k);
     }
     socket.emit('avatar list',  Object.keys(player.avatars));
   });
@@ -706,8 +721,8 @@ io.sockets.on('connection', function (socket) {
 
 
     var direction = root.position.
-    subtract(cmd.destination).
-    toUnitVector();
+      subtract(cmd.destination).
+      toUnitVector();
 
     apply_thrust(target, direction, energy, true);
 

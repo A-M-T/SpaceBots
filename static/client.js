@@ -962,7 +962,9 @@ socket.on('report', got_report = function(obj) {
   // Now, that we are scanning our object, we could schedule a
   // rescan - just to be safe - to run every 10 seconds.
   setTimeout(function() {
-    socket.emit('report', { target: obj.id });
+    if(obj.id in objects) {
+      socket.emit('report', { target: obj.id });
+    }
   }, 10000 * (Math.random() + 1)); // time in ms
 
   // Now, we could check features of this object and check whether
@@ -1012,6 +1014,52 @@ socket.on('report', got_report = function(obj) {
   if(obj.features && obj.features.assembler) {
     assembler = obj;
   }
+});
+
+socket.on('destroyed', function(stub) {
+  if(stub.id === avatar.id) {
+    document.getElementById('overlay').appendChild(
+      document.getElementById('destroyed').content.cloneNode(true));
+  }
+  var obj = common.get(stub.id);
+  console.log("Object", obj.id, "has been destroyed");
+  new Audio('/destruction.ogg').play();
+  var desc = document.getElementById(obj.id);
+  if(desc) {
+    desc.remove();
+  }
+
+  var pos = common.get_root(obj).position;
+  var vel = common.get_root(obj).velocity;
+
+  var exp = {
+    reported: current_time,
+    position: common.get_position(common.get(obj.id)),
+    sprite: '/explosion45.png',
+    duration: 1,
+  };
+  explosions.push(exp);
+  new Audio('/boom'+Math.floor(Math.random()*3)+'.ogg').play();
+
+  if(obj.skeleton_slots) {
+    for(var i = 0; i < obj.skeleton_slots.length; ++i) {
+      var orphan = obj.skeleton_slots[i];
+      if(orphan) {
+        orphan.parent = undefined;
+        orphan.velocity = Vector.create(vel);
+        orphan.position = Vector.create(pos);
+        obj.skeleton_slots[i] = undefined;
+      }
+    }
+  }
+
+  if(obj.parent) {
+    var me = obj.parent.skeleton_slots.indexOf(obj);
+    obj.parent.skeleton_slots[me] = undefined;
+    obj.parent = undefined;
+  }
+
+  delete objects[obj.id];
 });
 
 // When radar scanning is done, we get the array containing all items
@@ -1631,6 +1679,7 @@ socket.on('explosion', function(data) {
   data.reported = current_time;
   data.position = $V(data.position);
   explosions.push(data);
+  new Audio('/boom'+Math.floor(Math.random()*3)+'.ogg').play();
 });
 
 var get_current_pos = function(obj, time) {

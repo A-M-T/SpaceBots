@@ -234,13 +234,28 @@ li:nth-child(2n-1) {
 .command, .info {
   padding: 5px;
 }
-.command .run {
+.run {
   cursor: pointer;
   border-radius: 3px;
   background: #444;
   color: white;
-  padding: 0 4px;
+  padding: 2px 4px;
   margin: 0 2px;
+}
+.death_message {
+  position: fixed;
+  background: rgba(255, 50, 55, 0.8);
+  font-size: 1.5em;
+  padding: .5em;
+  text-align: center;
+  display: block;
+  margin: .5em 25%;
+  width: 50%;
+  border-radius: 3px;
+}
+.destroyed {
+  font-size: 1.5em;
+  margin: .2em;
 }
 </style>
 <body>
@@ -273,6 +288,12 @@ li:nth-child(2n-1) {
 	</div>
 	<div class="features"></div>
 	<div class="controls"></div>
+  </div>
+</template>
+<template id="destroyed">
+  <div class="death_message">
+    <div class="destroyed">You have been destroyed</div>
+    <div class="command run">delete localStorage.player_id;<br>location.reload();</div>
   </div>
 </template>
 <template id="impulse_drive_controls">
