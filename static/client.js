@@ -281,7 +281,7 @@ var tutorial_canvas, tutorial_ctx, tutorial_original_socket, tutorial_target_id;
 // We'll now define some text that will be shown in the tutorial
 
 var tutorial_strings = [
-  { text: "Welcome to SpaceBots! Blablablablabla", start: function() {
+  { text: "Welcome to SpaceBots! It's a game about programming your ship that flies in space.", start: function() { //TODO: More explanation?
     console.log("Starting the tutorial!");
 
     tutorial_original_socket = socket;
@@ -423,8 +423,11 @@ var tutorial_strings = [
   { text: "<img src=\"/features/battery.png\"> Battery provides your ship with energy. It is used for example by impulse drive. For now the only way of recharging the battery is to steal the energy from another ship, so don't use up all of you power!" },
   { text: "In the third row you have the assembler (<img src=\"/features/assembler.png\">), refinery (<img src=\"/features/refinery.png\">) and spectrometer (<img src=\"/features/spectrometer.png\">)." },
   { text: "<img src=\"/features/refinery.png\"> Refinery is used to create materials from objects you find. They can be asteroids, other ships or even parts of your own ship! Hovewer, there isn't a GUI to use it. You need to write all of the client-side code yourself! More informations can be found in source code (\"?\" sign in the top-left)" }, //TODO: More informations
-  { text: "<img src=\"/features/assembler.png\"> <img src=\"/features/spectrometer.png\"> Assembler and spectrometer aren't implemented yet" },
-  { text: "In the fourth row you have burning reactor (<img src=\"/features/burning_reactor.png\">), enriching reactor (<img src=\"/features/enriching_reactor.png\">) and laboratory (<img src=\"/features/laboratory.png\">). They also aren't implemented yet." },
+  { text: "<img src=\"/features/assembler.png\"> Assembler is used to build elements invented by laboratory" },
+  { text: "<img src=\"/features/spectrometer.png\"> Spectrometer isn't implemented yet" },
+  { text: "In the fourth row you have burning reactor (<img src=\"/features/burning_reactor.png\">), enriching reactor (<img src=\"/features/enriching_reactor.png\">) and laboratory (<img src=\"/features/laboratory.png\">)." },
+  { text: "<img src=\"/features/laboratory.png\"> Laboratory is used to invent new elements to your ships. They are better than your default hardware. The more energy you'll put into your laboratory, the better will be blueprints for elements you'll get." },
+  { text: "<img src=\"/features/burning_reactor.png\"> <img src=\"/features/enriching_reactor.png\"> Burning reactor and enriching reactor aren't implemented yet." },
   { text: "5th and 6th rows are empty and available to expand your ship" },
   { text: "Now click on the manipulator icon (<img src=\"/features/manipulator.png\">)",
     on_controlschange: function(target, feature) {
