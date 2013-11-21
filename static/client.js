@@ -1800,22 +1800,11 @@ var tick = function(time) {
   for(var i = 0; i < arr.length; ++i) {
     var obj = arr[i];
 
-    var anomaly = false;
-    if(time - obj.fetch_time > 2) {
-      ctx.globalAlpha = Math.max(1 - (time - obj.fetch_time - 2)/10, 0.5);
-    }
+    var a = 1 - (time - obj.fetch_time)/2;
+    if(a <= 0) continue;
+    ctx.globalAlpha = a;
 
-    if(time - obj.fetch_time > 5) {
-      var ap = get_current_pos(avatar);
-      if(get_current_pos(obj).distanceFrom(ap) < radio.radio_range) {
-        anomaly = true;
-      }
-    }
-
-    var pos = obj.position;
-    if(obj.velocity) {
-      pos = pos.add(obj.velocity.x(time - obj.fetch_time));
-    }
+    var pos = get_position_now(obj)
 
     shadow(pos, 'white');
     obj.screen_position = worldToScreen(pos);
@@ -1841,17 +1830,6 @@ var tick = function(time) {
 
     ctx.globalAlpha = 1;
 
-    if(anomaly) {
-      var tw = ctx.measureText('?').width;
-      ctx.save();
-      ctx.fillStyle = '#34416c';
-      ctx.font = 'bold 30px Dosis';
-      ctx.strokeStyle = 'white';
-      ctx.lineWidth = 3;
-      ctx.strokeText('?', obj.screen_position.e(1) - tw/2, obj.screen_position.e(2));
-      ctx.fillText('?', obj.screen_position.e(1) - tw/2, obj.screen_position.e(2));
-      ctx.restore();
-    }
   }
 
   draw_explosions(time);
