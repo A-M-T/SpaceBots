@@ -1,6 +1,7 @@
 
 var fs = require('fs');
 var sty = require('sty');
+var argv = require('optimist').argv;
 
 var logger = require('./logger');
 
@@ -278,15 +279,22 @@ var apply_thrust = function(object, direction, momentum, reduce_dmg) {
   root.velocity = root.velocity.add( direction.toUnitVector().x(dv) );
 };
 
-var last_commands = {};
+var last_commands_db = {};
 var last_accounts = {};
 
 io.sockets.on('connection', function (socket) {
   var player = undefined;
   var address = socket.handshake.address;
+  var last_commands;
 
-  if(!(address in last_commands)) {
-    last_commands[address] = [0,0,0,0,0,0,0,0,0,0];
+  if(argv.throttle === 'player') {
+    last_commands = [0,0,0,0,0,0,0,0,0,0];
+  } else {
+    if(address in last_commands_db) {
+      last_commands = last_commands_db[address];
+    } else {
+      last_commands_db[address] = last_commands = [0,0,0,0,0,0,0,0,0,0];
+    }
   }
 
   var name = sty.b(sty[random_color()](address.address));
@@ -322,14 +330,14 @@ io.sockets.on('connection', function (socket) {
   // true if limit exceeded, false if ok
   var check_command_limit = function() {
     var now = (new Date).getTime() / 1000;
-    var ten_before = last_commands[address].shift();
-    last_commands[address].push(now);
+    var ten_before = last_commands.shift();
+    last_commands.push(now);
     return now - ten_before < 1;
   };
 
   socket.on('broadcast', function(data) {
     if(check_command_limit()) {
-      return fail(9, 'Exceeded limit of ' + last_commands[address].length + ' commands per second.');
+      return fail(9, 'Exceeded limit of ' + last_commands.length + ' commands per second.');
     }
     log_in('broadcast');
     var str = JSON.stringify(data);
@@ -358,6 +366,14 @@ io.sockets.on('connection', function (socket) {
     }
 
     player = get_or_create_player('' + data.player_id);
+
+    if(argv.throttle === 'player') {
+      if(data.player_id in last_commands_db) {
+        last_commands = last_commands_db[data.player_id];
+      } else {
+        last_commands_db[data.player_id] = last_commands;
+      }
+    }
 
 
     if(!('avatars' in player)) {
@@ -436,7 +452,7 @@ io.sockets.on('connection', function (socket) {
         return fail(18, 'You have to log in first!');
       }
       if(check_command_limit())
-        return fail(9, 'Exceeded limit of ' + last_commands[address].length + ' commands per second.');
+        return fail(9, 'Exceeded limit of ' + last_commands.length + ' commands per second.');
       log_in(name);
       var target = find_target(cmd);
       if(!target) return;
