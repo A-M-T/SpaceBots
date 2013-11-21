@@ -1481,11 +1481,15 @@ socket.on('assembler built', function(data) {
 // TODO: docs
 
 // TODO!!!
+var messages = {};
 var broadcast = function(msg) {
   socket.emit('radio broadcast', { target: avatar.id, message: msg });
 };
 
 socket.on('broadcast', function(data) {
+  var id = data.source.id;
+  if(!messages[id]) messages[id] = [];
+  messages[id].unshift({ text: JSON.stringify(data.message), time: current_time });
   console.log("Broadcast from " + data.source.id + ": " + JSON.stringify(data.message));
 });
 
@@ -1799,15 +1803,42 @@ var tick = function(time) {
   // Now, we draw every object from the `objects` set
   for(var i = 0; i < arr.length; ++i) {
     var obj = arr[i];
+    var pos = get_position_now(obj);
+    obj.screen_position = worldToScreen(pos);
+
+    if(messages[obj.id]) {
+      ctx.save();
+      ctx.font = 'bold 20px Dosis';
+      ctx.textAlign = 'center';
+      ctx.lineWidth = 3;
+      messages[obj.id].forEach(function(msg, j) {
+        if(current_time - msg.time < 8) {
+          ctx.fillStyle = '#' + obj.id.substring(0, 6);
+          ctx.strokeStyle = 'white';
+        } else {
+          ctx.fillStyle = 'rgba(' + 
+            parseInt(obj.id.substring(0, 2), 16) + ',' +
+            parseInt(obj.id.substring(2, 4), 16) + ',' +
+            parseInt(obj.id.substring(4, 6), 16) + ',' +
+            (1 - (current_time - msg.time - 8)/3) + ')';
+          ctx.strokeStyle = 'rgba(255,255,255,' +
+            (1 - (current_time - msg.time - 8)/3) + ')';
+        }
+        var X = obj.screen_position.e(1);
+        var Y = obj.screen_position.e(2) - j * 20 - 20;
+        ctx.strokeText(msg.text, X, Y);
+        ctx.fillText(msg.text, X, Y);
+      });
+      messages[obj.id] = messages[obj.id].filter(function(o) {return current_time - o.time < 11;});
+      if(messages[obj.id].length == 0) delete messages[obj.id];
+      ctx.restore();
+    }
 
     var a = 1 - (time - obj.fetch_time)/2;
     if(a <= 0) continue;
     ctx.globalAlpha = a;
 
-    var pos = get_position_now(obj)
-
     shadow(pos, 'white');
-    obj.screen_position = worldToScreen(pos);
 
     var sprite_url = obj.sprite || '/unknown.png';
     var sprite = get_image(sprite_url);
