@@ -192,8 +192,8 @@ grab_range: 0
 };
 
 // Used to detect objects at a distance
-var radar = {
-radar_range: 1.0
+var radio = {
+radio_range: 1.0
 };
 
 // Used to examine detailed information about objects
@@ -239,14 +239,14 @@ var grabbed = { // Client << Server
 hub_id: null, slot_idx: null, object_id: null
 };
 
-// Radar scanning
+// Radio scanning
 
-var radar_scan = { // >>
-avatar_id: null, radar_id: null
+var radio_scan = { // >>
+avatar_id: null, radio_id: null
 };
 
-var radar_scan_result = { // <<
-radar_id: null,
+var radio_scan_result = { // <<
+radio_id: null,
 results: [{
 id: null, position: v3, velocity: v3, mass: 1.0, sprite: 'url'
 }]

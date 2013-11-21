@@ -19,7 +19,7 @@
 ** DONE corrupting composition array
 ** DONE corrupting features object
 * TODO More robust component reporting in client
-* TODO More robust radar scanning in client
+* TODO More robust radio scanning in client
 * maybe process management?
 * TODO Command tracker in client (visualising how many commands per second are fired)
 * TODO Ability to communicate with other ships

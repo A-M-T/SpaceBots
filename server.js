@@ -98,8 +98,8 @@ var get_or_create_player = function(hash) {
     hull.skeleton_slots = [null, null, null, null, null, null];
     hull.sprite = '/hull.png';
 
-    var avatar = place(hull, reg(bp.make('avatar radar', 10)), 0);
-    avatar.radar_range = 1000;
+    var avatar = place(hull, reg(bp.make('avatar radio', 10)), 0);
+    avatar.radio_range = 1000;
 
     var drive = place(hull, reg(bp.make('impulse_drive store battery', 10)), 1);
     drive.store_stored[0] = drive.store_capacity*0.75;
@@ -463,7 +463,7 @@ io.sockets.on('connection', function (socket) {
     if('manipulator_slot' in target) {
       report.manipulator_slot = stub(target.manipulator_slot);
     }
-    var copy = 'id features sprite integrity radar_range impulse_drive_payload impulse_drive_impulse store_stored store_capacity battery_energy battery_capacity manipulator_range laboratory_slots laboratory_tech_level'.split(' ');
+    var copy = 'id features sprite integrity radio_range impulse_drive_payload impulse_drive_impulse store_stored store_capacity battery_energy battery_capacity manipulator_range laboratory_slots laboratory_tech_level'.split(' ');
     var vectors = 'position velocity'.split(' ');
     copy.forEach(function(key) {
       report[key] = target[key];
@@ -479,8 +479,8 @@ io.sockets.on('connection', function (socket) {
     socket.emit('report', report);
   });
 
-  on('radar broadcast', function(target, data) {
-    if(!check_feature(target, 'radar')) return;
+  on('radio broadcast', function(target, data) {
+    if(!check_feature(target, 'radio')) return;
     var str = JSON.stringify(data.message);
     if(str.length > 140) {
       return fail(1, 'JSON.stringify(message) should have at most 140 characters');
@@ -490,27 +490,27 @@ io.sockets.on('connection', function (socket) {
   });
 
 
-  var radar_copy_fields = 'id sprite'.split(' ');
-  var radar_vector_fields = 'position velocity'.split(' ');
-  on('radar scan', function(target, data) {
-    if(!check_feature(target, 'radar')) return;
+  var radio_copy_fields = 'id sprite'.split(' ');
+  var radio_vector_fields = 'position velocity'.split(' ');
+  on('radio scan', function(target, data) {
+    if(!check_feature(target, 'radio')) return;
     var results = [];
     var now = (new Date).getTime();
-    var radar_position = common.get_position(target);
+    var radio_position = common.get_position(target);
 
     for(var hash in objects) {
       var object = objects[hash];
       if(!('position' in object)) continue;
-      var d = radar_position.distanceFrom(object.position);
-      if(d <= target.radar_range) {
+      var d = radio_position.distanceFrom(object.position);
+      if(d <= target.radio_range) {
         var report = {};
-        radar_copy_fields.forEach(function(key) { report[key] = object[key]; });
-        radar_vector_fields.forEach(function(key) { if(key in object) report[key] = object[key].elements; });
+        radio_copy_fields.forEach(function(key) { report[key] = object[key]; });
+        radio_vector_fields.forEach(function(key) { if(key in object) report[key] = object[key].elements; });
 
         results.push(report);
       }
     }
-    socket.emit('radar result', results);
+    socket.emit('radio result', results);
   });
 
 

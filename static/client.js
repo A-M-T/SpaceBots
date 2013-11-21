@@ -322,14 +322,14 @@ var tutorial_strings = [
     };
 
     var objid = common.uid();
-    radar = avatar = objects[shipid].skeleton_slots[0] = objects[objid] = {
+    radio = avatar = objects[shipid].skeleton_slots[0] = objects[objid] = {
       id: objid,
       fetch_time: -1,
       integrity: 9999,
       mass: 15,
-      radar_range: 1000,
+      radio_range: 1000,
       sprite: "/avatar28.png",
-      features: { avatar: true, radar: true },
+      features: { avatar: true, radio: true },
       parent: objects[shipid]
     };
 
@@ -414,9 +414,9 @@ var tutorial_strings = [
       return tutorial_strings[tutorial_process].var_finished;
     }, var_finished: false },
   { text: "There are listed all of your ship's elements. Every row starts with first 4 chars of element ID, and is followed by pictures of element's features. We'll now shortly describe each of them." },
-  { text: "In the first row you have your avatar (<img src=\"/features/avatar.png\">) and radar (<img src=\"/features/radar.png\">)." },
+  { text: "In the first row you have your avatar (<img src=\"/features/avatar.png\">) and radio (<img src=\"/features/radio.png\">)." },
   { text: "<img src=\"/features/avatar.png\"> Avatar is basically your gateway to the ship, that can control other elements. You can have more than one avatar on the ship, but the web interface will allow you to control only the first one." },
-  { text: "<img src=\"/features/radar.png\"> Radar is a way of looking at the world around you. Without a radar, you're basically blind." },
+  { text: "<img src=\"/features/radio.png\"> Radio is a way of looking at the world around you. Without a radio, you're basically blind." },
   { text: "In the second row you have your impulse drive (<img src=\"/features/impulse_drive.png\">), battery (<img src=\"/features/battery.png\">) and store (<img src=\"/features/store.png\">)." },
   { text: "<img src=\"/features/impulse_drive.png\"> Impulse drive is an engine that will provide thrust by throwing matter out of the exhaust pipe with blazing speeds. It basically allows us to move. We'll learn how to use it in a second." },
   { text: "<img src=\"/features/store.png\"> Store will store all resources you collect. They are for example used to be thrown with impulse drive. You can refill the store by using the refinery, or stealing the resources from another ship." },
@@ -664,7 +664,7 @@ var tutorial_continue = function() {
     // Before logging in, we'll clear objects table, because example tutorial objects shouldn't be shown in online mode
     objects = { };
     current_time = 0;
-    avatar = radar = impulse_drive = store = battery = manipulator = undefined;
+    avatar = radio = impulse_drive = store = battery = manipulator = undefined;
 
     log_in();
     //End the function - we don't want to load new message
@@ -758,7 +758,7 @@ socket.on('avatar list', function (avatar_ids) {
   // interface included on this site, allows you to control only the
   // first one - later you could extend it to allow control over a
   // fleet of avatars or write scripts to utilize additional ones as
-  // autonomus radars, mining or combat robots.
+  // autonomus radios, mining or combat robots.
 
   avatar_id = avatar_ids[0];
 
@@ -776,7 +776,7 @@ socket.on('avatar list', function (avatar_ids) {
 // Excercise: check your avatar id by typing "avatar_id" in the
 // console window. Avatar id, unlike player id can be made public - it
 // simply identifies your avatar in the game. When other players will
-// see your avatar on the radar, it will report the same avatar
+// see your avatar on the radio, it will report the same avatar
 // id. The same rule applies to all game objects - they all have ids.
 
 // Now, that we are waiting for the server to return our avatar
@@ -798,10 +798,10 @@ var current_time = 0;
 
 var avatar;
 
-// Radar will map our surroundings. Without a decent radar, we are
+// Radio will map our surroundings. Without a decent radio, we are
 // basically blind.
 
-var radar;
+var radio;
 
 // Drive will provide us with thrust. Without drive, we wouldn't be
 // able to move a bit. There are various kinds of drives. Initially
@@ -976,11 +976,11 @@ socket.on('report', got_report = function(obj) {
     avatar = obj;
   }
 
-  // If it is a radar, we'll save it into global `radar` variable...
-  if(('radar' in obj.features) && (radar === undefined)) {
-    radar = obj;
-    // ... and schedule a radar scan right away.
-    socket.emit('radar scan', { target: radar.id });
+  // If it is a radio, we'll save it into global `radio` variable...
+  if(('radio' in obj.features) && (radio === undefined)) {
+    radio = obj;
+    // ... and schedule a radio scan right away.
+    socket.emit('radio scan', { target: radio.id });
   }
 
   // If this object is capable of hauling mass with high velocities,
@@ -1062,17 +1062,17 @@ socket.on('destroyed', function(stub) {
   delete objects[obj.id];
 });
 
-// When radar scanning is done, we get the array containing all items
-// found within the `radar_range`. Each object found will have only
+// When radio scanning is done, we get the array containing all items
+// found within the `radio_range`. Each object found will have only
 // most basic fields - id, position, velocity and sprite.
 
-// After each radar update, we are up-to date with all objects
+// After each radio update, we are up-to date with all objects
 // positions and we are able to execute some additional action that is
 // guaranteed to operate on correct values. We will store this action
-// in `radar_callback`.
-var radar_callback;
+// in `radio_callback`.
+var radio_callback;
 
-socket.on('radar result', function(result) {
+socket.on('radio result', function(result) {
 
   // Let's integrate new information into our own structures. We
   // will do it the same way as in 'report' handler.
@@ -1092,17 +1092,17 @@ socket.on('radar result', function(result) {
     if(local.velocity) local.velocity = $V(local.velocity);
   });
 
-  if(typeof radar_callback === 'function') radar_callback();
+  if(typeof radio_callback === 'function') radio_callback();
 
-  // Same as with the reports, radar also should do rescans - after all
+  // Same as with the reports, radio also should do rescans - after all
   // not everything moves along straight lines.
 
   setTimeout(function() {
-    socket.emit('radar scan', {
-      target: radar.id
+    socket.emit('radio scan', {
+      target: radio.id
     });
 
-    // Radar rescans will be performed more often than avatar
+    // Radio rescans will be performed more often than avatar
     // scans - every second.
 
   }, 1000);
@@ -1262,28 +1262,28 @@ var stop_tick = function() {
 
     // If it hasn't finished, we have to shedule it again.
 
-    radar_callback = stop_tick;
+    radio_callback = stop_tick;
 
   } else {
 
     console.log("Stopping finished");
 
-    radar_callback = undefined;
+    radio_callback = undefined;
 
   }
 
 };
 
 // This function will be executed after clicking on stop orb.
-// Its only function will be to set up our `radar_callback`.
+// Its only function will be to set up our `radio_callback`.
 
 var stop = function() {
-  if(typeof radar_callback === 'undefined') {
+  if(typeof radio_callback === 'undefined') {
 
     // The callback isn't set. Let's set it.
 
     console.log("Stopping initiated");
-    radar_callback = stop_tick;
+    radio_callback = stop_tick;
 
   } else {
 
@@ -1291,7 +1291,7 @@ var stop = function() {
     // clearing it.
 
     console.log("Aborted stopping!");
-    radar_callback = undefined;
+    radio_callback = undefined;
 
   }
 };
@@ -1404,9 +1404,9 @@ var navigate_tick = function() {
     speed_step(target_velocity);
   }
   if((distance > 10) || (velocity_diff > 0.5)) {
-    radar_callback = navigate_tick;
+    radio_callback = navigate_tick;
   } else {
-    radar_callback = undefined;
+    radio_callback = undefined;
     var c = destination_callback;
     if(c) {
       destination_callback = null;
@@ -1421,12 +1421,12 @@ var navigate = function(dest, cb) {
   destination = common.get(dest);
   destination_callback = cb;
 
-  if(typeof radar_callback === 'undefined') {
+  if(typeof radio_callback === 'undefined') {
     console.log("Navigation initiated");
-    radar_callback = navigate_tick;
+    radio_callback = navigate_tick;
   } else {
     console.log("Movement aborted!");
-    radar_callback = undefined;
+    radio_callback = undefined;
   }
 
 };
@@ -1482,7 +1482,7 @@ socket.on('assembler built', function(data) {
 
 // TODO!!!
 var broadcast = function(msg) {
-  socket.emit('radar broadcast', { target: avatar.id, message: msg });
+  socket.emit('radio broadcast', { target: avatar.id, message: msg });
 };
 
 socket.on('broadcast', function(data) {
@@ -1744,12 +1744,12 @@ var tick = function(time) {
   ctx.scale(scale.current, scale.current);
   ctx.translate(-canvas.width / 2, -canvas.height / 2);
 
-  if(radar) {
+  if(radio) {
     ctx.strokeStyle = 'red';
-    ctx.lineWidth = radar.radar_range / 80;
-    ctx.setLineDash([radar.radar_range / 20]);
+    ctx.lineWidth = radio.radio_range / 80;
+    ctx.setLineDash([radio.radio_range / 20]);
     ctx.beginPath();
-    ctx.arc(canvas.width/2, canvas.height/2, radar.radar_range, 0, 2 * Math.PI, true);
+    ctx.arc(canvas.width/2, canvas.height/2, radio.radio_range, 0, 2 * Math.PI, true);
     ctx.stroke();
     ctx.setLineDash([0]);
     ctx.lineWidth = 1;
@@ -1807,7 +1807,7 @@ var tick = function(time) {
 
     if(time - obj.fetch_time > 5) {
       var ap = get_current_pos(avatar);
-      if(get_current_pos(obj).distanceFrom(ap) < radar.radar_range) {
+      if(get_current_pos(obj).distanceFrom(ap) < radio.radio_range) {
         anomaly = true;
       }
     }
@@ -1862,7 +1862,7 @@ var tick = function(time) {
     ctx.lineDashOffset = time * 2;
     ctx.lineWidth = 2;
     ctx.lineCap = 'round';
-    if(radar) {
+    if(radio) {
       ctx.beginPath();
       ctx.arc(canvas.width/2, canvas.height/2, manipulator.manipulator_range, 0, 2 * Math.PI, false);
       ctx.stroke();
@@ -2000,8 +2000,8 @@ controls.avatar = function(elem, object) {
   elem.appendChild(document.createTextNode('Avatar status: OK'));
 };
 
-controls.radar = function(elem, object) {
-  elem.appendChild(document.createTextNode('Radar range: ' + Math.round(object.radar_range)));
+controls.radio = function(elem, object) {
+  elem.appendChild(document.createTextNode('Radio range: ' + Math.round(object.radio_range)));
 };
 
 controls.manipulator = function(elem, object) {

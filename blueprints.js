@@ -15,7 +15,7 @@
 		'laboratory': 100,
 		'laser': 100,
 		'manipulator': 100,
-		'radar': 100,
+		'radio': 100,
 		'refinery': 100,
 		'skeleton': 20,
 		'spectrometer': 100,
@@ -101,7 +101,7 @@
 			impulse: function(b, v) { return v * 1000; },
 			//stealth: function(b, v) { return to_one(0, 50, v); }
 		},
-		radar: {
+		radio: {
 			range: function(b, v) { return v * 500; },
 			//stealth: function(b, v) { return to_one(0, 50, v); }
 		},
