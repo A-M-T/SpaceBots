@@ -349,9 +349,9 @@ io.sockets.on('connection', function (socket) {
     if(!(data.player_id in objects)) {
       var now = (new Date).getTime() / 1000;
       if(address in last_accounts) {
-        if(now - last_accounts[address] < 60) {
+        if(now - last_accounts[address] < 20) {
           player = undefined;
-          return fail(18, 'Only one account per minute per ip allowed.');
+          return fail(18, 'Only one account per 20 seconds per ip allowed.');
         }
       }
       last_accounts[address] = now;
