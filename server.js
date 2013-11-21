@@ -335,18 +335,6 @@ io.sockets.on('connection', function (socket) {
     return now - ten_before < 1;
   };
 
-  socket.on('broadcast', function(data) {
-    if(check_command_limit()) {
-      return fail(9, 'Exceeded limit of ' + last_commands.length + ' commands per second.');
-    }
-    log_in('broadcast');
-    var str = JSON.stringify(data);
-    if(str.length > 140) {
-      return fail(1, 'Message json should have at most 140 characters');
-    }
-    socket.broadcast.emit('broadcast', data);
-  });
-
   socket.on('log in', function(data) {
     log_in('log in');
     if(!('' + data.player_id).match(/[0-9A-F]{32}/i)) {
@@ -490,6 +478,17 @@ io.sockets.on('connection', function (socket) {
     }
     socket.emit('report', report);
   });
+
+  on('radar broadcast', function(target, data) {
+    if(!check_feature(target, 'radar')) return;
+    var str = JSON.stringify(data.message);
+    if(str.length > 140) {
+      return fail(1, 'JSON.stringify(message) should have at most 140 characters');
+    }
+    var root = common.get_root(target);
+    socket.broadcast.emit('broadcast', { source: stub(root), message: data.message });
+  });
+
 
   var radar_copy_fields = 'id sprite'.split(' ');
   var radar_vector_fields = 'position velocity'.split(' ');

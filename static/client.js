@@ -1482,11 +1482,11 @@ socket.on('assembler built', function(data) {
 
 // TODO!!!
 var broadcast = function(msg) {
-  socket.emit('broadcast', msg);
+  socket.emit('radar broadcast', { target: avatar.id, message: msg });
 };
 
-socket.on('broadcast', function(message) {
-  console.log("Broadcast: " + message);
+socket.on('broadcast', function(data) {
+  console.log("Broadcast from " + data.source.id + ": " + JSON.stringify(data.message));
 });
 
 socket.on('assembler built', function(object) {
