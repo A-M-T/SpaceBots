@@ -1,15 +1,8 @@
 Element.prototype.fadeOut = function() {
-  var element = this;
-  var op = 1;
-  var timer = setInterval(function () {
-    if (op <= 0.05){
-      clearInterval(timer);
-      element.remove();
-    }
-    element.style.opacity = op;
-    element.style.filter = 'alpha(opacity=' + op * 100 + ")";
-    op -= op * 0.1;
-  }, 50);
+  this.style['-webkit-animation'] = 'slideOut 500ms';
+  this.addEventListener('webkitAnimationEnd', function() {
+    this.remove();
+  });
 };
 
 (function(old_log) {
