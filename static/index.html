@@ -262,6 +262,14 @@ li:nth-child(2n-1) {
   top: 0;
   right: 0;
 }
+#console {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+#console div {
+  padding: 3px;
+}
 </style>
 <body>
 <!-- Welcome to SpaceBots. For complete tutorial click on a link to client.js -->
@@ -282,6 +290,8 @@ li:nth-child(2n-1) {
 <div id="intro" class="button" onclick="help()">?</div>
 <div id="scripts">
   <span class="button" onclick="script_new()">+</span>
+</div>
+<div id="console">
 </div>
 <audio src="/freestylemix_-_hisboyelroy_-_Revolve.mp3" controls autoplay loop id="music"></audio>
 <template id="details">

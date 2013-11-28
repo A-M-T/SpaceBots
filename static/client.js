@@ -1,3 +1,37 @@
+Element.prototype.fadeOut = function() {
+  var element = this;
+  var op = 1;
+  var timer = setInterval(function () {
+    if (op <= 0.05){
+      clearInterval(timer);
+      element.remove();
+    }
+    element.style.opacity = op;
+    element.style.filter = 'alpha(opacity=' + op * 100 + ")";
+    op -= op * 0.1;
+  }, 50);
+};
+
+(function(old_log) {
+  var make_logger = function(style, command) {
+    return function() {
+      var c = document.getElementById('console');
+      var m = document.createElement('div');
+      if(style) m.classList.add(style);
+      var t = Array.prototype.join.call(arguments, ' ');
+      m.innerText = t;
+      c.appendChild(m);
+      setTimeout(function() {
+        m.fadeOut();
+      }, 3000 + 100 * t.length);
+      command.apply(this, arguments);
+    }
+  };
+  console.log = make_logger(null, console.log);
+  console.info = make_logger('info', console.info);
+  console.warn = make_logger('warn', console.warn);
+  console.error = make_logger('error', console.error);
+})();
 
 // Welcome to SpaceBots, game where robots controlled by AI and human
 // players compete to create thriving industry, accumulate resources
