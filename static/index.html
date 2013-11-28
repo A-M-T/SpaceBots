@@ -13,9 +13,9 @@ body {
 }
 .button {
   padding: 0 .2em;
+  font-family: 'Share Tech', sans-serif;
   color: white;
   text-shadow: 1px 1px 0 #bbb, 2px 2px 0 #bbb;
-  text-align: left;
   font-size: 3em;
   font-weight: bold;
   user-select: none;
@@ -26,15 +26,13 @@ body {
   cursor: pointer;
   vertical-align: top;
   transition: all .2s;
+  -webkit-transition-timing-function: cubic-bezier(0.5, 0.5, 0.5, 1.5);
 }
 .button:hover {
-  font-size: 4em;
-}
-#intro, #scripts {
-  position: fixed;
-  top: 0;
+  letter-spacing: 5px;
 }
 #intro {
+  top: 0;
   cursor:help;
   -webkit-animation-duration: .5s;
   -webkit-animation-name: jump;
@@ -42,19 +40,11 @@ body {
   -webkit-animation-timing-function: ease-in;
   -webkit-animation-direction:alternate;
 }
-#intro:hover {
-  font-size: 3em;
-}
 #scripts {
+  position: fixed;
+  text-align: right;
   right: 0;
-}
-.editor .button_row {
-  position: absolute;
   bottom: 0;
-  right: 0;
-}
-.editor .button_row .button {
-  vertical-align: bottom;
 }
 
 @-webkit-keyframes jump {
@@ -147,7 +137,6 @@ li:nth-child(2n-1) {
   height: 400px;
   top: 50px;
   left: 50px;
-  border: 1px solid black;
 
   -webkit-animation-duration: .5s;
   -webkit-animation-name: showup;
@@ -181,7 +170,7 @@ li:nth-child(2n-1) {
 #music {
   position: fixed;
   top: 10px;
-  left: 50px;
+  left: 68px;
 }
 
 #tutorial {
@@ -201,29 +190,6 @@ li:nth-child(2n-1) {
   height: 175px;
 }
 
-.window {
-  text-align: center;
-  /*border-style: double;
-  border-width: medium;
-  border-color: #000000;
-  color: black;*/
-}
-
-.window_title {
-  /*background-color: #DDDDDD;*/
-  border-style: solid;
-  height: 1em;
-
-}
-.window_text {
-  /*background-color: #BBBBBB;*/
-  border-style: double;
-}
-.window_buttonline {
-  /*background-color: #BBBBBB;*/
-  border-style: double;
-  height: 1em;
-}
 .param {
   display: inline-block;
   font-family: inherit;
@@ -237,7 +203,7 @@ li:nth-child(2n-1) {
 .command, .info {
   padding: 5px;
 }
-.run {
+.command .run {
   cursor: pointer;
   border-radius: 3px;
   background: #444;
@@ -287,15 +253,113 @@ li:nth-child(2n-1) {
   position: absolute;
   width: 100%;
   height: 100%;
-background-image: -webkit-radial-gradient(center, circle farthest-corner, #aaa 0%, #556 20%, #334 40%, #422 100%);
+  background-image: -webkit-radial-gradient(center, circle farthest-corner, #aaa 0%, #556 20%, #334 40%, #422 100%);
 
 }
+.window > .resize {
+  width: 10%;
+  height: 10%;
+  border: 5px solid rgb(47, 49, 41);
+  position: absolute;
+  margin-left: -5%;
+  margin-top: -5%;
+  left: 50%;
+  top: 50%;
+  background: rgb(57, 59, 51);
+  border-radius: 40%;
+}
+.window > .resize.top {
+  top: 0;
+  margin-top: 0;
+  border-top-width: 0;
+}
+.window > .resize.bottom {
+  top: auto;
+  bottom: 0;
+  margin-top: 0;
+  border-bottom-width: 0;
+}
+.window > .resize.left {
+  left: 0;
+  margin-left: 0;
+  border-left-width: 0;
+}
+.window > .resize.right {
+  left: auto;
+  right: 0;
+  margin-left: 0;
+  border-right-width: 0;
+}
+.window > .drag {
+  border-radius: 5%;
+  width: 100%;
+  height: 100%;
+  background: rgb(57, 59, 51);
+}
+.window > .pressed {
+  background: rgb(77, 79, 71);
+}
+.content {
+  text-align: left;
+  position: absolute;
+  top: 5%;
+  left: 5%;
+  width: 90%;
+  height: 90%;
+  background: rgb(47, 49, 41);
+  border-radius: 5%;
+}
+.titlebar {
+  margin: 0px;
+  padding: 6px 30px;
+  font-size: 21px;
+}
+.titlebar img {
+  float: right;
+  cursor: pointer;
+}
+.script {
+  height: 90%;
+  border-radius: 0 0 5% 5%;
+}
+#reset {
+  position: fixed; top: 10px; left: 10px;
+-webkit-transform: translate(0px, 0px), rotate(0deg);
+}
+#reset:hover {
+  cursor: pointer; 
+  -webkit-animation-direction:alternate;
+  -webkit-animation: sweep linear 1s;
+  -webkit-animation-iteration-count: infinite;
+  -webkit-transform-origin: 50% 50%;
+}
+@-webkit-keyframes sweep {
+  0% {
+    -webkit-transform: translate(0px, 0px) rotate(0deg);
+  }
+  45% {
+    -webkit-transform: translate(0px, 10px) rotate(0deg);
+  }
+  59% {
+    -webkit-transform: translate(0px, 10px) rotate(-20deg) ;
+  }
+  76% {
+    -webkit-transform: translate(0px, 0px) rotate(-20deg) ;
+  }
+  100% {
+    -webkit-transform: translate(0px, 0px) rotate(0deg);
+  }
+}
+
 </style>
 <body>
 <!-- Welcome to SpaceBots. For complete tutorial click on a link to client.js -->
 <div id="background"></div>
 <canvas id="canvas"></canvas>
+<div id="console">
+</div>
 <a id="forkme" href="https://github.com/mafik/SpaceBots/"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub" alt="Fork me on GitHub"></a>
+<img id="reset" title="Reset SpaceBots" onclick="if(confirm('This option will erase all your data and scripts.\nAre you sure?')) { localStorage.clear(); location.reload(); }" src="/game-reset.png" />
 <div id="overlay">
   <table id="tutwindow" class="window details" style="display: none;">
     <tr class="window_title features"><td colspan="2">Tutorial</td></tr>
@@ -308,13 +372,29 @@ background-image: -webkit-radial-gradient(center, circle farthest-corner, #aaa 0
   <tr class="window_text deep"><td>Do you want to start a tutorial?<br />
   <input type="button" onclick="tutorial_start()" value="Yes" /> <input type="button" onclick="tutorial_skip()" value="No" /></td></tr>
 </table>
-<div id="intro" class="button" onclick="help()">?</div>
 <div id="scripts">
-  <span class="button" onclick="script_new()">+</span>
-</div>
-<div id="console">
+  <div class="button" onclick="script_new()">+</div>
 </div>
 <audio src="/freestylemix_-_hisboyelroy_-_Revolve.mp3" controls autoplay loop id="music"></audio>
+<template id="editor"><div class="window editor">
+    <div class="drag"></div>
+    <div class="resize top"></div>
+    <div class="resize right"></div>
+    <div class="resize left"></div>
+    <div class="resize bottom"></div>
+    <div class="resize top left"></div>
+    <div class="resize top right"></div>
+    <div class="resize bottom left"></div>
+    <div class="resize bottom right"></div>
+    <div class="content">
+      <div class="titlebar">
+        <img class="save" title="Save" alt="Save" src="/script-save.png">
+        <img class="run" title="Run" alt="Run" src="/script-run.png">
+        <div class="title" contenteditable>Scratch</div>
+      </div>
+      <div class="script"></div>
+    </div>
+</div></template>
 <template id="details">
   <div class="details">
 	<div class="deep">
@@ -361,4 +441,4 @@ background-image: -webkit-radial-gradient(center, circle farthest-corner, #aaa 0
 <script src="/sylvester.js"></script>
 <script src="/common.js"></script>
 <script src="/resources.js"></script>
-<script src="/client.js"></script>
+<script src="/base.js"></script>
