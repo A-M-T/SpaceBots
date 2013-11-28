@@ -1657,24 +1657,12 @@ var ellipse = function(x, y, w) {
   ctx.translate(w/2, h/2);
 };
 
-// Here is the function that will draw gradient background with black lines
+// Here is the function that will clear background and draw black lines
 // representing axes:
 var background = function() {
 
   var x = canvas.width/2, y = canvas.height/2;
-
-  var r = Math.sqrt(x*x + y*y);
-
-  var grd = ctx.createRadialGradient(x, y, 20, x, y, r);
-  grd.addColorStop(0, '#aaa');
-  grd.addColorStop(0.2, '#556');
-  grd.addColorStop(0.4, '#334');
-  grd.addColorStop(1, '#422');
-
-  ctx.fillStyle = grd;
-  ctx.rect(0, 0, canvas.width, canvas.height);
-  ctx.fill();
-
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.strokeStyle = 'black';
   ctx.lineWidth = .5;
   line($V([x - 1000, y - 500]), $V([x + 1000, y + 500]));
@@ -1744,9 +1732,10 @@ var get_frame_count = function(filename) {
   return 1;
 };
 
+var fps_array = [], fps = NaN;
+
 // Finally, this is function that will draw everything on the screen.
 var tick = function(time) {
-
 
   // First - we convert time from milliseconds to seconds.
   time = time / 1000;
@@ -1929,7 +1918,6 @@ var tick = function(time) {
   }
 
 
-  current_time = time;
   ctx.restore();
 
   // Execute animate function from the tutorial
@@ -1965,6 +1953,13 @@ var tick = function(time) {
       objects[obj].fetch_time = current_time;
     }
   }
+
+
+  fps_array.push(time);
+  if(fps_array.length > 100) fps_array.shift();
+  fps = Math.round(100 / (fps_array[99] - fps_array[0]));
+
+  current_time = time;
 };
 animate(tick);
 
