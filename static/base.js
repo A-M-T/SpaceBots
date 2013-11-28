@@ -29,7 +29,7 @@ NodeList.prototype.text = HTMLCollection.prototype.text = function(text) {
 
 // On-screen console
 
-(function(old_log) {
+(function() {
   var make_logger = function(style, command) {
     return function() {
       var c = document.getElementById('console');
@@ -262,7 +262,17 @@ document.addEventListener('mousedown', function(e) {
     e.stopPropagation();
     e.preventDefault();
   } else if(e.button === 0) {
-    if(e.target.classList.contains('drag')) {
+    if (e.target.classList.contains('run') && e.target.parentNode.classList.contains('command')) {
+      var command = e.target.parentNode;
+
+      var ed = make_script_editor("Temp");
+      ed.setValue(command.textContent);
+      ed.clearSelection();
+      ed.focus();
+
+      e.preventDefault();
+      e.stopPropagation();
+    } else if(e.target.classList.contains('drag')) {
       e.target.classList.add('pressed');
       var drag = {
         dragged: e.target.parentNode,

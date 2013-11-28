@@ -748,10 +748,6 @@ document.addEventListener('mousedown', function(e) {
 
       if(tutorial_process < tutorial_strings.length && tutorial_strings[tutorial_process].on_controlschange) tutorial_strings[tutorial_process].on_controlschange(details.id, feature);
 
-    } else if (e.target.classList.contains('run')) {
-      var command = find_parent(e.target, 'command');
-      console.log(command.textContent);
-      eval(command.textContent);
     } else if(details && can_drag(e.target)) {
       drag = {
         dragged: details,
