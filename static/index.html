@@ -308,11 +308,14 @@ li:nth-child(2n-1) {
   height: 90%;
   background: rgb(47, 49, 41);
   border-radius: 5%;
+  display: flex;
+  flex-direction: column;
 }
 .titlebar {
   margin: 0px;
   padding: 6px 30px;
   font-size: 21px;
+  flex: 0 24px 0;
 }
 .titlebar img {
   float: right;
@@ -321,6 +324,7 @@ li:nth-child(2n-1) {
 .script {
   height: 90%;
   border-radius: 0 0 5% 5%;
+  flex: 1 0 0;
 }
 #reset {
   position: fixed; top: 10px; left: 10px;
