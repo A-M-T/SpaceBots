@@ -253,6 +253,8 @@ var find_parent = function(element, className) {
   return element;
 };
 
+var topmostZ = 1;
+
 document.addEventListener('mousedown', function(e) {
   if(e.button === 1) {
     var window = find_parent(e.target, 'window');
@@ -265,15 +267,21 @@ document.addEventListener('mousedown', function(e) {
     if (e.target.classList.contains('run') && e.target.parentNode.classList.contains('command')) {
       var command = e.target.parentNode;
 
-      var ed = make_script_editor("Temp");
-      ed.setValue(command.textContent);
-      ed.clearSelection();
-      ed.focus();
+
+      if(e.ctrlKey) {
+        eval(command.textContent);
+      } else {
+        var ed = make_script_editor("Temp");
+        ed.setValue(command.textContent);
+        ed.clearSelection();
+        ed.focus();
+      }
 
       e.preventDefault();
       e.stopPropagation();
     } else if(e.target.classList.contains('drag')) {
       e.target.classList.add('pressed');
+      e.target.parentNode.style['z-index'] = ++topmostZ;
       var drag = {
         dragged: e.target.parentNode,
         x: e.x,
