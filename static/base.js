@@ -327,6 +327,10 @@ document.addEventListener('mousedown', function(e) {
         }
         resize.x = e.x;
         resize.y = e.y;
+        if(resize.resized.querySelector('.ace_editor')) {
+          var ed = resize.resized.querySelector('.ace_editor');
+          ace.edit(ed).resize();
+        }
       };
 
       document.addEventListener('mousemove', resize_function, true);
