@@ -327,8 +327,9 @@ document.addEventListener('mousedown', function(e) {
         }
         resize.x = e.x;
         resize.y = e.y;
-        if(resize.resized.querySelector('.ace_editor')) {
-          var ed = resize.resized.querySelector('.ace_editor');
+
+        var ed;
+        if(ed = resize.resized.querySelector('.ace_editor')) {
           ace.edit(ed).resize();
         }
       };
