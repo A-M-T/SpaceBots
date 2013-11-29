@@ -1316,3 +1316,7 @@ socket.on('broadcast', function(data) {
 socket.on('assembler built', function(object) {
   console.log("Assembler has built " + JSON.stringify(object, null, '  '));
 });
+
+socket.on('sprite set', function(object) {
+  console.log("Sprite for " + object.id + " successfully set to " + object.user_sprite);
+});

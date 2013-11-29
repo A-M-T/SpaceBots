@@ -164,7 +164,20 @@ var get_current_pos = function(obj, time) {
 var stars = [];
 var scale = { current: 1, target: 1 };
 
-var get_image = function(url) {
+var get_image = function(url, url2) {
+  if(url2) {
+    if(image_cache[url2] !== 'loading') {
+      if(image_cache[url2])
+        return image_cache[url2];
+      var second = new Image;
+      second.onload = function() {
+        image_cache[url2] = second;
+      };
+      second.src = url2;
+      image_cache[url2] = 'loading';
+    }
+  }
+
   if(!(url in image_cache)) {
     image_cache[url] = new Image;
     image_cache[url].src = url;
@@ -181,6 +194,8 @@ var get_frame_count = function(filename) {
 };
 
 var fps_array = [], fps = NaN;
+
+var user_sprites = false;
 
 // Finally, this is function that will draw everything on the screen.
 var tick = function(time) {
@@ -308,7 +323,7 @@ var tick = function(time) {
     shadow(pos, 'white');
 
     var sprite_url = obj.sprite || '/unknown.png';
-    var sprite = get_image(sprite_url);
+    var sprite = get_image(sprite_url, user_sprites && obj.user_sprite);
 
     var frames = get_frame_count(sprite_url);
 

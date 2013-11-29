@@ -452,6 +452,18 @@ io.sockets.on('connection', function (socket) {
     });
   };
 
+  on('sprite', function(target, data) {
+    if('user_sprite' in target) {
+      return fail(999, "Specified target already has 'user_sprite' defined.");
+    }
+    var spr = "" + data.user_sprite;
+    if(spr > 127) {
+      return fail(999, "Requested sprite url has length " + data.length + " but should be no more than 127.");
+    }
+    target.user_sprite = spr;
+    socket.emit('sprite set', { id: target.id, user_sprite: spr });
+  });
+
   on('report', function(target, data) {
     var report = {};
     if('parent' in target) {
@@ -463,7 +475,7 @@ io.sockets.on('connection', function (socket) {
     if('manipulator_slot' in target) {
       report.manipulator_slot = stub(target.manipulator_slot);
     }
-    var copy = 'id features sprite integrity radio_range impulse_drive_payload impulse_drive_impulse store_stored store_capacity battery_energy battery_capacity manipulator_range laboratory_slots laboratory_tech_level'.split(' ');
+    var copy = 'id features sprite user_sprite integrity radio_range impulse_drive_payload impulse_drive_impulse store_stored store_capacity battery_energy battery_capacity manipulator_range laboratory_slots laboratory_tech_level'.split(' ');
     var vectors = 'position velocity'.split(' ');
     copy.forEach(function(key) {
       report[key] = target[key];
@@ -490,7 +502,7 @@ io.sockets.on('connection', function (socket) {
   });
 
 
-  var radio_copy_fields = 'id sprite'.split(' ');
+  var radio_copy_fields = 'id sprite user_sprite'.split(' ');
   var radio_vector_fields = 'position velocity'.split(' ');
   on('radio scan', function(target, data) {
     if(!check_feature(target, 'radio')) return;
@@ -504,7 +516,7 @@ io.sockets.on('connection', function (socket) {
       var d = radio_position.distanceFrom(object.position);
       if(d <= target.radio_range) {
         var report = {};
-        radio_copy_fields.forEach(function(key) { report[key] = object[key]; });
+        radio_copy_fields.forEach(function(key) { if(key in object) report[key] = object[key]; });
         radio_vector_fields.forEach(function(key) { if(key in object) report[key] = object[key].elements; });
 
         results.push(report);
