@@ -267,14 +267,23 @@ document.addEventListener('mousedown', function(e) {
     if (e.target.classList.contains('run') && e.target.parentNode.classList.contains('command')) {
       var command = e.target.parentNode;
 
-
       if(e.ctrlKey) {
         eval(command.textContent);
       } else {
-        var ed = make_script_editor("Temp");
-        ed.setValue(command.textContent);
-        ed.clearSelection();
-        ed.focus();
+        var ed;
+        var eds = document.querySelectorAll('.script');
+        for(var i = 0; i < eds.length; ++i) {
+          ed = ace.edit(eds[i]);
+          if(ed.isFocused()) break;
+          ed = undefined;
+        }
+        if(!ed) {
+          ed = make_script_editor("Temp");
+          //ed.clearSelection();
+          ed.focus();
+        }
+        console.log(command.textContent);
+        ed.insert(command.textContent);
       }
 
       e.preventDefault();
