@@ -113,10 +113,15 @@ var background = function() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.strokeStyle = 'black';
   ctx.lineWidth = .5;
-  line($V([x - 1000, y - 500]), $V([x + 1000, y + 500]));
-  line($V([x - 1000, y + 500]), $V([x + 1000, y - 500]));
-  line($V([x, y - 500]), $V([x, y + 500]));
 
+  ctx.beginPath();
+  ctx.moveTo(x-1000, y-500);
+  ctx.lineTo(x+1000, y+500);
+  ctx.moveTo(x-1000, y+500);
+  ctx.lineTo(x+1000, y-500);
+  ctx.moveTo(x, y-500);
+  ctx.lineTo(x, y+500);
+  ctx.stroke();
 };
 
 // This function will draw "shadow" from lines. It will help visualise, where
