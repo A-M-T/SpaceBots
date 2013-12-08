@@ -2,8 +2,8 @@
 
 (function(e){
 
-	if(typeof Vector === 'undefined') {
-		Vector = require('sylvester').Vector;
+	if(typeof vectors === 'undefined') {
+		vectors = require('./vectors');
 	}
 
 	// We can use this function to get random user id, when creating new account
@@ -11,11 +11,6 @@
 		return 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'.replace(/x/g, function() {
 			return (Math.random() * 16).toString(16)[0];
 		});
-	};
-
-	// This function makes new random vector within the cube [-1 .. 1]
-	var RV = e.RV = function(range) {
-		return Vector.Random(3).x(2).add(Vector.create([-1,-1,-1])).x(range);
 	};
 
 	// This function will walk the object hierarchy (parents and slots) and

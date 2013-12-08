@@ -1,7 +1,6 @@
 (function(e){
 
 	if(typeof exports !== 'undefined') {
-		sylvester = require('sylvester');
 		common = require('./common');
 	}
 

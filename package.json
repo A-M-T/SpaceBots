@@ -9,7 +9,6 @@
     "winston": "~0.7.1",
     "node-static": "~0.6.9",
     "socket.io": "~0.9.14",
-    "sylvester": "0.0.21",
     "optimist": "0.5.2",
     "validator": "2.0.0",
     "findit": "0.1.2"

@@ -78,6 +78,8 @@ var log_in = function() {
 
   // Now that we have an id, we can send it to the server.
 
+  console.log("Logging in...");
+
   socket.emit('log in', { player_id: localStorage.player_id });
 };
 
@@ -108,7 +110,7 @@ var tutorial_strings = [
         var momentum = reaction_mass * data.impulse;
 
         var root = common.get_root(common.get(data.target));
-        var d = root.position.distanceFrom(data.destination);
+        var d = root.position.dist(data.destination);
         var time = d / data.impulse;
 
         var direction = root.position.
@@ -117,7 +119,7 @@ var tutorial_strings = [
 
         var mass = resources.get_connected_mass(common.get(data.target));
         var dv = momentum / mass;
-        root.velocity = root.velocity.add( direction.toUnitVector().x(dv) );
+        root.velocity.add( direction.scaleTo(dv) );
       } else {
         console.error("Tried to send unknown message in tutorial mode!");
       }
@@ -130,12 +132,12 @@ var tutorial_strings = [
       integrity: 9999,
       mass: 25,
       manipulator_range: 50,
-      position: $V([0,0,0]),
-      velocity: $V([0,0,0]),
+      position: vectors.create(),
+      velocity: vectors.create(),
       skeleton_slots: new Array(6),
       sprite: "/hull.png",
       features: { skeleton: true, manipulator: true },
-      screen_position: $V([0,0])
+      screen_position: vectors.create(0, 0)
     };
 
     var objid = common.uid();
@@ -269,7 +271,7 @@ var tutorial_strings = [
     }, var_finished: false },
   { text: "You can click on any of the arrows to move in specified direction. Ice orb in the center stops the ship. Click any of the arrows now!",
     finished: function() {
-      return !common.get_root(avatar).velocity.eql($V([0,0,0]));
+      return !common.get_root(avatar).velocity.eql(vectors.create());
     }},
   { text: "Look, you're moving! Now we'll try to move to the specific target." },
   { text: "Move towards that asteroid! It you'll get stuck, click \"Reset\" button to restore state from the beginning of the exercise",
@@ -278,23 +280,22 @@ var tutorial_strings = [
       if(tutorial_target_id !== undefined) {
         delete objects[tutorial_target_id];
       }
-      common.get_root(avatar).position = $V([0,0,0]);
-      common.get_root(avatar).velocity = $V([0,0,0]);
+      common.get_root(avatar).position = vectors.create();
+      common.get_root(avatar).velocity = vectors.create();
       tutorial_target_id = common.uid();
       var asteroid = objects[tutorial_target_id] = {
         id: tutorial_target_id,
         fetch_time: -1,
-        position: $V([-150, 0, 0]),
-        velocity: $V([0, 0, 0]),
-        screen_position: $V([0,0]),
+        position: vectors.create([-150, 0, 0]),
+        velocity: vectors.create([0, 0, 0]),
         sprite: "/asteroid100.png"
       };
     }, start: function() {
       tutorial_strings[tutorial_process].reset();
     }, stop: function() {
       delete objects[tutorial_target_id];
-      common.get_root(avatar).position = $V([0,0,0]);
-      common.get_root(avatar).velocity = $V([0,0,0]);
+      common.get_root(avatar).position = vectors.create();
+      common.get_root(avatar).velocity = vectors.create();
     }, finished: function() {
       if(!tutorial_strings[tutorial_process].finished_var) tutorial_strings[tutorial_process].finished_var = common.get_root(avatar).position.distanceFrom(objects[tutorial_target_id].position) < 25
       return tutorial_strings[tutorial_process].finished_var;
@@ -305,23 +306,22 @@ var tutorial_strings = [
       if(tutorial_target_id !== undefined) {
         delete objects[tutorial_target_id];
       }
-      common.get_root(avatar).position = $V([0,0,0]);
-      common.get_root(avatar).velocity = $V([0,0,0]);
+      common.get_root(avatar).position = vectors.create();
+      common.get_root(avatar).velocity = vectors.create();
       tutorial_target_id = common.uid();
       var asteroid = objects[tutorial_target_id] = {
         id: tutorial_target_id,
         fetch_time: -1,
-        position: $V([0, 0, -50]),
-        velocity: $V([0, 0, -20]),
-        screen_position: $V([0,0]),
+        position: vectors.create([0, 0, -50]),
+        velocity: vectors.create([0, 0, -20]),
         sprite: "/asteroid100.png"
       };
     }, start: function() {
       tutorial_strings[tutorial_process].reset();
     }, stop: function() {
       delete objects[tutorial_target_id];
-      common.get_root(avatar).position = $V([0,0,0]);
-      common.get_root(avatar).velocity = $V([0,0,0]);
+      common.get_root(avatar).position = vectors.create();
+      common.get_root(avatar).velocity = vectors.create();
     }, finished: function() {
       if(!tutorial_strings[tutorial_process].finished_var) tutorial_strings[tutorial_process].finished_var = common.get_root(avatar).position.distanceFrom(objects[tutorial_target_id].position) < 30;
       return tutorial_strings[tutorial_process].finished_var;
@@ -332,23 +332,22 @@ var tutorial_strings = [
       if(tutorial_target_id !== undefined) {
         delete objects[tutorial_target_id];
       }
-      common.get_root(avatar).position = $V([0,0,0]);
-      common.get_root(avatar).velocity = $V([0,0,0]);
+      common.get_root(avatar).position = vectors.create();
+      common.get_root(avatar).velocity = vectors.create();
       tutorial_target_id = common.uid();
       var asteroid = objects[tutorial_target_id] = {
         id: tutorial_target_id,
         fetch_time: -1,
-        position: $V([-150, 0, -150]),
-        velocity: $V([0, 0, 0]),
-        screen_position: $V([0,0]),
+        position: vectors.create([-150, 0, -150]),
+        velocity: vectors.create([0, 0, 0]),
         sprite: "/asteroid100.png"
       };
     }, start: function() {
       tutorial_strings[tutorial_process].reset();
     }, stop: function() {
       delete objects[tutorial_target_id];
-      common.get_root(avatar).position = $V([0,0,0]);
-      common.get_root(avatar).velocity = $V([0,0,0]);
+      common.get_root(avatar).position = vectors.create();
+      common.get_root(avatar).velocity = vectors.create();
     }, finished: function() {
       if(!tutorial_strings[tutorial_process].finished_var) tutorial_strings[tutorial_process].finished_var = common.get_root(avatar).position.distanceFrom(objects[tutorial_target_id].position) < 50;
       return tutorial_strings[tutorial_process].finished_var;
@@ -359,23 +358,22 @@ var tutorial_strings = [
       if(tutorial_target_id !== undefined) {
         delete objects[tutorial_target_id];
       }
-      common.get_root(avatar).position = $V([0,0,0]);
-      common.get_root(avatar).velocity = $V([0,0,0]);
+      common.get_root(avatar).position = vectors.create();
+      common.get_root(avatar).velocity = vectors.create();
       tutorial_target_id = common.uid();
       var asteroid = objects[tutorial_target_id] = {
         id: tutorial_target_id,
         fetch_time: -1,
-        position: $V([0, -150, 0]),
-        velocity: $V([0, 0, 0]),
-        screen_position: $V([0,0]),
+        position: vectors.create([0, -150, 0]),
+        velocity: vectors.create([0, 0, 0]),
         sprite: "/asteroid100.png"
       };
     }, start: function() {
       tutorial_strings[tutorial_process].reset();
     }, stop: function() {
       delete objects[tutorial_target_id];
-      common.get_root(avatar).position = $V([0,0,0]);
-      common.get_root(avatar).velocity = $V([0,0,0]);
+      common.get_root(avatar).position = vectors.create();
+      common.get_root(avatar).velocity = vectors.create();
     }, finished: function() {
       if(!tutorial_strings[tutorial_process].finished_var) tutorial_strings[tutorial_process].finished_var = common.get_root(avatar).position.distanceFrom(objects[tutorial_target_id].position) < 50;
       return tutorial_strings[tutorial_process].finished_var;
@@ -574,6 +572,8 @@ var avatar_id;
 
 socket.on('avatar list', function (avatar_ids) {
 
+  console.log('Retrieved avatar list', avatar_ids);
+
   // Although you can have much more than one avatar, the basic
   // interface included on this site, allows you to control only the
   // first one - later you could extend it to allow control over a
@@ -651,6 +651,7 @@ var refinery, laboratory, assembler;
 // 'report' message.
 
 var got_report;
+var vectors_mask = { 'position': true, 'velocity': true};
 socket.on('report', got_report = function(obj) {
 
   // We can save it to our `objects` collection:
@@ -672,7 +673,9 @@ socket.on('report', got_report = function(obj) {
 
     // Now we can update our object with new values.
 
-    for(var key in obj) { objects[obj.id][key] = obj[key]; }
+    for(var key in obj) {
+      objects[obj.id][key] = obj[key];
+    }
 
     // We should erase all references to the received
     // object. After all the data was copied, it could only
@@ -690,11 +693,10 @@ socket.on('report', got_report = function(obj) {
   // y, z]. We can convert them using `sylvester` library into
   // vectors. This way they will be easier to use.
 
-  if(obj.position) {
-    obj.position = $V(obj.position);
-  }
-  if(obj.velocity) {
-    obj.velocity = $V(obj.velocity);
+  for(var vname in vectors_mask) {
+    if(vname in obj) {
+      obj[vname] = vectors.create(obj[vname]);
+    }
   }
 
   // Now, we can check what other components our `obj` is connected
@@ -854,7 +856,7 @@ socket.on('destroyed', function(stub) {
 
   var exp = {
     reported: current_time,
-    position: common.get_position(common.get(obj.id)),
+    position: pos,
     sprite: '/explosion45.png',
     duration: 1,
   };
@@ -866,8 +868,8 @@ socket.on('destroyed', function(stub) {
       var orphan = obj.skeleton_slots[i];
       if(orphan) {
         orphan.parent = undefined;
-        orphan.velocity = Vector.create(vel);
-        orphan.position = Vector.create(pos);
+        orphan.velocity = vectors.create(vel);
+        orphan.position = vectors.create(pos);
         obj.skeleton_slots[i] = undefined;
       }
     }
@@ -891,13 +893,13 @@ socket.on('destroyed', function(stub) {
 // guaranteed to operate on correct values. We will store this action
 // in `radio_callback`.
 var radio_callback;
-
 socket.on('radio result', function(result) {
 
   // Let's integrate new information into our own structures. We
   // will do it the same way as in 'report' handler.
 
   result.forEach(function(object) {
+
     if(objects[object.id]) {
       for(var key in object) {
         objects[object.id][key] = object[key];
@@ -908,8 +910,12 @@ socket.on('radio result', function(result) {
 
     var local = objects[object.id];
     local.fetch_time = current_time;
-    local.position = $V(local.position);
-    if(local.velocity) local.velocity = $V(local.velocity);
+
+    for(var vkey in vectors_mask) {
+      if(vkey in local) {
+        local[vkey] = vectors.create(local[vkey]);
+      }
+    }
   });
 
   if(typeof radio_callback === 'function') radio_callback();
@@ -926,20 +932,6 @@ socket.on('radio result', function(result) {
     // scans - every second.
 
   }, 1000);
-});
-
-// Server will periodically ask questions about locations of various
-// objects. This is part of location prediction minigame that will
-// help you make better predictions about their trajectories.
-
-socket.on('location challenge', function(q) {
-  if(q in objects) {
-    socket.emit('location answer', {
-      id: q,
-      position: objects[q].position.elements,
-      velocity: objects[q].velocity.elements
-    });
-  }
 });
 
 // Whenever we have to specify, which materials are we going to waste, we will
@@ -974,9 +966,9 @@ var get_resources_for_waste = function(n) {
 var relative_to_absolute = function(vector) {
   var p = get_position_now(avatar);
   return [
-    p.e(1) - vector[0] * 1000,
-    p.e(2) - vector[1] * 1000,
-    p.e(3) - vector[2] * 1000
+    p[0] - vector[0] * 1000,
+    p[1] - vector[1] * 1000,
+    p[2] - vector[2] * 1000
   ]
 };
 
@@ -1043,21 +1035,21 @@ var speed_step = function(desired_v) {
   // Actual change of speed should be directed from our current velocity
   // towards desired one.
 
-  var change_v = desired_v.subtract(current_v);
+  var change_v = vectors.create(desired_v).subtract(current_v);
 
   // Let's calculate, how long this change actually is...
 
-  var change_v_l = change_v.modulus();
+  var change_v_l = change_v.len();
 
   // And what direction it has.
 
-  var direction = change_v.toUnitVector();
+  var direction = vectors.create(change_v).normalize();
 
   // If our speed change is achievable, we could reduce engine power to
   // save some resources.
   var achievable = change_v_l < delta_v_l;
 
-  var target = relative_to_absolute(direction.elements);
+  var target = relative_to_absolute(direction);
 
   if(achievable) {
     do_impulse(
@@ -1078,7 +1070,7 @@ var stop_tick = function() {
 
   // It should do a single impulse directed towards reducing our speed.
 
-  if(speed_step($V([0,0,0]))) {
+  if(speed_step(vectors.vero)) {
 
     // If it hasn't finished, we have to shedule it again.
 
@@ -1168,8 +1160,8 @@ socket.on('manipulator detached', function(data) {
   s.skeleton_slots[idx] = null;
   delete o.parent;
   o.grabbed_by = target;
-  o.position = $V(common.get_root(target).position.elements);
-  o.velocity = $V(common.get_root(target).velocity.elements);
+  o.position = vectors.create(common.get_root(target).position);
+  o.velocity = vectors.create(common.get_root(target).velocity);
 });
 
 var repulse = function(x, y, z, power) {
@@ -1182,10 +1174,10 @@ var repulse = function(x, y, z, power) {
   });
 };
 
-var get_position_now = function(x) {
+var get_position_now = function get_position_now(x) {
   var root = common.get_root(common.get(x));
   if('velocity' in root) {
-    return root.position.add(root.velocity.x(current_time - root.fetch_time));
+    return vectors.create(root.position).add(root.velocity, current_time - root.fetch_time);
   } else {
     return root.position;
   }
@@ -1207,9 +1199,9 @@ var navigate_tick = function() {
 
   var diff = target_pos.subtract(engine_pos);
 
-  var distance = diff.modulus();
+  var distance = diff.len();
 
-  var target_velocity = diff.x(0.1);
+  var target_velocity = diff.scale(0.1);
   if('velocity' in destination) {
     target_velocity = target_velocity.add( destination.velocity );
 
@@ -1219,7 +1211,7 @@ var navigate_tick = function() {
   }
 
   var my_velocity = common.get_root(impulse_drive).velocity;
-  var velocity_diff = my_velocity.distanceFrom(target_velocity);
+  var velocity_diff = my_velocity.dist(target_velocity);
   if(velocity_diff > 0.5) {
     speed_step(target_velocity);
   }

@@ -24,7 +24,7 @@ if (!ctx.setLineDash) {
 var animate = window.requestAnimationFrame       ||
   window.webkitRequestAnimationFrame ||
   window.mozRequestAnimationFrame    ||
-  function(f) { setTimeout(f, 1000 / 60); };
+  function animate(f) { setTimeout(f, 1000 / 60); };
 
 // We will do 3d rendering using isometric projection. World axes will be
 // placed like this:
@@ -56,34 +56,29 @@ var XZ_height = 1 / Math.sqrt(5);
 
 // This will be virtual camera that will contain 3d coordinates where we are
 // looking.
-var camera = $V([0, 0, 0]);
+var camera = vectors.create();
 
-// Now we can write the function that maps 3d points to screen coordinates.
-var worldToScreen = function(p) {
-  // First, we get the 3d coordinates relative to `camera`.
-  var d = p.subtract(camera);
-  var x = d.e(1), y = d.e(2), z = d.e(3);
-
-  // Then, we calculate position using projection described earlier.
-  return $V([
-    x * XZ_width  - z * XZ_width      + canvas.width  / 2,
-    x * XZ_height + z * XZ_height - y + canvas.height / 2
-  ]);
+// TODO: docs
+Float32Array.prototype.getScreenX = function getScreenX() {
+  return (this[0] - camera[0]) * XZ_width - (this[2] - camera[2]) * XZ_width + canvas.width / 2;
+};
+Float32Array.prototype.getScreenY = function getScreenY() {
+  return (this[0] - camera[0]) * XZ_height + (this[2] - camera[2]) * XZ_height - (this[1] - camera[1]) + canvas.height / 2;
 };
 
 // Here are some drawing functions for various primitives on the screen:
 
 // Here is the line between `a` and `b`:
-var line = function(a, b) {
+var line = function line(a, b) {
   ctx.beginPath();
-  ctx.moveTo(a.e(1), a.e(2));
-  ctx.lineTo(b.e(1), b.e(2));
+  ctx.moveTo(a.getScreenX(), a.getScreenY());
+  ctx.lineTo(b.getScreenX(), b.getScreenY());
   ctx.stroke();
 };
 
 // This function will draw slightly flattened ellipse at screen coordinates `x`,
 // `y` with width `w`.
-var ellipse = function(x, y, w) {
+var ellipse = function ellipse(x, y, w) {
   var h = w / 2;
   var kappa = .5522848,
   ox = (w / 2) * kappa, // control point offset horizontal
@@ -105,43 +100,28 @@ var ellipse = function(x, y, w) {
   ctx.translate(w/2, h/2);
 };
 
-// Here is the function that will clear background and draw black lines
-// representing axes:
-var background = function() {
-
-  var x = canvas.width/2, y = canvas.height/2;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.strokeStyle = 'black';
-  ctx.lineWidth = .5;
-
-  ctx.beginPath();
-  ctx.moveTo(x-1000, y-500);
-  ctx.lineTo(x+1000, y+500);
-  ctx.moveTo(x-1000, y+500);
-  ctx.lineTo(x+1000, y-500);
-  ctx.moveTo(x, y-500);
-  ctx.lineTo(x, y+500);
-  ctx.stroke();
-};
-
 // This function will draw "shadow" from lines. It will help visualise, where
 // the point is in 3d space.
-var shadow = function(p, color) {
+Float32Array.prototype.drawShadow = function drawShadow(color) {
   // `b` is the base of point `p` - it has the same coordinates (this is
   // achieved by using `p` as a prototype) except coordinate `y` which is set
   // to 0.
-  var b = p.dup();
-  b.elements[1] = camera.elements[1];
-  var bp = worldToScreen(b);
+  var top_y = this.getScreenY();
+  var base_y = (this[0] - camera[0]) * XZ_height + (this[2] - camera[2]) * XZ_height + canvas.height / 2;
+  var x = this.getScreenX();
 
   ctx.strokeStyle=color;
   ctx.fillStyle=color;
   ctx.setLineDash([5]);
-  line(worldToScreen(p), bp);
-  ctx.setLineDash([0]);
-  //line(bp, worldToScreen(camera));
 
-  ellipse(bp.e(1), bp.e(2), 10);
+  ctx.beginPath();
+  ctx.moveTo(x, top_y);
+  ctx.lineTo(x, base_y);
+  ctx.stroke();
+
+  ctx.setLineDash([0]);
+
+  ellipse(x, base_y, 10);
 };
 
 // When drawing images from the internet, we could cache their contents to
@@ -150,32 +130,24 @@ var shadow = function(p, color) {
 var image_cache = {};
 
 var explosions = [];
-socket.on('explosion', function(data) {
+socket.on('explosion', function explosion(data) {
   data.reported = current_time;
-  data.position = $V(data.position);
+  data.position = vectors.create(data.position);
+  data.screen_position = vectors.create(2);
   explosions.push(data);
   new Audio('/boom'+Math.floor(Math.random()*3)+'.ogg').play();
 });
 
-var get_current_pos = function(obj, time) {
-  obj = common.get(obj);
-  time = time || current_time;
-  var r = common.get_root(obj);
-  var p = r.position;
-  if(r.velocity) p = p.add(r.velocity.x(time - r.fetch_time));
-  return p;
-};
-
 var stars = [];
 var scale = { current: 1, target: 1 };
 
-var get_image = function(url, url2) {
+var get_image = function get_image(url, url2) {
   if(url2) {
     if(image_cache[url2] !== 'loading') {
       if(image_cache[url2])
         return image_cache[url2];
       var second = new Image;
-      second.onload = function() {
+      second.onload = function image_onload() {
         image_cache[url2] = second;
       };
       second.src = url2;
@@ -190,7 +162,7 @@ var get_image = function(url, url2) {
   return image_cache[url];
 };
 
-var get_frame_count = function(filename) {
+var get_frame_count = function get_frame_count(filename) {
   var match = /(\d+)\.png$/.exec(filename);
   if(match) {
     return Number(match[1]);
@@ -198,34 +170,26 @@ var get_frame_count = function(filename) {
   return 1;
 };
 
-var fps_array = [], fps = NaN;
-
 var user_sprites = false;
 
 // Finally, this is function that will draw everything on the screen.
-var tick = function(time) {
+var tick = function tick(time) {
 
   // First - we convert time from milliseconds to seconds.
   time = time / 1000;
+  current_time = time;
 
   // Next, we schedule next execution of `tick`.
   animate(tick);
 
   // The drawing begins with clearing canvas by filling it with background.
-  background(time);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  var now = (new Date).getTime();
+  var now = +new Date;
 
   // If we have avatar, we will move camera by 1/10th the distance towards it.
   if(avatar) {
-    var ship = common.get_root(avatar);
-    if(ship.position) {
-      var targ = ship.position;
-      if(ship.velocity) {
-        targ = targ.add(ship.velocity.x(time - ship.fetch_time));
-      }
-      camera = camera.add(targ.subtract(camera).x(.1));
-    }
+    camera = get_position_now(avatar);
   }
 
   scale.current += (scale.target - scale.current) / 5;
@@ -237,7 +201,7 @@ var tick = function(time) {
 
   if(radio) {
     ctx.strokeStyle = 'red';
-    ctx.lineWidth = radio.radio_range / 80;
+    ctx.lineWidth = radio.radio_range / 160;
     ctx.setLineDash([radio.radio_range / 20]);
     ctx.beginPath();
     ctx.arc(canvas.width/2, canvas.height/2, radio.radio_range, 0, 2 * Math.PI, true);
@@ -256,49 +220,47 @@ var tick = function(time) {
     s.age += 1;
     var a = Math.sin(s.age / star_life * Math.PI);
     ctx.globalAlpha = a;
-    var pos = worldToScreen(s.position);
     ctx.beginPath();
-    ctx.arc(pos.e(1), pos.e(2), 2*a / scale.current, 0, 2*Math.PI, false);
+    ctx.arc(s.position.getScreenX(), s.position.getScreenY(), 2*a / scale.current, 0, 2*Math.PI, false);
     ctx.fill();
     if(s.age >= star_life) {
-      stars.splice(i, 1);
-      --i;
+      s.age = 0;
+      s.position.make_random2(500/scale.current).add(camera);
     }
   }
   ctx.globalAlpha = 1;
 
-  if(Math.random() < 0.5) {
+  if((stars.length < 200) && (Math.random() < 0.5)) {
     stars.push({
       age: 0,
-      position: camera.add(common.RV(500/scale.current))
+      position: vectors.random2(500/scale.current).add(camera)
     });
   }
 
-  var arr = common.dict_to_array(objects).filter(function(o) {
+  var arr = common.dict_to_array(objects).filter(function position_filter(o) {
     return 'position' in o;
   });
-  arr.sort(function(a, b) {
+  arr.sort(function position_sort(a, b) {
 
-    return a.position.e(1) +
-      a.position.e(2) / 100 +
-      a.position.e(3) -
-      b.position.e(1) -
-      b.position.e(2) / 100 -
-      b.position.e(3);
+    return a.position[0] +
+      a.position[1] / 100 +
+      a.position[2] -
+      b.position[0] -
+      b.position[1] / 100 -
+      b.position[2];
   });
 
   // Now, we draw every object from the `objects` set
   for(var i = 0; i < arr.length; ++i) {
     var obj = arr[i];
     var pos = get_position_now(obj);
-    obj.screen_position = worldToScreen(pos);
 
     if(messages[obj.id]) {
       ctx.save();
       ctx.font = 'bold 20px Dosis';
       ctx.textAlign = 'center';
       ctx.lineWidth = 3;
-      messages[obj.id].forEach(function(msg, j) {
+      messages[obj.id].forEach(function draw_message(msg, j) {
         if(current_time - msg.time < 8) {
           ctx.fillStyle = '#' + obj.id.substring(0, 6);
           ctx.strokeStyle = 'white';
@@ -311,12 +273,12 @@ var tick = function(time) {
           ctx.strokeStyle = 'rgba(255,255,255,' +
             (1 - (current_time - msg.time - 8)/3) + ')';
         }
-        var X = obj.screen_position.e(1);
-        var Y = obj.screen_position.e(2) - j * 20 - 20;
+        var X = obj.position.getScreenX();
+        var Y = obj.position.getScreenY() - j * 20 - 20;
         ctx.strokeText(msg.text, X, Y);
         ctx.fillText(msg.text, X, Y);
       });
-      messages[obj.id] = messages[obj.id].filter(function(o) {return current_time - o.time < 11;});
+      messages[obj.id] = messages[obj.id].filter(function filter_messages(o) {return current_time - o.time < 11;});
       if(messages[obj.id].length == 0) delete messages[obj.id];
       ctx.restore();
     }
@@ -325,7 +287,11 @@ var tick = function(time) {
     if(a <= 0) continue;
     ctx.globalAlpha = a;
 
-    shadow(pos, 'white');
+    try {
+      pos.drawShadow('white');
+    } catch(e) {
+      console.log(pos, obj.velocity, obj.position.drawShadow, obj.sprite);
+    }
 
     var sprite_url = obj.sprite || '/unknown.png';
     var sprite = get_image(sprite_url, user_sprites && obj.user_sprite);
@@ -338,13 +304,17 @@ var tick = function(time) {
     var sx = (Math.round(time * 30) % frames) * fw;
     var sy = 0;
 
+    try {
     ctx.drawImage(
       sprite,
       sx, sy, fw, fh,
-      obj.screen_position.e(1) - fw/2,
-      obj.screen_position.e(2) - fh/2,
+      pos.getScreenX() - fw/2,
+      pos.getScreenY() - fh/2,
       fw, fh
     );
+    } catch(e) {
+      console.log(pos);
+    }
 
     ctx.globalAlpha = 1;
 
@@ -369,7 +339,7 @@ var tick = function(time) {
     if(manipulator.manipulator_slot) {
       var pos_a = common.get_position(manipulator.manipulator_slot);
       var pos_b = common.get_position(manipulator);
-      if(pos_a.distanceFrom(pos_b) > manipulator.manipulator_range) {
+      if(pos_a.dist(pos_b) > manipulator.manipulator_range) {
         delete manipulator.manipulator_slot.grabbed_by;
         delete manipulator.manipulator_slot;
       }
@@ -378,10 +348,10 @@ var tick = function(time) {
     if(manipulator.manipulator_slot) {
       ctx.strokeStyle = 'black';
       ctx.lineWidth = 3;
-      line(manipulator.screen_position, manipulator.manipulator_slot.screen_position);
+      line(manipulator.position, manipulator.manipulator_slot.position);
       ctx.strokeStyle = '#00ffaa';
       ctx.lineWidth = 2;
-      line(manipulator.screen_position, manipulator.manipulator_slot.screen_position);
+      line(manipulator.position, manipulator.manipulator_slot.position);
     }
   }
 
@@ -408,26 +378,19 @@ var tick = function(time) {
 
   if(focused_obj) {
     var root = common.get_root(focused_obj);
-    var current_pos = get_current_pos(root);
-    document.querySelectorAll('.set_x').text(Math.round(current_pos.elements[0]));
-    document.querySelectorAll('.set_y').text(Math.round(current_pos.elements[1]));
-    document.querySelectorAll('.set_z').text(Math.round(current_pos.elements[2]));
+    var current_pos = get_position_now(root);
+    document.querySelectorAll('.set_x').text(Math.round(current_pos[0]));
+    document.querySelectorAll('.set_y').text(Math.round(current_pos[1]));
+    document.querySelectorAll('.set_z').text(Math.round(current_pos[2]));
   }
 
   // Update fetch_time and position if in tutorial mode
   if(document.getElementById("tutwindow").style.display != "none") {
     for(var obj in objects) {
-      if(objects[obj].position) objects[obj].position = get_current_pos(objects[obj]);
+      if(objects[obj].position) objects[obj].position = get_position_now(objects[obj]);
       objects[obj].fetch_time = current_time;
     }
   }
-
-
-  fps_array.push(time);
-  if(fps_array.length > 100) fps_array.shift();
-  fps = Math.round(100 / (fps_array[99] - fps_array[0]));
-
-  current_time = time;
 };
 animate(tick);
 
@@ -445,9 +408,7 @@ var draw_explosions = function(time) {
     if(dt > e.duration) {
       explosions.splice(i, 1);
     } else {
-      e.screen_position = worldToScreen(e.position);
-
-      shadow(e.position, 'rgba(255,0,0,'+(1 - dt / e.duration)+')');
+      e.position.drawShadow('rgba(255,0,0,'+(1 - dt / e.duration)+')');
 
       var fw = sprite.width / frames;
       var fh = sprite.height;
@@ -457,8 +418,8 @@ var draw_explosions = function(time) {
       ctx.drawImage(
         sprite,
         sx, sy, fw, fh,
-        e.screen_position.e(1) - fw/2,
-        e.screen_position.e(2) - fh/2,
+        e.position.getScreenX() - fw/2,
+        e.position.getScreenY() - fh/2,
         fw, fh
       );
     }
@@ -786,16 +747,16 @@ document.addEventListener('mouseup', function(e) {
 }, true);
 
 canvas.addEventListener('mousedown', function(e) {
-  var half_canvas = $V([canvas.width, canvas.height]).x(.5);
   if(e.button == 0) {
     var clicked;
     var closest = 30;
     for(var hash in objects) {
       var o = objects[hash];
-      if(o.screen_position) {
+      if(o.position) {
+        var dx = (o.position.getScreenX() - canvas.width/2) * scale.current + canvas.width/2 - e.x;
+        var dy = (o.position.getScreenY() - canvas.height/2) * scale.current + canvas.height/2 - e.y;
 
-        var p = o.screen_position.subtract(half_canvas).x(scale.current).add(half_canvas);
-        var d = p.distanceFrom($V([e.x, e.y]));
+        var d = Math.sqrt(dx*dx+dy*dy);
         if(d < closest) {
           closest = d;
           clicked = o;
@@ -834,7 +795,6 @@ onresize = function(e) {
       obj.screen_position.y += dh/2;
     }
   }
-  background();
 
   document.getElementById("tutorial").style.left = (window.innerWidth/2 - 150)+"px";
   document.getElementById("tutorial").style.top = (window.innerHeight/2 - 50)+"px";

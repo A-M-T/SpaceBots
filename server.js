@@ -49,14 +49,13 @@ logger.info('Listening on port ' + listener.port);
 // Begin game logic
 
 var common = require('./static/common'),
-sylvester = require('sylvester'),
+vectors = require('./static/vectors'),
 resources = require('./static/resources'),
 bp = require('./blueprints'),
 check = require('validator').check,
 sanitize = require('validator').sanitize;
 
-var objects = global.objects = {},
-Vector = sylvester.Vector;
+var objects = global.objects = {};
 
 var reg = function(obj) {
   objects[obj.id] = obj;
@@ -77,15 +76,15 @@ var make_asteroid = function() {
     features: {},
     composition: resources.make_resources(common.rnd_exp(5, 10), 14, 20),
     sprite: '/asteroid100.png',
-    position: sylvester.Vector.Zero(3),
-    velocity: sylvester.Vector.Zero(3)
+    position: vectors.create(),
+    velocity: vectors.create(),
   };
 };
 
 for(var i = 0; i < 60; ++i) {
   var asteroid = reg(make_asteroid());
-  asteroid.position = common.RV(3000);
-  asteroid.velocity = common.RV(5);
+  asteroid.position = vectors.random2(3000);
+  asteroid.velocity = vectors.random2(5);
   asteroids.push(asteroid);
 }
 
@@ -93,8 +92,8 @@ var get_or_create_player = function(hash) {
   if(!(hash in objects)) {
 
     var hull = reg(bp.make('skeleton manipulator', 10));
-    hull.position = common.RV(200);
-    hull.velocity = common.RV(5);
+    hull.position = vectors.random2(200);
+    hull.velocity = vectors.random2(5);
     hull.skeleton_slots = [null, null, null, null, null, null];
     hull.sprite = '/hull.png';
 
@@ -133,51 +132,36 @@ attractor.sprite = '/attractor151.png';
 delete attractor.velocity;
 
 apply_secret_force = function(object) {
-  for(var i = 1; i <= 3; ++i) {
-    var v = object.position.e(i);
+  for(var i = 0; i < 3; ++i) {
+    var v = object.position[i];
     if(v < -2000) {
-      object.position.elements[i-1] = - v - 4000;
-      object.velocity.elements[i-1] = - object.velocity.elements[i-1];
+      object.position[i] = - v - 4000;
+      object.velocity[i] = - object.velocity[i];
     }
-    if(object.position.e(i) > 2000) {
-      object.position.elements[i-1] = - v + 4000;
-      object.velocity.elements[i-1] = - object.velocity.elements[i-1];
+    if(v > 2000) {
+      object.position[i] = - v + 4000;
+      object.velocity[i] = - object.velocity[i];
     }
   }
 };
-
-if('ATTRACTOR_KEY' in process.env) {
-  try {
-    var decipher = require('crypto').
-      createDecipher('aes256', process.env.ATTRACTOR_KEY);
-    decipher.end('k7S4ZzSGD7L4v7rOZXAiHgNJHbBGSbAUzwb+EWEjYau5//l0Rep1Hq' +
-                 'hZFDI7qKOH6gqmsyr+plzaqL+1MNrHkzepOcMVkeCjWbwIU+xF19g=',
-                 'base64');
-    var str = decipher.read().toString('utf8');
-    apply_secret_force = eval(str);
-    logger.info('attractor\'s secret decrypted');
-  } catch(e) {
-    logger.error('couldn\'t decrypt attractor secret: ' + e.toString());
-  }
-}
 
 attract = function() {
   for(var hash in objects) {
     var object = objects[hash];
     if(object.position && object.velocity) {
-      object.position = object.position.add(object.velocity.x(0.1));
+      object.position.add(object.velocity, 0.01);
       apply_secret_force(object);
     }
     if(object.manipulator_slot) {
       var pos_a = common.get_position(object.manipulator_slot);
       var pos_b = common.get_position(object);
-      if(pos_a && pos_b && pos_a.distanceFrom(pos_b) > object.manipulator_range) {
+      if(pos_a && pos_b && pos_a.dist(pos_b) > object.manipulator_range) {
         delete object.manipulator_slot.grabbed_by;
         delete object.manipulator_slot;
       }
     }
   }
-  setTimeout(attract, 100);
+  setTimeout(attract, 10);
 };
 
 attract();
@@ -225,8 +209,8 @@ var destroy = global.destroy = function(object) {
       var orphan = object.skeleton_slots[i];
       if(orphan) {
         orphan.parent = undefined;
-        orphan.velocity = Vector.create(vel);
-        orphan.position = Vector.create(pos);
+        orphan.velocity = vectors.create(vel);
+        orphan.position = vectors.create(pos);
         object.skeleton_slots[i] = undefined;
       }
     }
@@ -276,7 +260,7 @@ var apply_thrust = function(object, direction, momentum, reduce_dmg) {
   var mass = resources.get_connected_mass(object);
   var dv = momentum / mass;
   apply_thrust_dmg(object, object, dv, reduce_dmg);
-  root.velocity = root.velocity.add( direction.toUnitVector().x(dv) );
+  root.velocity.add( direction.scaleTo(dv) );
 };
 
 var last_commands_db = {};
@@ -475,15 +459,9 @@ io.sockets.on('connection', function (socket) {
     if('manipulator_slot' in target) {
       report.manipulator_slot = stub(target.manipulator_slot);
     }
-    var copy = 'id features sprite user_sprite integrity radio_range impulse_drive_payload impulse_drive_impulse store_stored store_capacity battery_energy battery_capacity manipulator_range laboratory_slots laboratory_tech_level'.split(' ');
-    var vectors = 'position velocity'.split(' ');
+    var copy = 'id features position velocity sprite user_sprite integrity radio_range impulse_drive_payload impulse_drive_impulse store_stored store_capacity battery_energy battery_capacity manipulator_range laboratory_slots laboratory_tech_level'.split(' ');
     copy.forEach(function(key) {
       report[key] = target[key];
-    });
-    vectors.forEach(function(key) {
-      if(key in target) {
-        report[key] = target[key].elements;
-      }
     });
     if(target.composition) {
       report.mass = resources.get_mass(target.composition);
@@ -502,8 +480,7 @@ io.sockets.on('connection', function (socket) {
   });
 
 
-  var radio_copy_fields = 'id sprite user_sprite'.split(' ');
-  var radio_vector_fields = 'position velocity'.split(' ');
+  var radio_copy_fields = 'id sprite user_sprite position velocity'.split(' ');
   on('radio scan', function(target, data) {
     if(!check_feature(target, 'radio')) return;
     var results = [];
@@ -513,12 +490,10 @@ io.sockets.on('connection', function (socket) {
     for(var hash in objects) {
       var object = objects[hash];
       if(!('position' in object)) continue;
-      var d = radio_position.distanceFrom(object.position);
+      var d = radio_position.dist(object.position);
       if(d <= target.radio_range) {
         var report = {};
         radio_copy_fields.forEach(function(key) { if(key in object) report[key] = object[key]; });
-        radio_vector_fields.forEach(function(key) { if(key in object) report[key] = object[key].elements; });
-
         results.push(report);
       }
     }
@@ -537,11 +512,11 @@ io.sockets.on('connection', function (socket) {
     var manipulator_position = common.get_position(target);
     var grab_position = manipulator_position;
     if(Array.isArray(data.position)) {
-      grab_position = Vector.create(data.position);
+      grab_position = vectors.create(data.position);
     }
 
     var total_range = target.manipulator_range;
-    var left_range = total_range - grab_position.distanceFrom(manipulator_position);
+    var left_range = total_range - grab_position.dist(manipulator_position);
 
     if(left_range < 0) {
       return fail(999, 'Grab position outside manipulator range.');
@@ -556,7 +531,7 @@ io.sockets.on('connection', function (socket) {
       var object = objects[hash];
       if(!('position' in object)) continue;
       if(object.id in cc) continue;
-      var d = grab_position.distanceFrom(object.position);
+      var d = grab_position.dist(object.position);
       if(d < closest_dist) {
         closest_dist = d;
         closest = object;
@@ -622,8 +597,8 @@ io.sockets.on('connection', function (socket) {
     skeleton.skeleton_slots[idx] = null;
     delete target.manipulator_slot.parent;
     target.manipulator_slot.grabbed_by = target;
-    target.manipulator_slot.position = $V(common.get_root(target).position.elements);
-    target.manipulator_slot.velocity = $V(common.get_root(target).velocity.elements);
+    target.manipulator_slot.position = vectors.create(common.get_root(target).position);
+    target.manipulator_slot.velocity = vectors.create(common.get_root(target).velocity);
     socket.emit('manipulator detached', { manipulator: stub(target), skeleton: stub(skeleton), slot: idx, object: stub(target.manipulator_slot) });
   });
 
@@ -664,11 +639,11 @@ io.sockets.on('connection', function (socket) {
     battery_check(energy_source, data.energy);
     var energy = Number(data.energy);
 
-    var direction = Vector.create(data.direction);
+    var direction = vectors.create(data.direction);
     var object = target.manipulator_slot;
 
     apply_thrust(object, direction, energy);
-    apply_thrust(target, direction.x(-1), energy);
+    apply_thrust(target, direction.neg(), energy);
     energy_source.battery_energy -= energy;
 
   });
@@ -698,7 +673,7 @@ io.sockets.on('connection', function (socket) {
     battery_check(energy_source, energy);
 
     var root = common.get_root(target);
-    var d = root.position.distanceFrom(cmd.destination);
+    var d = root.position.dist(cmd.destination);
     var time = d / cmd.impulse;
 
     setTimeout(function() {
@@ -709,7 +684,7 @@ io.sockets.on('connection', function (socket) {
       });
 
       var r = d * reaction_mass * cmd.impulse / 100000 + 10;
-      var hit_point = Vector.create(cmd.destination);
+      var hit_point = vectors.create(cmd.destination);
       var total = 0;
       var hit = [];
       var o, l, m;
@@ -717,7 +692,7 @@ io.sockets.on('connection', function (socket) {
       for(var hash in objects) {
         o = objects[hash];
         if(o.position) {
-          l = o.position.distanceFrom(hit_point);
+          l = o.position.dist(hit_point);
           if(l == 0) {
             hit = [o];
             break;
@@ -734,7 +709,7 @@ io.sockets.on('connection', function (socket) {
       var cumulative = 0;
       for(var i = 0; i < hit.length; ++i) {
         o = hit[i];
-        l = o.position.distanceFrom(hit_point);
+        l = o.position.dist(hit_point);
         m = resources.get_connected_mass(o);
         cumulative += m / l;
         if(cumulative > here) break;
@@ -743,13 +718,13 @@ io.sockets.on('connection', function (socket) {
       // selection of hit location
       var arr = common.dict_to_array(cc);
       var i = Math.floor(Math.random() * arr.length);
-      apply_thrust(arr[i], direction.x(-1), energy, false);
+      apply_thrust(arr[i], direction.neg(), energy, false);
     }, time * 1000);
 
 
-    var direction = root.position.
+    var direction = vectors.create(root.position).
       subtract(cmd.destination).
-      toUnitVector();
+      normalize();
 
     apply_thrust(target, direction, energy, true);
 
@@ -899,69 +874,10 @@ io.sockets.on('connection', function (socket) {
     resources.subtract(store.store_stored, materials);
     var object = bp.realize_blueprint(blueprint);
     var root = common.get_root(target);
-    object.position = Vector.create(root.position);
-    object.velocity = Vector.create(root.velocity);
+    object.position = vectors.create(root.position);
+    object.velocity = vectors.create(root.velocity);
     socket.emit('assembler built', { assembler: stub(target), laboratory: stub(laboratory), slot: slot, materials: materials, object: object });
     reg(object);
   });
 
-  (function() {
-
-    var random_asteroid_id = function() {
-      var i = Math.floor(Math.random() * asteroids.length);
-      return asteroids[i].id;
-    };
-
-    var challenge;
-
-    var send_challlenge = function() {
-      if(socket.connected) {
-        challenge = random_asteroid_id();
-        socket.emit('location challenge', challenge);
-        setTimeout(send_challlenge, 1000);
-      }
-    };
-
-    socket.on('location answer', function(ans) {
-      log_in('location answer');
-      if(ans.id !== challenge) {
-        return fail(15, 'Answer to wrong challenge!');
-      }
-      var p = Vector.create(ans.position);
-      var v = Vector.create(ans.velocity);
-
-      var o = objects[challenge];
-      challenge = undefined;
-
-      if(typeof o === 'undefined') {
-        return fail(16, 'You don\'t have any challenge');
-      }
-
-      var op = o.position;
-      var ov = o.velocity;
-
-      var dp = op.distanceFrom(p);
-      var dv = ov.distanceFrom(v);
-
-      var dist = 99999;
-      for(hash in player.avatars) {
-        var ap = common.get_position(player.avatars[hash]);
-        dist = Math.min(dist, ap.distanceFrom(op));
-      }
-
-      // Otworzyć plik odpowiadający temu IP, dopisać do niego
-      // dist dp dv
-      fs.appendFile('./logs/' + address.address + '.log',
-                    [(new Date).getTime(), dist, dp, dv].join(' ') + '\n',
-                    function (err) {
-                      if(err) {
-                        fail(17, 'Couldn\'t append to log file on server. Call the developers...');
-                      }
-                    });
-
-    });
-
-    send_challlenge();
-
-  })();
 });

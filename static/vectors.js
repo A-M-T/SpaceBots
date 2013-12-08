@@ -33,21 +33,33 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		return new Float32Array(3);
 	};
 
+  e.zero = e.create();
+
 	e.random1 = function(s) {
 		s = s || 1;
 		return e.create(Math.random(), Math.random(), Math.random()).scale(s);
 	};
 
-	e.random2 = function() {
+	e.random2 = function(s) {
 		s = s || 1;
 		return e.create(Math.random()*2-1, Math.random()*2-1, Math.random()*2-1).scale(s);
 	};
 
 	// Modifier functions
 
-	Float32Array.prototype.add = function(x) {
+
+	Float32Array.prototype.make_random2 = function(s) {
+		s = s || 1;
+    for(var i = 0; i < this.length; ++i) {
+      this[i] = (Math.random()*2-1) * s;
+    }
+    return this;
+	};
+
+	Float32Array.prototype.add = function(x, mul) {
+    mul = mul || 1;
 		for(var i = 0; i < this.length; ++i) {
-			this[i] += x[i];
+			this[i] += x[i] * mul;
 		}
 		return this;
 	};
@@ -93,6 +105,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	};
 
 	Float32Array.prototype.dist = function(x) {
+    if(arguments.length > 1)
+      x = Array.prototype.slice.call(arguments, 0);
 		var sum = 0, d;
 		for(var i = 0; i < this.length; ++i) {
 			d = this[i] - x[i];
@@ -100,6 +114,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		}
 		return Math.sqrt(sum);
 	};
+
+  Float32Array.prototype.toJSON = function() {
+    return Array.prototype.slice.call(this, 0);
+  };
 
 })(typeof exports === 'undefined' ? this['vectors'] = {} : exports);
 
