@@ -13,25 +13,7 @@ socket.on('radio result', function radio_result(result) {
   // Let's integrate new information into our own structures. We
   // will do it the same way as in 'report' handler.
 
-  result.forEach(function(object) {
-
-    if(objects[object.id]) {
-      for(var key in object) {
-        objects[object.id][key] = object[key];
-      }
-    } else {
-      objects[object.id] = object;
-    }
-
-    var local = objects[object.id];
-    local.fetch_time = current_time;
-
-    for(var vkey in vectors_mask) {
-      if(vkey in local) {
-        local[vkey] = vectors.create(local[vkey]);
-      }
-    }
-  });
+  result.forEach(register_object);
 
   if(typeof radio_callback === 'function') {
     try {
