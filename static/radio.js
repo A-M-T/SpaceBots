@@ -3,6 +3,10 @@ var radio_scanner = {
   interval: 1000,
   timeout_id: undefined,
   callbacks: [],
+  status: function() {
+    if(radio_scanner.timeout_id) return 'running';
+    else return 'stopped';
+  },
   has_callback: function(cb) {
     return radio_scanner.callbacks.indexOf(cb) >= 0;
   },
@@ -30,7 +34,7 @@ var radio_scanner = {
       radio_scanner.timeout_id = setTimeout(radio_scanner.loop, t);
     }
   },
-  unschedule: function radio_scanner_schedule() {
+  stop: function radio_scanner_schedule() {
     if(radio_scanner.timeout_id) {
       clearTimeout(radio_scanner.timeout_id);
       radio_scanner.timeout_id = undefined;

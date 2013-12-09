@@ -432,6 +432,13 @@ li:nth-child(2n-1) {
     <div class="command"><span class=run>detach</span>("<span class="param set_id" contenteditable title="skeleton"></span>", <span class="param" contenteditable title="slot"></span>)</div>
     <div class="command"><span class=run>repulse</span>(<span class="param set_x" contenteditable>x</span>, <span class="param set_y" contenteditable>y</span>, <span class="param set_z" contenteditable>z</span>, <span class="param" title="power" contenteditable></span>)</div>
 </template>
+<template id="radio_controls">
+  <div class="info">Range: <span class="range"></span></div>
+  <div class="info">Status: <span class="status"></span></div>
+  <div class="command"><span class="run">radio_scanner.run()</span>;</div>
+  <div class="command"><span class="run">radio_scanner.stop()</span>;</div>
+  <div class="command"><span class="run">radio_scanner.interval</span> = <span class="param interval" contenteditable>1000</span>;</div>
+</template>
 <template id="laboratory_controls">
   <div class="command"><span class="run">invent</span>(<span class="param" title="slot" contenteditable>0</span>, <span class="param" title="energy" contenteditable>100</span>)</div>
   <div class="command"><span class="run">abandon</span>(<span class="param" title="slot" contenteditable>0</span>)</div>

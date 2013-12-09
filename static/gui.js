@@ -462,7 +462,11 @@ controls.avatar = function(elem, object) {
 };
 
 controls.radio = function(elem, object) {
-  elem.appendChild(document.createTextNode('Radio range: ' + Math.round(object.radio_range)));
+  var template = document.getElementById("radio_controls").content;
+  template.querySelectorAll('.range').text(Math.round(object.radio_range));
+  template.querySelectorAll('.status').text(radio_scanner.status());
+  template.querySelectorAll('.interval').text(radio_scanner.interval);
+  elem.appendChild(template.cloneNode(true));
 };
 
 controls.manipulator = function(elem, object) {
