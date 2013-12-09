@@ -139,7 +139,7 @@ var monitor = function(originalFunction) {
     }, time);
   };
 };
-setTimeout = monitor(setTimeout);
+//setTimeout = monitor(setTimeout);
 //setInterval = monitor(setInterval);
 
 var make_script_editor = function(name) {

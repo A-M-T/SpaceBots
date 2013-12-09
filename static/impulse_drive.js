@@ -31,9 +31,9 @@ var get_resources_for_waste = function(n) {
 var relative_to_absolute = function(vector) {
   var p = get_position_now(avatar);
   return [
-    p[0] - vector[0] * 1000,
-    p[1] - vector[1] * 1000,
-    p[2] - vector[2] * 1000
+    p[0] - vector[0] * 500,
+    p[1] - vector[1] * 500,
+    p[2] - vector[2] * 500
   ]
 };
 
@@ -130,45 +130,22 @@ var speed_step = function(desired_v) {
   }
 };
 
-// Then, we can create main stopping function.
-var stop_tick = function() {
-
-  // It should do a single impulse directed towards reducing our speed.
-
-  if(speed_step(vectors.vero)) {
-
-    // If it hasn't finished, we have to shedule it again.
-
-    radio_callback = stop_tick;
-
-  } else {
-
-    console.log("Stopping finished");
-
-    radio_callback = undefined;
-
-  }
-
-};
-
-// This function will be executed after clicking on stop orb.
-// Its only function will be to set up our `radio_callback`.
-
 var stop = function() {
-  if(typeof radio_callback === 'undefined') {
-
-    // The callback isn't set. Let's set it.
-
-    console.log("Stopping initiated");
-    radio_callback = stop_tick;
-
-  } else {
+  if(radio_scanner.has_callback(navigate_tick)) {
 
     // It callback is already running, let's abort stopping by
     // clearing it.
 
-    console.log("Aborted stopping!");
-    radio_callback = undefined;
+    radio_scanner.remove_callback(navigate_tick);
+    console.log("Maneuver aborted!");
+
+  } else {
+
+    // The callback isn't set. Let's set it.
+
+    destination = { velocity: vectors.zero };
+    radio_scanner.add_callback(navigate_tick);
+    console.log("Stopping initiated");
 
   }
 };
@@ -190,19 +167,21 @@ var navigate_tick = function() {
   // destination and the direction we should move towards...
   var engine_pos = get_position_now(impulse_drive);
   var target_pos;
-  if(destination.position !== undefined) {
+  if('position' in destination) {
     target_pos = get_position_now(destination);
-  } else {
-    target_pos = destination;
   }
 
-  var diff = target_pos.subtract(engine_pos);
+  var target_velocity = vectors.create();
+  var distance = 0;
 
-  var distance = diff.len();
+  if(target_pos) {
+    var diff = target_pos.subtract(engine_pos);
+    distance = diff.len();
+    target_velocity.add(diff, 0.1);
+  }
 
-  var target_velocity = diff.scale(0.1);
   if('velocity' in destination) {
-    target_velocity = target_velocity.add( destination.velocity );
+    target_velocity.add( destination.velocity );
 
     if(distance < 10) {
       target_velocity = destination.velocity;
@@ -214,10 +193,11 @@ var navigate_tick = function() {
   if(velocity_diff > 0.5) {
     speed_step(target_velocity);
   }
+
   if((distance > 10) || (velocity_diff > 0.5)) {
-    radio_callback = navigate_tick;
+    radio_scanner.add_callback(navigate_tick);
   } else {
-    radio_callback = undefined;
+    radio_scanner.remove_callback(navigate_tick);
     var c = destination_callback;
     if(c) {
       destination_callback = null;
@@ -232,12 +212,12 @@ var navigate = function(dest, cb) {
   destination = common.get(dest);
   destination_callback = cb;
 
-  if(typeof radio_callback === 'undefined') {
-    console.log("Navigation initiated");
-    radio_callback = navigate_tick;
+  if(radio_scanner.has_callback(navigate_tick)) {
+    radio_scanner.remove_callback(navigate_tick);
+    console.log("Maneuver aborted!");
   } else {
-    console.log("Movement aborted!");
-    radio_callback = undefined;
+    radio_scanner.add_callback(navigate_tick);
+    console.log("Maneuver initiated");
   }
 
 };

@@ -1,42 +1,66 @@
 
-// When radio scanning is done, we get the array containing all items
-// found within the `radio_range`. Each object found will have only
-// most basic fields - id, position, velocity and sprite.
-
-// After each radio update, we are up-to date with all objects
-// positions and we are able to execute some additional action that is
-// guaranteed to operate on correct values. We will store this action
-// in `radio_callback`.
-var radio_callback;
-socket.on('radio result', function radio_result(result) {
-
-  // Let's integrate new information into our own structures. We
-  // will do it the same way as in 'report' handler.
-
-  result.forEach(function(e) { register_object(e) });
-
-  if(typeof radio_callback === 'function') {
-    try {
-      radio_callback();
-    } catch(e) {
-      radio_callback = undefined;
-      console.error(e);
+var radio_scanner = {
+  interval: 1000,
+  timeout_id: undefined,
+  callbacks: [],
+  has_callback: function(cb) {
+    return radio_scanner.callbacks.indexOf(cb) >= 0;
+  },
+  add_callback: function(cb) {
+    if(radio_scanner.callbacks.indexOf(cb) < 0) {
+      radio_scanner.callbacks.push(cb);
     }
-  }
+  },
+  remove_callback: function(cb) {
+    var i = radio_scanner.callbacks.indexOf(cb);
+    radio_scanner.callbacks.splice(i, 1);
+  },
+  loop: function radio_loop() {
+    radio_scanner.timeout_id = undefined;
 
-  // Same as with the reports, radio also should do rescans - after all
-  // not everything moves along straight lines.
-
-  setTimeout(function() {
     socket.emit('radio scan', {
       target: radio.id
     });
 
-    // Radio rescans will be performed more often than avatar
-    // scans - every second.
+    radio_scanner.schedule();
+  },
+  schedule: function radio_scanner_schedule() {
+    if(radio_scanner.timeout_id) throw "Radio loop already running";
+    var t = radio_scanner.interval;
+    radio_scanner.timeout_id = setTimeout(radio_scanner.loop, t);
+  },
+  unschedule: function radio_scanner_schedule() {
+    clearTimeout(radio_scanner.timeout_id);
+    radio_scanner.timeout_id = undefined;
+  },
+  run: function radio_scanner_run() {
+    radio_scanner.schedule();
+  },
+  result: function radio_scanner_result(result) {
 
-  }, 1000);
-});
+    // When radio scanning is done, we get the array containing all items
+    // found within the `radio_range`. Each object found will have only
+    // most basic fields - id, position, velocity and sprite.
+    
+    // Let's integrate new information into our own structures. We
+    // will do it the same way as in 'report' handler.
+
+    result.forEach(function(e) { register_object(e) });
+
+    // After each radio update, we are up-to date with all objects
+    // positions and we are able to execute some additional action that is
+    // guaranteed to operate on correct values. We will store this action
+    // in `radio_scanner.callbacks`.
+
+    for(var i = 0; i < radio_scanner.callbacks.length; ++i) {
+      var cb = radio_scanner.callbacks[i];
+      cb();
+    };
+
+  }
+};
+
+socket.on('radio result', radio_scanner.result);
 
 var messages = {};
 var broadcast = function(msg) {
