@@ -115,6 +115,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 		return Math.sqrt(sum);
 	};
 
+	Float32Array.prototype.eql = function(x) {
+    if(arguments.length > 1)
+      x = Array.prototype.slice.call(arguments, 0);
+		var sum = 0, d;
+		for(var i = 0; i < this.length; ++i) {
+			d = this[i] - x[i];
+			sum += d * d;
+		}
+		return Math.sqrt(sum) < 0.001;
+	};
+
   Float32Array.prototype.toJSON = function() {
     return Array.prototype.slice.call(this, 0);
   };
