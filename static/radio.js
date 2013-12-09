@@ -25,16 +25,19 @@ var radio_scanner = {
     radio_scanner.schedule();
   },
   schedule: function radio_scanner_schedule() {
-    if(radio_scanner.timeout_id) throw "Radio loop already running";
-    var t = radio_scanner.interval;
-    radio_scanner.timeout_id = setTimeout(radio_scanner.loop, t);
+    if(!radio_scanner.timeout_id) {
+      var t = radio_scanner.interval;
+      radio_scanner.timeout_id = setTimeout(radio_scanner.loop, t);
+    }
   },
   unschedule: function radio_scanner_schedule() {
-    clearTimeout(radio_scanner.timeout_id);
-    radio_scanner.timeout_id = undefined;
+    if(radio_scanner.timeout_id) {
+      clearTimeout(radio_scanner.timeout_id);
+      radio_scanner.timeout_id = undefined;
+    }
   },
   run: function radio_scanner_run() {
-    radio_scanner.schedule();
+    radio_scanner.loop();
   },
   result: function radio_scanner_result(result) {
 

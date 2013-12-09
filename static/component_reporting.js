@@ -53,7 +53,7 @@ socket.on('report', function on_report(obj) {
   if(('radio' in obj.features) && (radio === undefined)) {
     radio = obj;
     // ... and schedule a radio scan right away.
-    radio_scanner.schedule();
+    radio_scanner.run();
   }
 
   // If this object is capable of hauling mass with high velocities,
