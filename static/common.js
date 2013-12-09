@@ -15,6 +15,10 @@
 
   var Module = {};
 
+  String.prototype.get = function() {
+    return get(this);
+  };
+
 	// This function will walk the object hierarchy (parents and slots) and
 	// return object containing all elements found.
 	// When full parameter is set to true, the walk will cover also
