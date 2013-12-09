@@ -24,9 +24,8 @@ var current_time = 0;
 // database in the `objects` variable.
 
 var vector_keys = { 'position': true, 'velocity': true};
-var register_object = function register_object(obj, always_sent, update_time) {
+var register_object = function register_object(obj, always_sent) {
   var key;
-  update_time = typeof update_time === 'boolean' ? update_time : true;
 
   if(obj.id in objects) {
 
@@ -41,7 +40,11 @@ var register_object = function register_object(obj, always_sent, update_time) {
 
     var old = objects[obj.id];
     
-    if(always_sent) for(key in always_sent) delete old[key];
+    if(always_sent) {
+      for(key in always_sent) {
+        delete old[key];
+      }
+    }
 
     for(key in obj) old[key] = obj[key];
 
@@ -56,7 +59,7 @@ var register_object = function register_object(obj, always_sent, update_time) {
 
   // We should record the moment we got our report.
 
-  if(update_time) obj.fetch_time = current_time;
+  obj.fetch_time = current_time;
 
   // Position and velocity information will be sent as arrays: [x,
   // y, z]. We can convert them using `sylvester` library into
@@ -145,6 +148,8 @@ var register_object = function register_object(obj, always_sent, update_time) {
   if(obj.manipulator_slot) {
     obj.manipulator_slot = objects[obj.manipulator_slot.id];
   }
+
+  return obj;
 
 };
 

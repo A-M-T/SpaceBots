@@ -13,7 +13,7 @@ socket.on('radio result', function radio_result(result) {
   // Let's integrate new information into our own structures. We
   // will do it the same way as in 'report' handler.
 
-  result.forEach(register_object);
+  result.forEach(function(e) { register_object(e) });
 
   if(typeof radio_callback === 'function') {
     try {

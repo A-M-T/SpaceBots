@@ -7,7 +7,7 @@ socket.on('report', function on_report(obj) {
   // We can save it to our `objects` collection:
 
   var always_sent = { manipulator_slot: true, parent: true, position: true, velocity: true };
-  register_object(obj, always_sent);
+  obj = register_object(obj, always_sent);
 
   // Now, that we are scanning our object, we could schedule a
   // rescan - just to be safe - to run every 10 seconds.
