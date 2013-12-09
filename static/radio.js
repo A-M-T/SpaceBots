@@ -37,6 +37,7 @@ socket.on('radio result', function radio_result(result) {
     try {
       radio_callback();
     } catch(e) {
+      radio_callback = undefined;
       console.error(e);
     }
   }
