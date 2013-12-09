@@ -170,8 +170,6 @@ var get_frame_count = function get_frame_count(filename) {
   return 1;
 };
 
-var user_sprites = false;
-
 // Finally, this is function that will draw everything on the screen.
 var tick = function tick(time) {
 
