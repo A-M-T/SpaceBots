@@ -62,7 +62,9 @@ var app = require('https').createServer(
 );
 
 var io = require('socket.io').listen(app, { logger: logger });
-// io.set('log level', 1);
+//io.set('log level', 1);
+io.set('heartbeat timeout', 60 * 60 * 24 );
+io.set('close timeout', 60 * 60 * 24 );
 
 app.listen(port);
 

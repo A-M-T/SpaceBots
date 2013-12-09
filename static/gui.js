@@ -188,7 +188,7 @@ var tick = function tick(time) {
   var now = +new Date;
 
   // If we have avatar, we will move camera by 1/10th the distance towards it.
-  if(avatar) {
+  if(avatar && get_position_now(avatar)) {
     camera = get_position_now(avatar);
   }
 

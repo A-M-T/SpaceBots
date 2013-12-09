@@ -42,6 +42,7 @@ nesh.start({
 var listener = require('./listener');
 
 var io = listener.io;
+
 var app = listener.app;
 
 logger.info('Listening on port ' + listener.port);
@@ -420,12 +421,12 @@ io.sockets.on('connection', function (socket) {
 
   var on = function(name, handler) {
     socket.on(name, function(cmd) {
+      log_in(name);
       if(typeof player === 'undefined') {
         return fail(18, 'You have to log in first!');
       }
       if(check_command_limit())
         return fail(9, 'Exceeded limit of ' + last_commands.length + ' commands per second.');
-      log_in(name);
       var target = find_target(cmd);
       if(!target) return;
       try {

@@ -81,13 +81,13 @@ NodeList.prototype.text = HTMLCollection.prototype.text = function(text) {
 
 // Enough about plugins. Let's get back to the game.
 
-
-
-var run_script = function(data) {
+var run_script = function(data, title) {
 
   // Create new html element for the script
 
   var script = document.createElement('script');
+
+  if(title) script.title = title;
 
   // Let's check if this script is a reference to other address.
   // If it's contents start with 'http', it is probably a url.
@@ -108,7 +108,7 @@ var run_script = function(data) {
     // In the case that our custom_script was plain code, we set
     // the script contents.
 
-    script.textContent = data;
+    script.textContent = 'try {' + data + '} catch(e) { console.error(e); }';
 
   }
 
@@ -127,6 +127,20 @@ var run_script = function(data) {
 
   // document.body.removeChild(script);
 };
+
+var monitor = function(originalFunction) {
+  return function (fun, time) {
+    originalFunction(function() {
+      try {
+        fun();
+      } catch(e) {
+        console.error(e);
+      }
+    }, time);
+  };
+};
+setTimeout = monitor(setTimeout);
+//setInterval = monitor(setInterval);
 
 var make_script_editor = function(name) {
 
@@ -204,7 +218,19 @@ var script_new = function() {
 (function() {
   if(!localStorage.custom_scripts) {
     var default_scripts = {
-      "Connection": "/connection.js",
+      "Logging in": "/logging_in.js",
+      "Fail handler": "/fail_handler.js",
+      "Graphical tutorial": "/graphical_tutorial.js",
+      "Important objects": "/important_objects.js",
+      "Avatar list": "/avatar_list.js",
+      "Component reporting": "/component_reporting.js",
+      "Destruction & explosions": "/destruction_explosions.js",
+      "Radio": "/radio.js",
+      "Impulse drive": "/impulse_drive.js",
+      "Manipulator": "/manipulator.js",
+      "Laboratory": "/laboratory.js",
+      "Assembler": "/assembler.js",
+      "User sprites": "/user_sprites.js",
       "GUI": "/gui.js"
     };
 
@@ -224,7 +250,7 @@ var script_new = function() {
             obj[name] = client.responseText;
             localStorage.custom_scripts = JSON.stringify(obj);
             make_script_button(name);
-            run_script(obj[name]);
+            run_script(obj[name], name);
             load_next_script();
           }
         };
