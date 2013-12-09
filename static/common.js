@@ -13,6 +13,8 @@
 		});
 	};
 
+  var Module = {};
+
 	// This function will walk the object hierarchy (parents and slots) and
 	// return object containing all elements found.
 	// When full parameter is set to true, the walk will cover also
@@ -137,8 +139,8 @@
 		// get('31') to retrieve first object that has id beginning with 31.
 	};
 
-	var capitalize = e.capitalize = function(string) {
-		return string.charAt(0).toUpperCase() + string.slice(1);
+	String.prototype.capitalize = function() {
+		return this.charAt(0).toUpperCase() + this.slice(1);
 	}
 
 })(typeof exports === 'undefined' ? this['common'] = {} : exports);

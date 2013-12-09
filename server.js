@@ -618,7 +618,7 @@ io.sockets.on('connection', function (socket) {
 
   var find_co_component = function(source, id, feature) {
     var cc = common.walk(source);
-    var name = feature ? common.capitalize(feature) : "Object";
+    var name = feature ? feature.capitalize() : "Object";
     check(id, name + ' id (' + id + ') doesn\'t match /[0-9A-F]{32}/i').is(/[0-9A-F]{32}/i);
     check(cc[id], name + ' ' + id + ' is not reachable from ' + source.id).notNull();
     if(feature) check(cc[id].features[feature], 'Object ' + id + ' can\'t act as a ' + feature).notNull();
