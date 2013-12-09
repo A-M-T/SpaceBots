@@ -130,7 +130,7 @@ var run_script = function(data, title) {
 
 var monitor = function(originalFunction) {
   return function (fun, time) {
-    originalFunction(function() {
+    return originalFunction(function() {
       try {
         fun();
       } catch(e) {

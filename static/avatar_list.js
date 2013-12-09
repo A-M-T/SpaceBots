@@ -21,8 +21,6 @@ socket.on('avatar list', function (avatar_ids) {
   // about avatar location, parts that it is connected with and
   // other interesting information.
 
-  socket.emit('report', {
-    target: avatar_id
-  });
+  reporter.add(avatar_id);
 
 });

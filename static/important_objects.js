@@ -95,8 +95,9 @@ var register_object = function register_object(obj, always_sent) {
 
         if(typeof objects[child.id] === 'undefined' || objects[child.id].position) {
           objects[child.id] = child;
-          socket.emit('report', { target: child.id });
         }
+
+        reporter.add(child.id)
 
         // This way we will get 'scan report' for the next
         // component, and the next one, and so on.
@@ -117,7 +118,7 @@ var register_object = function register_object(obj, always_sent) {
      obj.parent.id &&
      typeof objects[obj.parent.id] === 'undefined') {
     objects[obj.parent.id] = obj.parent;
-    socket.emit('report', { target: obj.parent.id });
+    reporter.add(obj.parent.id);
   }
 
   // When manipulators hold other objects, they have stubs with

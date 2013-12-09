@@ -1,21 +1,44 @@
 
+var reporter = {
+  queue: [],
+  interval: 500,
+  timeout_id: undefined,
+  loop: function reporter_loop() {
+    reporter.timeout_id = undefined;
+    var id = reporter.queue.shift();
+    if(id) {
+      socket.emit('report', { target: id });
+    }
+    reporter.schedule();
+  },
+  schedule: function reporter_schedule() {
+    var t = reporter.interval * (Math.random() + 1);
+    reporter.timeout_id = setTimeout(reporter.loop, t);
+  },
+  unschedule: function reporter_schedule() {
+    clearTimeout(reporter.timeout_id);
+    reporter.timeout_id = undefined;
+  },
+  add: function reporter_add(id) {
+    if(reporter.queue.indexOf(id) < 0) {
+      reporter.queue.push(id);
+    }
+  }
+};
+
+reporter.schedule();
+
 // When component scanning will be done, we will get our answer as
 // 'report' message.
 
 socket.on('report', function on_report(obj) {
 
+  reporter.add(obj.id);
+
   // We can save it to our `objects` collection:
 
   var always_sent = { manipulator_slot: true, parent: true, position: true, velocity: true };
   obj = register_object(obj, always_sent);
-
-  // Now, that we are scanning our object, we could schedule a
-  // rescan - just to be safe - to run every 10 seconds.
-  setTimeout(function() {
-    if(obj.id in objects) {
-      socket.emit('report', { target: obj.id });
-    }
-  }, 10000 * (Math.random() + 1)); // time in ms
 
   // Now, we could check features of this object and check whether
   // it deserves special attention
