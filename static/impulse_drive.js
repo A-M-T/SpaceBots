@@ -175,7 +175,7 @@ var navigate_tick = function() {
   var distance = 0;
 
   if(target_pos) {
-    var diff = target_pos.subtract(engine_pos);
+    var diff = vectors.create(target_pos).subtract(engine_pos);
     distance = diff.len();
     target_velocity.add(diff, 0.1);
   }
