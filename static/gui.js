@@ -554,7 +554,11 @@ var focus_details = function(details) {
       focused.classList.remove('focused');
     }
     details.classList.add('focused');
-    document.querySelectorAll('.set_id').text(details.id.substr(0, 4));
+
+    // This line prevented issuing commands. It might be important so
+    // we'll leave it commented for now.
+
+    //document.querySelectorAll('.set_id').text(details.id.substr(0, 4));
   }
   details.style['z-index'] = top_index++;
 };
@@ -633,6 +637,8 @@ var show_details_for = function(object, event) {
 
   focus_details(details);
 
+  document.querySelectorAll('.set_id').text(details.id.substr(0, 4));
+
   var rect = details.getBoundingClientRect();
   var w2 = (rect.right - rect.left) / 2;
   var h2 = (rect.bottom - rect.top) / 2;
@@ -707,7 +713,7 @@ document.addEventListener('mousedown', function(e) {
       show_details_for(objects[hash], e);
       e.preventDefault();
       e.stopPropagation();
-    } else if(e.target.classList.contains('feature')) {
+    } else if(e.target.classList.contains('feature')) { // 
       var curr = e.target;
       var controls_div;
       while((controls_div = curr.querySelector('.controls')) == null) {
