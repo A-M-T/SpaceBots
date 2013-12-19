@@ -320,11 +320,11 @@ io.sockets.on('connection', function (socket) {
     return now - ten_before < 1;
   };
 
-  socket.on('log in', function(data) {
+  socket.on('log in', function(data, callback) {
     log_in('log in');
     if(!('' + data.player_id).match(/[0-9A-F]{32}/i)) {
-      return fail(2, 'Hash used to log in does not match regular' +
-                  ' expression /[0-9A-F]{32}/i .');
+      return callback('fail', { code: 2, message: 'Hash used to log in does not match regular' +
+                      ' expression /[0-9A-F]{32}/i .'});
     }
 
     if(!(data.player_id in objects)) {
@@ -332,7 +332,7 @@ io.sockets.on('connection', function (socket) {
       if(address in last_accounts) {
         if(now - last_accounts[address] < 20) {
           player = undefined;
-          return fail(18, 'Only one account per 20 seconds per ip allowed.');
+          return callback('fail', { code: 18, message: 'Only one account per 20 seconds per ip allowed.'});
         }
       }
       last_accounts[address] = now;
@@ -351,12 +351,13 @@ io.sockets.on('connection', function (socket) {
 
     if(!('avatars' in player)) {
       player = undefined;
-      return fail(3, 'This account doesn\'t have an avatar list');
+      return callback('fail', { code: 3, message: 'Currputed accound - no avatar list.'});
     }
     for(var k in player.avatars) {
       socket.join(k);
     }
-    socket.emit('avatar list',  Object.keys(player.avatars));
+
+    return callback('success', { avatar_list: Object.keys(player.avatars) });
   });
 
   var find_target = function(command) {

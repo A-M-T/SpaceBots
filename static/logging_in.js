@@ -39,7 +39,35 @@
 // server. Here is the line that uses socket.io library to create
 // this connection.
 
-var socket = io.connect();
+var socket;
+
+var connect = function() {
+  return new Promise(function(resolve, reject) {
+
+    socket = io.connect();
+
+    // We use the 'connect' event to execute action right after
+    // connection is created.
+
+    socket.on('connect', resolve());
+    
+  });
+};
+
+var send = function(command, argument) {
+  if(!command) throw "error: Add command to `send(command, argument)`";
+  if(!argument) throw "error: Add argument object to `send(command, argument)`";
+
+  return new Promise(function(resolve, reject) {
+    socket.emit(command, argument, function(status, reply) {
+      if(status === 'success')
+        resolve(reply);
+      else
+        reject(reply);
+    });
+  });
+};
+
 
 // We won't use socket.io directly anymore. All communication with
 // server will be done by sending and receiving messages using just
@@ -77,18 +105,7 @@ var log_in = function() {
 
   console.log("Logging in...");
 
-  socket.emit('log in', { player_id: localStorage.player_id });
+  return send('log in', { player_id: localStorage.player_id });
 };
 
-// We use the 'connect' event to execute action right after
-// connection is created.
-
-socket.on('connect', function () {
-
-  // If user already finished the tutorial, let's log in instantly
-  // after connecting
-
-  if(localStorage.tutorial_finished == "true") {
-    log_in();
-  }
-});
+var logged_in = connect().then(log_in);

@@ -4,7 +4,8 @@
 // own but instead - they rely on controlling other machines. Avatars
 // are our only way of controlling the world.
 
-socket.on('avatar list', function (avatar_ids) {
+logged_in = logged_in.then(function (reply) {
+  var avatar_ids = reply.avatar_list;
 
   console.log('Retrieved avatar list', avatar_ids);
 
@@ -22,5 +23,7 @@ socket.on('avatar list', function (avatar_ids) {
   // other interesting information.
 
   reporter.add(avatar_id);
+
+  return Promise.resolve();
 
 });
