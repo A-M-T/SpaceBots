@@ -46,7 +46,7 @@ socket.on('manipulator detached', function(data) {
   var o = common.get(data.object.id);
   var m = common.get(data.manipulator.id);
 
-  m.manipulator_slot = s.skeleton_slots[idx];
+  m.manipulator_slot = o;
   s.skeleton_slots[idx] = null;
   delete o.parent;
   o.grabbed_by = target;

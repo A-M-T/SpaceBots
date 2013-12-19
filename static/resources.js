@@ -24,8 +24,8 @@
     var get_array = function(arg) {
         if(Array.isArray(arg)) return arg;
         if(typeof arg === 'object') {
-            if('composition' in arg) return arg.composition;
-            if('mass' in arg) return [ arg.mass ];
+          if('composition' in arg) return arg.composition;
+          if('mass' in arg) return [ arg.mass ];
         }
         throw 'Argument isn\'t an array or object with composition.';
     };
@@ -35,7 +35,11 @@
     };
 
 	var get_mass = e.get_mass = function(o) {
-        return get_array(o).reduce(function(a, b) { return a+b; });
+    try {
+      return get_array(o).reduce(function(a, b) { return a+b; });
+    } catch(e) {
+      return 0;
+    }
 	};
 
     var init_arr = function(arr) {

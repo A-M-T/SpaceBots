@@ -343,7 +343,7 @@ var tick = function tick(time) {
       }
     }
 
-    if(manipulator.manipulator_slot) {
+    if(manipulator.manipulator_slot && manipulator.manipulator_slot.position) {
       ctx.strokeStyle = 'black';
       ctx.lineWidth = 3;
       line(manipulator.position, manipulator.manipulator_slot.position);
