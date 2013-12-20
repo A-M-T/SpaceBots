@@ -30,6 +30,9 @@ NodeList.prototype.text = HTMLCollection.prototype.text = function(text) {
 // Logging function
 
 var log = console.log.bind(console);
+var error = console.log.bind(error);
+var info = console.log.bind(info);
+var warn = console.log.bind(warn);
 
 // We will start by running custom startup scripts. Initially there
 // won't be any of them but you can create them, put them on the
