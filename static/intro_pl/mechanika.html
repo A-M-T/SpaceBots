@@ -1,0 +1,31 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>SpaceBots - mechanika</title>
+<link rel=stylesheet href=doc.css>
+<h1>SpaceBots - mechanika</h1>
+
+<p>W przestrzeni SpaceBots dryfują najróżniejsze obiekty. Czasami są to asteroidy, czasami tajemnicze artefakty. Czasami są to inni gracze. Niezależnie od tego czym są, każdy z nich posiada unikalny identyfikator nazywany <code>id</code>, który pozwala odróżnić go od innych.</p>
+
+<h2>Podzespoły i cechy</h2>
+
+<p>Jedne obiekty mogą zawierać inne. Właściwie zdarza się to cały czas. Statek kosmiczny może załadować na pokład lasery, działa, silniki, nawet przypadkowo złapaną asteroidę. Takie obiekty na zewnątrz widoczne są jako jeden i żeby poznać ich wewnętrzną strukturę trzeba je dokładnie zbadać.</p>
+
+<p>Niektóre obiekty potrafią wykonywać polecenia, które im wydasz. Obiekty takie nazywamy podzespołami. Na przykład silnik impulsowy (<code>impulse_drive</code>) jest urządzeniem, które po otrzymaniu polecenia <code>impulse_drive push</code>, wystrzeli ładunek w określonym kierunku i z określoną prędkością. Jest całe mnóstwo innych podzespołów - radary, lasery, urządzenia pomiarowe, maskujące oraz najróżniejsze wersje silników.</p>
+
+<p>Najważniejszym podzespołem jest jednak <em>awatar</em>. Awatar to źródło, z którego wydajesz polecenia innym podzespołom. Zaraz po zalogowaniu, serwer wita cię listą twoich awatarów. Gdy tylko ją otrzymasz, możesz zacząć wyszukiwać podłączone podzespoły oraz wydawać im pierwsze polecenia.</p>
+
+<p>Korzystając z podzespołów dostępnych na starcie możesz produkować nowe podzespoły. Proces jest dość mozolny - musisz zgromadzić energię, opracować schemat, zebrać materiały, oraz wyprodukować podzespół. Chociaż nie jest łatwo, opłaca się. Możesz wpływać na właściwości nowych podzespołów i wyprodukować dokładnie taki silnik, czy broń jakiej potrzebujesz. W dodatku po opracowaniu schematu, możesz wyprodukować niemal dowolną ilość podzespołów (dopóki wystarzczy ci materiałów).</p>
+
+<p>Co ciekawe, możesz produkować także nowe awatary. Z ich pomocą będziesz mógł/mogła uruchomić kolejne statki. Nie ma żadnego ograniczenia na ilość awatarów, które możesz kontrolować. Równie dobrze możesz grać pojedynczym, uzbrojonym po zęby statkiem, jak i rojem niewielkich myśliwców. Właściwie tylko od ciebie zależy jaką strategię obierzesz.</p>
+
+<p>Jeden podzespół może pełnić wiele funkcji. Może być jednocześnie silnikiem, magazynem i baterią. Nazywamy to <em>cechami</em>. Listę cech obiektu znajdziesz w jego polu <code>features</code>.</p>
+
+<p>W SpaceBots istnieją <em>ukryte</em> cechy. Czasami znajdziesz je w bardzo rzadkich, czasami unikatowych podzespołach. Nie są opisane w żadnym spisie ani na żadnej wiki. Kiedy taki odnajdziesz, poznasz go po nowej wartości w polu <code>features</code>. Jej kluczem będzie nazwa cechy, a jej wartością - adres URL strony ze szczegółowym opisem cechy.</p>
+
+<h2>Materiały i energia</h2>
+
+<p>Każdy obiekt zbudowany jest z materiałów. W SpaceBots występuje ich dokładnie 100. Mogą być wydobywane z asteroid, odzyskiwane z jednych komponentów i ponownie wykorzystywane do budowy innych. Materiały przechowuje się w <em>magazynie</em> (<code>store</code>).</p>
+
+<p>Materiały można przekształcać w reaktorach. W zależności od kierunku reakcji, czasami można w ten sposób wytworzyć nieco energii. Szczegóły znajdziesz na stronach konkretnych reaktorów.</p>
+
+<p>"Energia" w SpaceBots działa dość specyficznie i pomimo swojej nazwy, nie odpowiada prawdziwej energii. W SpaceBots baterie magazynują raczej <em>pęd</em>. Dowolna akcja w SpaceBots zachowuje łączny pęd obiektów.</p>

@@ -1,0 +1,736 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Struktury danych: obiekty i tablice</title>
+<link rel=stylesheet href=doc.css>
+<link rel=author href=http://marijnhaverbeke.nl/>
+<link rel=license href=http://creativecommons.org/licenses/by/3.0/deed.pl>
+<h1>Struktury danych: obiekty i tablice</h1>
+
+<div class="block">
+  <p>Ten rozdział poświęcimy na rozwiązanie kilku prostych problemów. W międzyczasie opiszę dwa nowe typy danych — tablice i obiekty — oraz przybliżę Ci kilka związanych z nimi technik.</p>
+  <p>Rozważmy następującą sytuację: Twoja szalona ciotka Emilia, która podobno mieszka z 50 kotami (nigdy nie udało Ci się ich wszystkich policzyć), regularnie wysyła Ci e-maile, żeby poinformować Cię o swoich przeżyciach. Zwykle otrzymujesz wiadomości tego rodzaju:</p>
+  <blockquote>Drogi siostrzeńcu,<br>
+    <br>
+      Twoja matka powiedziała mi, że zacząłeś wykonywać akrobacje ze spadochronem. Czy to prawda? Uważaj na siebie, młody człowieku! Pamiętasz, co się przytrafiło mojemu mężowi? A to było tylko drugie piętro!<br>
+    <br>
+      A tak w ogóle, u mnie sporo się dzieje. Cały tydzień próbowałam zwrócić na siebie uwagę Pana Kowalskiego, tego miłego jegomościa, który wprowadził się do mieszkania obok, ale wydaje mi się, że on nie lubi kotów. A może ma na nie alergię? Następnym razem, gdy się z nim spotkam położę mu na ramieniu Grubego Igora, ciekawe co zrobi.<br>
+    <br>
+      A jeśli chodzi o ten przekręt, o którym pisałam wcześniej, to wszystko idzie, jak po maśle. Otrzymałam już pięć „zapłat” i tylko jedną skargę. Ale zaczyna mnie dręczyć sumienie. Pewnie masz rację, że to może być nielegalne.<br>
+    <br>
+      (… itd. …)<br>
+    <br>
+      Całuję, Ciocia Emilia<br>
+    <br>
+      odeszli 04.27.2006: Black Leclère<br>
+    <br>
+      urodzeni 04.05.2006 (matka Lady Penelope): Red Lion, Doctor Hobbles 3, Little Iroquois</blockquote>
+    <p>Aby zrobić przyjemność starszej pani, mógłbyś zawsze wtrącić jakieś pytanie o jej koty, w stylu „P.S. Mam nadzieję, że Doktor Hobbles 2. dobrze bawił się na swoich urodzinach w niedzielę!” albo „Jak się miewa staruszka Penelopa?. Ma już pięć lat, prawda?”. Zachowując takt raczej nie pytałbyś o zdechłe koty. Masz już pokaźny zbiór starych e-maili od ciotki i na szczęście na końcu każdego z nich ciotka zamieściła informację o zdechłych i nowo narodzonych kotach w dokładnie takim samym formacie.</p>
+    <p>Nie masz jednak ochoty przeglądać tych wszystkich maili. Całe szczęście, że właśnie szukaliśmy jakiegoś przykładowego problemu do rozwiązania. Skoro tak, to spróbujemy napisać program rozwiązujący opisany problem. Zaczniemy od napisania programu zwracającego listę kotów, które nadal są żywe od ostatniego e-maila.</p>
+    <p>Żeby ubiec Twoje pytanie, wyjaśnię, że na początku Waszej korespondencji ciotka Emilia miała tylko jednego kota, o imieniu Spot. (w tamtych czasach ciotka preferowała jeszcze dość konwencjonalne nazwy).</p>
+</div>
+<hr>
+
+<img src="eyes.png" alt="Kocie oczy" width="500" height="84">
+
+<hr>
+<div class="block">
+  <p>Program o wiele łatwiej jest napisać, gdy ma się przynajmniej mgliste pojęcie, do czego ma służyć. Dlatego poniżej przedstawiam plan aplikacji:</p>
+  <ol>
+    <li>Program rozpocznie działanie ze zbiorem kocich imion zawierającym tylko pozycję Spot.</li>
+    <li>Program przejrzy wszystkie e-maile w chronologicznej kolejności.</li>
+    <li>Program wyszuka akapity zaczynające się od słowa „urodzeni” lub „odeszli”.</li>
+    <li>Program doda imiona z akapitów zaczynających się od słowa „urodzeni” do naszego zbioru.</li>
+    <li>Program usunie imiona z akapitów zaczynających się od słowa „odeszli” z naszego zbioru.</li>
+  </ol>
+  <p>Pobieranie imion z akapitów będzie odbywać się następująco:</p>
+  <ol>
+    <li>Znalezienie w akapicie dwukropka.</li>
+    <li>Pobranie tego, co znajduje się za dwukropkiem.</li>
+    <li>Podzielenie pobranego tekstu na poszczególne imiona wg przecinków.</li>
+  </ol>
+  <p>Może się wydawać trochę ryzykowne zawierzenie, że ciotka Emilia zawsze stosuje dokładnie ten sam format i nigdy nie zapomina ani nie robi błędów w imionach, ale taka już właśnie ta ciotka jest.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Najpierw opowiem Ci o własnościach. Z wieloma wartościami w języku JavaScript powiązane są inne wartości. Te powiązania nazywają się własnościami. Każdy łańcuch ma własność o nazwie <code>length</code>, która odnosi się do liczby oznaczającej, z ilu znaków ten łańcuch się składa.</p>
+  <p>Dostęp do własności można uzyskać na dwa sposoby:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">text</span> = <span class="string">"fioletowa mgiełka"</span>;
+    <span class="variable">show</span>(<span class="variable">text</span>[<span class="string">"length"</span>]);
+    <span class="variable">show</span>(<span class="variable">text</span>.<span class="property">length</span>);</pre>
+  <p>Drugi z przedstawionych rodzajów zapisu jest skrótem pierwszego i można go stosować tylko wtedy, gdy nazwa własności mogłaby być poprawną nazwą zmiennej ― nie zawiera spacji ani znaków specjalnych oraz nie zaczyna się od cyfry.</p>
+  <p>Wartości <code>null</code> i <code>undefined</code> nie mają żadnych własności. Próba odczytania własności jednej z nich zakończy się spowodowaniem błędu. Jeśli chcesz zobaczyć, jakie powiadomienia o błędach mogą wyświetlać przeglądarki (w niektórych te komunikaty wyglądają bardzo tajemniczo), gdy napotkają taki kod, wykonaj poniższy program.</p>
+  <pre class="code invalid not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">nothing</span> = <span class="atom">null</span>;
+    <span class="variable">show</span>(<span class="variable">nothing</span>.<span class="property">length</span>);</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Własności wartości łańcuchowej nie można zmieniać. Własność <code>length</code> to tylko jedna z wielu własności i nie można żadnych usuwać ani dodawać.</p>
+  <p>Z wartościami typu obiektowego jest jednak inaczej. Ich najważniejszą rolą jest właśnie przechowywać inne wartości. Można powiedzieć, że wartości te mają zestaw przyssawek w postaci własności. Można ja modyfikować, usuwać, a nawet dodawać nowe.</p>
+  <p>Obiekt można zapisać następująco:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">cat</span> = {<span class="property">colour</span>: <span class="string">"grey"</span>, <span class="property">name</span>: <span class="string">"Spot"</span>, <span class="property">size</span>: <span class="atom">46</span>};
+    <span class="variable">cat</span>.<span class="property">size</span> = <span class="atom">47</span>;
+    <span class="variable">show</span>(<span class="variable">cat</span>.<span class="property">size</span>);
+    <span class="keyword">delete</span> <span class="variable">cat</span>.<span class="property">size</span>;
+    <span class="variable">show</span>(<span class="variable">cat</span>.<span class="property">size</span>);
+    <span class="variable">show</span>(<span class="variable">cat</span>);</pre>
+  <p>Podobnie jak zmienne, każda własność związana z obiektem ma tekstową etykietę. Pierwsza z powyższych instrukcji tworzy obiekt, w którym znajduje się własność <code>"colour"</code> odnosząca się do łańcucha <code>"grey"</code>, własność <code>"name"</code> odnosząca się do łańcucha <code>"Spot"</code> oraz własność <code>"size"</code> odnosząca się do liczby <code>46</code>. Druga instrukcja przypisuje własności <code>size</code> nową wartość, co robi się w taki sam sposób, jak modyfikacja wartości zmiennej.</p>
+  <p>Słowo kluczowe <code>delete</code> usuwa własności. Próba odczytu nieistniejącej własności powoduje zwrócenie wartości <code>undefined</code>.</p>
+  <p>Jeżeli operator <code>=</code> zostanie użyty do ustawienia własności, która jeszcze nie istnieje, to taka własność zostanie utworzona i dodana do obiektu.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">empty</span> = {};
+    <span class="variable">empty</span>.<span class="property">notReally</span> = <span class="atom">1000</span>;
+    <span class="variable">show</span>(<span class="variable">empty</span>.<span class="property">notReally</span>);</pre>
+  <p>Własności, których nazwy nie mogłyby zostać użyte jako nazwy zmiennych muszą przy tworzeniu obiektu znajdować się w cudzysłowach, a gdy się ich potem używa, trzeba używać kwadratowych nawiasów:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">thing</span> = {<span class="string">"gabba gabba"</span>: <span class="string">"hey"</span>, <span class="string">"5"</span>: <span class="atom">10</span>};
+    <span class="variable">show</span>(<span class="variable">thing</span>[<span class="string">"5"</span>]);
+    <span class="variable">thing</span>[<span class="string">"5"</span>] = <span class="atom">20</span>;
+    <span class="variable">show</span>(<span class="variable">thing</span>[<span class="atom">2</span> + <span class="atom">3</span>]);
+    <span class="keyword">delete</span> <span class="variable">thing</span>[<span class="string">"gabba gabba"</span>];</pre>
+  <p>Jak widać, w nawiasach kwadratowych może znajdować się dowolne wyrażenie. Jest ono konwertowane na łańcuch, aby można było określić nazwę własności, do której się odnosi. Jako nazw własności można używać nawet zmiennych:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">propertyName</span> = <span class="string">"length"</span>;
+    <span class="keyword">var</span> <span class="variable">text</span> = <span class="string">"mainline"</span>;
+    <span class="variable">show</span>(<span class="variable">text</span>[<span class="variable">propertyName</span>]);</pre>
+  <p>Do sprawdzenia czy obiekt ma określoną własność służy operator <code>in</code>. Zwraca on wartość logiczną.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">chineseBox</span> = {};
+    <span class="variable">chineseBox</span>.<span class="property">content</span> = <span class="variable">chineseBox</span>;
+    <span class="variable">show</span>(<span class="string">"content"</span> in <span class="variable">chineseBox</span>);
+    <span class="variable">show</span>(<span class="string">"content"</span> in <span class="variable">chineseBox</span>.<span class="property">content</span>);</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Gdy w konsoli wyświetlone są wartości obiektów, można je kliknąć, aby zbadać ich własności. Powoduje to zamianę okna wyjściowego na okno inspekcji. Kliknięcie znajdującego się w prawym górnym rogu tego okna znaku „x” powoduje powrót do okna wyjściowego, natomiast strzałka służy do przejścia do własności poprzednio badanego obiektu.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="variable">chineseBox</span>);</pre>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 4.1</div>
+  <div class="exercise">
+    <p>W rozwiązaniu problemu z kotami wymienione zostało słowo „zbiór”. Zbiór to zestaw wartości, w którym żadna wartość nie może się powtórzyć. Jeśli imiona są łańcuchami, czy wiesz, jak użyć obiektu do reprezentowania zbioru imion?</p>
+    <p>Pokaż jak dodać i usunąć imię z tego zbioru oraz jak sprawdzić, czy dane imię w nim występuje.</p>
+  </div>
+  
+  <div class="toggle">[pokaż rozwiązanie]</div><div style="display: none;" class="solution"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    
+    <p>Zadanie to można wykonać zapisując zawartość zbioru jako własności obiektu. Dodawanie imion polegałoby na zdefiniowaniu własności o takich nazwach i dowolnych wartościach. Usuwanie imion polegałoby na kasowaniu odpowiadających im własności. Za pomocą operatora <code>in</code> można natomiast sprawdzać, czy wybrane imię znajduje się już w zbiorze <a class="footref" href="#footnote1">1</a>.</p>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">set</span> = {<span class="string">"Spot"</span>: <span class="atom">true</span>};
+      <span class="comment">// Dodanie White Fang do zbioru</span>
+      <span class="variable">set</span>[<span class="string">"White Fang"</span>] = <span class="atom">true</span>;
+      <span class="comment">// Usunięcie Spot</span>
+      <span class="keyword">delete</span> <span class="variable">set</span>[<span class="string">"Spot"</span>];
+      <span class="comment">// Sprawdzenie czy "Asoka" znajduje się w zbiorze</span>
+      <span class="variable">show</span>(<span class="string">"Asoka"</span> in <span class="variable">set</span>);</pre>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Jak widać, wartości obiektów mogą się zmieniać. Typy wartości opisane w <a href="/kursy/javascript/wszystko-jasne/r2-podstawy">rozdziale 2</a> są niezmienne, tzn. nie można zmienić istniejących wartości tych typów. Można je łączyć i tworzyć z nich nowe wartości, ale jeśli weźmiemy dowolną wartość łańcuchową, to znajdującego się w niej tekstu nie możemy zmienić. Natomiast w obiektach treść wartości można zmieniać poprzez zmianę ich własności.</p>
+  <p>Jeśli mamy dwie liczby <code>120</code> i <code>120</code>, to praktycznie zawsze możemy je uważać za dokładnie tę samą liczbę. W przypadku obiektów posiadanie dwóch referencji do tego samego obiektu i posiadanie dwóch różnych obiektów zawierających takie same własności to nie to samo. Rozważmy poniższy przykład:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">object1</span> = {<span class="property">value</span>: <span class="atom">10</span>};
+    <span class="keyword">var</span> <span class="variable">object2</span> = <span class="variable">object1</span>;
+    <span class="keyword">var</span> <span class="variable">object3</span> = {<span class="property">value</span>: <span class="atom">10</span>};
+
+    <span class="variable">show</span>(<span class="variable">object1</span> == <span class="variable">object2</span>);
+    <span class="variable">show</span>(<span class="variable">object1</span> == <span class="variable">object3</span>);
+
+    <span class="variable">object1</span>.<span class="property">value</span> = <span class="atom">15</span>;
+    <span class="variable">show</span>(<span class="variable">object2</span>.<span class="property">value</span>);
+    <span class="variable">show</span>(<span class="variable">object3</span>.<span class="property">value</span>);</pre>
+  <p><code>object1</code> i <code>object2</code> to dwie zmienne mające <em>tę samą</em> wartość. Tak naprawdę jest tylko jeden obiekt i dlatego zmiana wartości obiektu <code>object1</code> powoduje również zmianę wartości obiektu <code>object2</code>. Zmienna <code>object3</code> wskazuje inne obiekt, który początkowo ma takie same własności, jak <code>object1</code>, ale jest osobnym obiektem.</p>
+  <p>Operator <code>==</code> języka JavaScript przy porównywaniu obiektów zwraca wartość <code>true</code> tylko wtedy, gdy oba argumenty są dokładnie tą samą wartością. Wynik porównywania różnych obiektów o identycznej zawartości będzie negatywny (<code>false</code>). W niektórych przypadkach jest to przydatne, a w innych niepraktyczne.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Wartości obiektowe mogą być używane do wielu różnych celów. Tworzenie zbioru to tylko jeden z nich. W tym rozdziale poznasz jeszcze kilka zastosowań tych struktur, a kolejne ważne sposoby ich użycia zostały opisane w <a href="/kursy/javascript/wszystko-jasne/r8-obiektowe">rozdziale 8</a>.</p>
+  <p>W planie rozwiązania problemu z kotami ― w istocie lepiej mówić na to <em>algorytm</em>, dzięki czemu inni będą myśleli, że wiemy o czym mówimy ― w algorytmie, jest mowa o przejrzeniu wszystkich e-maili znajdujących się w archiwum. Jak wygląda te archiwum? I gdzie się znajduje?</p>
+  <p>Drugim z tych pytań na razie się nie przejmuj. W <a href="/kursy/javascript/wszystko-jasne/r14-zadania-http">rozdziale 14</a> poznasz kilka sposobów importowania danych do programów, a na razie przyjmiemy, że e-maile w jakiś magiczny sposób stały się dostępne. W komputerach czarowanie jest naprawdę łatwe.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Sposób przechowywania archiwum jest jednak ciekawą kwestią. W archiwum znajduje się pewna liczba e-maili. Wiadomość e-mail, co oczywiste, może być łańcuchem. W związku z tym całe archiwum można by było umieścić w jednym wielkim łańcuchu, ale to by było niepraktyczne. Potrzebujemy kolekcji osobnych łańcuchów.</p>
+  <p>Do przechowywania kolekcji łańcuchów dobrze nadają się obiekty. Można np. utworzyć obiekt w ten sposób:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">mailArchive</span> = {<span class="string">"Pierwszy e-mail"</span>: <span class="string">"Drogi siostrzeńcu, ..."</span>,
+    <span class="string">"Drugi e-mail"</span>: <span class="string">"..."</span>
+    <span class="comment">/* itd. ... */</span>};</pre>
+  <p>Ale w ten sposób trudno by było przejrzeć e-maile od początku do końca, bo skąd program ma wiedzieć, jakie są nazwy własności? Z tym problemem można sobie poradzić stosując przewidywalne nazwy własności:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">mailArchive</span> = {<span class="atom">0</span>: <span class="string">"Drogi siostrzeńcu, ... (mail 1)"</span>,
+    <span class="atom">1</span>: <span class="string">"(mail 2)"</span>,
+    <span class="atom">2</span>: <span class="string">"(mail 3)"</span>};
+
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variable">current</span> = <span class="atom">0</span>; <span class="variable">current</span> in <span class="variable">mailArchive</span>; <span class="variable">current</span>++)
+    <span class="variable">print</span>(<span class="string">"Przetwarzanie e-maila nr "</span>, <span class="variable">current</span>, <span class="string">": "</span>, <span class="variable">mailArchive</span>[<span class="variable">current</span>]);</pre>
+  <p>Mamy szczęście, że istnieje specjalny rodzaj obiektów przeznaczony właśnie do takich zastosowań. Jest to tablica, która dodatkowo zawiera pewne udogodnienia, jak np. własność <code>length</code> pozwalająca sprawdzić, ile wartości się w niej znajduje oraz obsługuje różne przydatne rodzaje operacji.</p>
+  <p>Nowe tablice tworzy się przy użyciu kwadratowych nawiasów (<code>[</code> i <code>]</code>):</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">mailArchive</span> = [<span class="string">"e-mail 1"</span>, <span class="string">"e-mail 2"</span>, <span class="string">"e-mail 3"</span>];
+
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variable">current</span> = <span class="atom">0</span>; <span class="variable">current</span> &lt; <span class="variable">mailArchive</span>.<span class="property">length</span>; <span class="variable">current</span>++)
+    <span class="variable">print</span>(<span class="string">"Przetwarzanie e-maila nr "</span>, <span class="variable">current</span>, <span class="string">": "</span>, <span class="variable">mailArchive</span>[<span class="variable">current</span>]);</pre>
+  <p>W tym przykładzie numery elementów nie są definiowane bezpośrednio. Pierwszemu automatycznie przypisywany jest numer 0, drugiemu — 1 itd.</p>
+  <p>Dlaczego numerowanie zaczyna się od 0? Ludzie zwykle zaczynają liczyć od 1. Jednak w przypadku kolekcji elementów bardziej praktyczne jest rozpoczynanie liczenia od 0. Po prostu zaakceptuj to, a z czasem się przyzwyczaisz.</p>
+  <p>Skoro numeracja rozpoczyna się od 0, to znaczy, że w kolekcji <code>X</code> elementów ostatni element ma numer <code>X - 1</code>. Dlatego właśnie w pętli <code>for</code> w powyższym przykładzie znajduje się warunek <code>current &lt; mailArchive.length</code>. Na pozycji <code>mailArchive.length</code> nie ma żadnego elementu, a więc gdy zmienna <code>current</code> uzyska tę wartość, kończymy iterowanie.</p>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum" id="exercise2">Ćwiczenie 4.2</div>
+  <div class="exercise">
+    <p>Napisz funkcję o nazwie <code>range</code> przyjmującą jako argument liczbę całkowitą i zwracającą tablicę wszystkich liczb od 0 do tej liczby włącznie.</p>
+    <p>Pustą tablicę można utworzyć pisząc <code>[]</code>. Pamiętaj też, że własności do obiektów, a więc też i tablic, można dodawać przypisując im wartości za pomocą operatora <code>=</code>. Własność <code>length</code> jest aktualizowana automatycznie, gdy są dodawane kolejne elementy.</p>
+  </div>
+  
+  <div class="toggle">[pokaż rozwiązanie]</div><div style="display: none;" class="solution"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">range</span>(<span class="variabledef">upto</span>) {
+      <span class="keyword">var</span> <span class="variabledef">result</span> = [];
+      <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">i</span> = <span class="atom">0</span>; <span class="localvariable">i</span> &lt;= <span class="localvariable">upto</span>; <span class="localvariable">i</span>++)
+      <span class="localvariable">result</span>[<span class="localvariable">i</span>] = <span class="localvariable">i</span>;
+      <span class="keyword">return</span> <span class="localvariable">result</span>;
+}
+      <span class="variable">show</span>(<span class="variable">range</span>(<span class="atom">4</span>));</pre>
+    <p>Zamiast zmienną pętlową nazywać <code>counter</code> albo <code>current</code>, jak było do tej pory, tym razem nadałem jej nazwę <code>i</code>. Stosowanie jednoliterowych nazw, zazwyczaj <code>i</code>, <code>j</code> lub <code>k</code>, dla zmiennych pętlowych jest szeroko przyjętym zwyczajem wśród programistów. Źródeł jego powstania należy upatrywać przede wszystkim w lenistwie: każdy woli wpisać jedną literę zamiast siedmiu, a nazwy typu <code>counter</code> albo <code>current</code> i tak niewiele wyjaśniają, do czego dana zmienna służy.</p>
+    <p>Jeśli jednak w programie znajdzie się zbyt dużo jednoliterowych nazw zmiennych, to zrozumienie sposobu jego działania może stać się strasznie trudne. We własnych programach staram się tak krótkich nazw używać tylko w kilku typowych przypadkach. Należą do nich także niezbyt rozbudowane pętle. Jeśli pętla zawiera inną pętlę, która również ma zmienną o nazwie <code>i</code>, wewnętrzna pętla zmodyfikuje zmienną używaną przez zewnętrzną pętlę i nastąpi wielka awaria. W wewnętrznej pętli można by było zatem użyć nazwy <code>j</code>, ale ogólnie rzecz biorąc przyjmuje się, że jeśli pętla jest rozbudowana, powinno się użyć jakiejś znaczącej nazwy zmiennej, aby łatwiej było zrozumieć sposób działania całej konstrukcji.</p>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Zarówno obiekty łańcuchowe jak i tablicowe oprócz własności <code>length</code> zawierają jeszcze kilka innych własności odnoszących się do wartości funkcyjnych.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">doh</span> = <span class="string">"Doh"</span>;
+    <span class="variable">print</span>(typeof <span class="variable">doh</span>.<span class="property">toUpperCase</span>);
+    <span class="variable">print</span>(<span class="variable">doh</span>.<span class="property">toUpperCase</span>());</pre>
+  <p>Każdy łańcuch ma własność <code>toUpperCase</code>. Własność ta zwraca kopię łańcucha, w której wszystkie litery są wielkie. Istnieje też własność <code>toLowerCase</code>. Zgadnij do czego służy.</p>
+  <p>Zwróć też uwagę, że mimo iż w wywołaniu <code>toUpperCase</code> nie przekazano żadnych argumentów, funkcja ta w jakiś sposób uzyskała dostęp do łańcucha <code>"Doh"</code>, wartości, której jest własnością. Szczegółowo działanie tego mechanizmu jest opisane w <a href="/kursy/javascript/wszystko-jasne/r8-obiektowe">rozdziale 8</a>.</p>
+  <p>Własności zawierające funkcje nazywają się metodami, a więc <code>toUpperCase</code> jest metodą obiektu łańcuchowego.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">mack</span> = [];
+    <span class="variable">mack</span>.<span class="property">push</span>(<span class="string">"Mack"</span>);
+    <span class="variable">mack</span>.<span class="property">push</span>(<span class="string">"the"</span>);
+    <span class="variable">mack</span>.<span class="property">push</span>(<span class="string">"Knife"</span>);
+    <span class="variable">show</span>(<span class="variable">mack</span>.<span class="property">join</span>(<span class="string">" "</span>));
+    <span class="variable">show</span>(<span class="variable">mack</span>.<span class="property">pop</span>());
+    <span class="variable">show</span>(<span class="variable">mack</span>);</pre>
+  <p>Metoda <code>push</code>, która jest związana z tablicami, służy do dodawania wartości do tych struktur. Można by jej było użyć w ostatnim ćwiczeniu zamiast  instrukcji <code>result[i] = i</code>. Istnieje też metoda <code>pop</code>, która jest przeciwieństwem metody <code>push</code>: usuwa i zwraca ostatnią wartość tablicy. Metoda <code>join</code> tworzy pojedynczy długi łańcuch z tablicy łańcuchów. Parametr jej wywołania jest wstawiany między wartościami tablicy.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Wracając do kotów, wiemy już, że do przechowywania archiwum e-maili doskonale nada się tablica. Na tej stronie tablicę tę można magicznie pobrać za pomocą funkcji <code>retrieveMails</code>. Przejrzenie e-maili i ich przetworzenie nie będzie już teraz wielkim wyzwaniem:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">mailArchive</span> = <span class="variable">retrieveMails</span>();
+
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variable">i</span> = <span class="atom">0</span>; <span class="variable">i</span> &lt; <span class="variable">mailArchive</span>.<span class="property">length</span>; <span class="variable">i</span>++) {
+    <span class="keyword">var</span> <span class="variable">email</span> = <span class="variable">mailArchive</span>[<span class="variable">i</span>];
+    <span class="variable">print</span>(<span class="string">"Przetwarzanie e-maila nr "</span>, <span class="variable">i</span>);
+    <span class="comment">// Jakieś działania...</span>
+}</pre>
+  <p>Wybraliśmy też sposób reprezentacji zbioru kotów, które wciąż żyją. Zatem następnym problemem jest znalezienie w wiadomości e-mail akapitów zaczynających się od słów <code>"urodzeni"</code> lub <code>"odeszli"</code>.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Od razu nasuwa się pytanie, czym jest akapit. W tym przypadku odpowiedź wartość łańcuchowa nie będzie pomocna, ponieważ w języku JavaScript tekstem jest po prostu „szereg znaków”, a więc musimy sami zdefiniować akapity bazując na tym, co mamy.</p>
+  <p>Wcześniej pokazałem Ci, że istnieje coś takiego, jak znak nowego wiersza. Zazwyczaj znak ten jest używany do oddzielania akapitów. W związku z tym za akapit będziemy uznawać część wiadomości e-mail, której początek wyznacza znak nowego wiersza lub początek treści, a koniec określa kolejny znak nowego wiersza lub koniec treści.</p>
+  <p>Nie musimy nawet samodzielnie pisać algorytmu do dzielenia łańcucha na akapity. Łańcuchy mają gotową metodę o nazwie <code>split</code>, która jest prawie dokładnym przeciwieństwem metody <code>join</code> w tablicach. Metoda ta tnie łańcuch na fragmenty, które zapisuje w elementach tablicy, a jako znaku podziału używa łańcucha przekazanego jej jako argument.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">words</span> = <span class="string">"Cities of the Interior"</span>;
+    <span class="variable">show</span>(<span class="variable">words</span>.<span class="property">split</span>(<span class="string">" "</span>));</pre>
+  <p>W związku z tym do podzielenia wiadomości e-mail na akapity możemy zastosować cięcie wg znaków nowego wiersza (<code>"\n"</code>).</p>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 4.3</div>
+  <div class="exercise">
+    <p>Metody <code>split</code> i <code>join</code> nie są swoimi dokładnymi przeciwieństwami. Instrukcja <code>string.split(x).join(x)</code> zawsze zwróci oryginalną wartość, ale <code>array.join(x).split(x)</code> nie. Potrafisz podać przykład tablicy, dla której instrukcja <code>.join(" ").split(" ")</code> zwróci inną wartość?</p>
+  </div>
+  
+  <div class="toggle">[pokaż rozwiązanie]</div><div style="display: none;" class="solution"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">array</span> = [<span class="string">"a"</span>, <span class="string">"b"</span>, <span class="string">"c d"</span>];
+      <span class="variable">show</span>(<span class="variable">array</span>.<span class="property">join</span>(<span class="string">" "</span>).<span class="property">split</span>(<span class="string">" "</span>));</pre>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Akapity nie rozpoczynające się od słów „urodzeni” i „odeszli” mogą zostać zignorowane. Jak sprawdzić, czy łańcuch zaczyna się od określonego słowa? Za pomocą metody <code>charAt</code> można pobrać wybraną literę z łańcucha. Instrukcja <code>x.charAt(0)</code> zwraca pierwszą literę, <code>1</code> — drugą itd. Jednym ze sposobów na sprawdzenie, czy łańcuch zaczyna się od słowa „urodzeni” jest napisanie takiego kodu:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">paragraph</span> = <span class="string">"urodzeni 15-11-2003 (matka Spot): White Fang"</span>;
+    <span class="variable">show</span>(<span class="variable">paragraph</span>.<span class="property">charAt</span>(<span class="atom">0</span>) == <span class="string">"u"</span> &amp;&amp; <span class="variable">paragraph</span>.<span class="property">charAt</span>(<span class="atom">1</span>) == <span class="string">"r"</span> &amp;&amp;
+
+    <span class="variable">paragraph</span>.<span class="property">charAt</span>(<span class="atom">2</span>) == <span class="string">"o"</span> &amp;&amp; <span class="variable">paragraph</span>.<span class="property">charAt</span>(<span class="atom">3</span>) == <span class="string">"d"</span>) &amp;&amp; <span class="variable">paragraph</span>.<span class="property">charAt</span>(<span class="atom">4</span>) == <span class="string">"z"</span> &amp;&amp; <span class="variable">paragraph</span>.<span class="property">charAt</span>(<span class="atom">5</span>) == <span class="string">"e"</span> &amp;&amp; <span class="variable">paragraph</span>.<span class="property">charAt</span>(<span class="atom">6</span>) == <span class="string">"n"</span> &amp;&amp; <span class="variable">paragraph</span>.<span class="property">charAt</span>(<span class="atom">7</span>) == <span class="string">"i"</span>;</pre>
+  <p>Ale to nie jest eleganckie rozwiązanie ― wyobraź sobie sprawdzanie słów składających się z jeszcze większej liczby liter. Możesz się tu jednak czegoś nauczyć: jeśli wiersz kodu staje się zbyt długi, można go podzielić na kilka wierszy. Aby tekst programu był przejrzysty, można wyrównać początek nowego wiersza z pierwszym podobnym elementem poprzedniego wiersza.</p>
+  <p>Łańcuchy mają też metodę o nazwie <code>slice</code>. Metoda ta kopiuje fragment łańcucha zaczynając od miejsca określonego liczbowo w pierwszym argumencie i kończąc przed znakiem znajdującym się na pozycji wyznaczonej przez drugi argument (tez znak nie jest wliczany). Przy jej użyciu nasz test możemy zapisać krócej.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="variable">paragraph</span>.<span class="property">slice</span>(<span class="atom">0</span>, <span class="atom">8</span>) == <span class="string">"urodzeni"</span>);</pre>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 4.4</div>
+  <div class="exercise">
+    <p>Napisz funkcję o nazwie <code>startsWith</code>, która pobiera dwa argumenty łańcuchowe. Niech zwraca wartość <code>true</code>, gdy pierwszy argument zaczyna się od znaków znajdujących się w drugim argumencie i <code>false</code> w przeciwnym przypadku.</p>
+  </div>
+  
+  <div class="toggle">[pokaż rozwiązanie]</div><div style="display: none;" class="solution"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">startsWith</span>(<span class="variabledef">string</span>, <span class="variabledef">pattern</span>) {
+      <span class="keyword">return</span> <span class="localvariable">string</span>.<span class="property">slice</span>(<span class="atom">0</span>, <span class="localvariable">pattern</span>.<span class="property">length</span>) == <span class="localvariable">pattern</span>;
+}
+
+      <span class="variable">show</span>(<span class="variable">startsWith</span>(<span class="string">"rotacja"</span>, <span class="string">"rot"</span>));</pre>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Co się dzieje, gdy metody <code>charAt</code> i <code>slice</code> zostaną użyte do pobrania nieistniejącego fragmentu łańcucha? Czy funkcja <code>startsWith</code> będzie działać nawet wtedy, gdy szukany łańcuch (pattern) będzie dłuższy od łańcucha, w którym ma być szukany?</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="string">"Pip"</span>.<span class="property">charAt</span>(<span class="atom">250</span>));
+    <span class="variable">show</span>(<span class="string">"Nop"</span>.<span class="property">slice</span>(<span class="atom">1</span>, <span class="atom">10</span>));</pre>
+  <p>Metoda <code>charAt</code> dla nieistniejącego znaku zwraca <code>""</code>, a <code>slice</code> po prostu ignoruje tę część, która nie istnieje.</p>
+  <p>A zatem odpowiedź na postawione pytanie brzmi „tak, funkcja <code>startsWith</code> będzie działać”. W wywołaniu <code>startsWith("Idioci", "najbardziej szanowani koledzy")</code>, wywołanie metody <code>slice</code> zawsze zwróci łańcuch krótszy od <code>pattern</code>, ponieważ argument <code>string</code> nie zawiera wystarczająco dużo znaków. Z tego powodu wynikiem porównywania przy użyciu operatora <code>==</code> będzie <code>false</code>, czyli to, co powinno.</p>
+  <p>Zawsze warto chwilę zastanowić się nad nienormalnymi (ale poprawnymi) danymi wejściowymi do programu. Są to tzw. przypadki brzegowe i wiele programów, które działają doskonale na wszystkich „normalnych” danych wejściowych fiksuje właśnie na tych przypadkach.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Z problemu z kotami nierozwiązana pozostała już tylko kwestia pobierania imion z akapitów. Opis algorytmu wyglądał tak:</p>
+  <ol>
+    <li>Znalezienie w akapicie dwukropka.</li>
+    <li>Pobranie tego, co znajduje się za dwukropkiem.</li>
+    <li>Podzielenie pobranego tekstu na poszczególne imiona wg przecinków.</li>
+  </ol>
+  <p>Dotyczy to zarówno akapitów zaczynających się od słowa <code>"odeszli"</code> jak i od słowa <code>"urodzeni"</code>. Dobrym pomysłem jest zapisanie tego algorytmu jako funkcji, aby można go było używać w kodzie obsługującym oba rodzaje akapitów.</p>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 4.5</div>
+  <div class="exercise">
+    <p>Potrafisz napisać funkcję o nazwie <code>catNames</code>, która jako argument pobiera akapit i zwraca tablicę imion?</p>
+    <p>Łańcuchy mają metodę <code>indexOf</code>, za pomocą której można znaleźć pozycję pierwszego wystąpienia znaku lub podłańcucha w łańcuchu. Ponadto metoda <code>slice</code>, gdy przekaże się jej tylko jeden argument zwraca część łańcucha od określonej w tym argumencie pozycji do końca.</p>
+    <p>Pomóc może Ci użycie konsoli do zbadania sposobu, w jaki działają funkcje. Wpisz np. <code>"foo: bar".indexOf(":")</code> i zobacz, co się stanie.</p>
+  </div>
+  
+  <div class="toggle">[pokaż rozwiązanie]</div><div style="display: none;" class="solution"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">catNames</span>(<span class="variabledef">paragraph</span>) {
+      <span class="keyword">var</span> <span class="variabledef">colon</span> = <span class="localvariable">paragraph</span>.<span class="property">indexOf</span>(<span class="string">":"</span>);
+      <span class="keyword">return</span> <span class="localvariable">paragraph</span>.<span class="property">slice</span>(<span class="localvariable">colon</span> + <span class="atom">2</span>).<span class="property">split</span>(<span class="string">", "</span>);
+}
+
+      <span class="variable">show</span>(<span class="variable">catNames</span>(<span class="string">"urodzeni 20/09/2004 (matka Yellow Bess): "</span> +
+      <span class="string">"Doctor Hobbles 2, Noog"</span>));</pre>
+    <p>Najtrudniejsza część, która w pierwotnym opisie algorytmu została pominięta to obsługa spacji znajdujących się za dwukropkiem i przecinków. Wyrażenie <code>+ 2</code> użyte w instrukcji tnącej łańcuch jest potrzebne po to, aby pominąć dwukropek i znajdującą się za nim spację. Argument metody <code>split</code> zawiera zarówno przecinek jak i spację, ponieważ imiona normalnie rozdziela się właśnie za pomocą przecinków i spacji, a nie samych przecinków.</p>
+    <p>Ta funkcja nie wykonuje żadnych testów w celu wykrycia potencjalnych problemów. Założyliśmy, że dane wejściowe będą zawsze poprawne.</p>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Pozostało więc tylko poskładać wszystkie części w jedną całość. Oto jeden ze sposobów:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">mailArchive</span> = <span class="variable">retrieveMails</span>();
+    <span class="keyword">var</span> <span class="variable">livingCats</span> = {<span class="string">"Spot"</span>: <span class="atom">true</span>};
+
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variable">mail</span> = <span class="atom">0</span>; <span class="variable">mail</span> &lt; <span class="variable">mailArchive</span>.<span class="property">length</span>; <span class="variable">mail</span>++) {
+    <span class="keyword">var</span> <span class="variable">paragraphs</span> = <span class="variable">mailArchive</span>[<span class="variable">mail</span>].<span class="property">split</span>(<span class="string">"\n"</span>);
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variable">paragraph</span> = <span class="atom">0</span>;
+    <span class="variable">paragraph</span> &lt; <span class="variable">paragraphs</span>.<span class="property">length</span>;
+    <span class="variable">paragraph</span>++) {
+    <span class="keyword">if</span> (<span class="variable">startsWith</span>(<span class="variable">paragraphs</span>[<span class="variable">paragraph</span>], <span class="string">"urodzeni"</span>)) {
+    <span class="keyword">var</span> <span class="variable">names</span> = <span class="variable">catNames</span>(<span class="variable">paragraphs</span>[<span class="variable">paragraph</span>]);
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variable">name</span> = <span class="atom">0</span>; <span class="variable">name</span> &lt; <span class="variable">names</span>.<span class="property">length</span>; <span class="variable">name</span>++)
+    <span class="variable">livingCats</span>[<span class="variable">names</span>[<span class="variable">name</span>]] = <span class="atom">true</span>;
+    }
+    <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable">startsWith</span>(<span class="variable">paragraphs</span>[<span class="variable">paragraph</span>], <span class="string">"odeszli"</span>)) {
+    <span class="keyword">var</span> <span class="variable">names</span> = <span class="variable">catNames</span>(<span class="variable">paragraphs</span>[<span class="variable">paragraph</span>]);
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variable">name</span> = <span class="atom">0</span>; <span class="variable">name</span> &lt; <span class="variable">names</span>.<span class="property">length</span>; <span class="variable">name</span>++)
+    <span class="keyword">delete</span> <span class="variable">livingCats</span>[<span class="variable">names</span>[<span class="variable">name</span>]];
+    }
+  }
+}
+
+    <span class="variable">show</span>(<span class="variable">livingCats</span>);</pre>
+  <p>To dość długi i skomplikowany kod. Zaraz spróbujemy sprawić, aby wyglądał trochę klarowniej. Ale najpierw spójrz na wyniki. Wiemy, jak sprawdzić czy określony kot żyje:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">if</span> (<span class="string">"Spot"</span> in <span class="variable">livingCats</span>)
+    <span class="variable">print</span>(<span class="string">"Spot żyje!"</span>);
+    <span class="keyword">else</span>
+    <span class="variable">print</span>(<span class="string">"Dobra stara Spot, niech spoczywa w pokoju."</span>);</pre>
+  <p>A jak wyświetlić listę wszystkich żyjących kotów? Słowo kluczowe <code>in</code>, gdy zostanie użyte w połączeniu z <code>for</code> nieco zmienia swoje znaczenie:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">for</span> (<span class="keyword">var</span> <span class="variable">cat</span> <span class="keyword">in</span> <span class="variable">livingCats</span>)
+    <span class="variable">print</span>(<span class="variable">cat</span>);</pre>
+  <p>Powyższa pętla przegląda nazwy własności w obiekcie, dzięki czemu możemy zrobić listę wszystkich imion znajdujących się w naszym zbiorze.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Niektóre fragmenty kodu wyglądają, jak gęsta dżungla. Dotyczy to także naszego rozwiązania kociego problemu. Jednym ze sposobów na poprawienie czytelności kodu jest dodanie do niego trochę pustych wierszy. Teraz kod wygląda lepiej, ale to nie rozwiązuje całkowicie problemu.</p>
+  <p>Żeby osiągnąć sukces, powinniśmy ten kod podzielić. Napisaliśmy już dwie funkcje pomocnicze, <code>startsWith</code> i <code>catNames</code>, z których każda rozwiązuje niewielki i dający się ogarnąć myślą fragment problemu. Możemy dalej rozwijać to podejście.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">addToSet</span>(<span class="variabledef">set</span>, <span class="variabledef">values</span>) {
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">i</span> = <span class="atom">0</span>; <span class="localvariable">i</span> &lt; <span class="localvariable">values</span>.<span class="property">length</span>; <span class="localvariable">i</span>++)
+    <span class="localvariable">set</span>[<span class="localvariable">values</span>[<span class="localvariable">i</span>]] = <span class="atom">true</span>;
+}
+
+    <span class="keyword">function</span> <span class="variable">removeFromSet</span>(<span class="variabledef">set</span>, <span class="variabledef">values</span>) {
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">i</span> = <span class="atom">0</span>; <span class="localvariable">i</span> &lt; <span class="localvariable">values</span>.<span class="property">length</span>; <span class="localvariable">i</span>++)
+    <span class="keyword">delete</span> <span class="localvariable">set</span>[<span class="localvariable">values</span>[<span class="localvariable">i</span>]];
+}</pre>
+  <p>Te dwie funkcje dodają imiona do zbioru i je z niego usuwają. Dzięki nim możemy pozbyć się dwóch najgłębiej położonych pętli z rozwiązania:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">livingCats</span> = {<span class="property">Spot</span>: <span class="atom">true</span>};
+
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variable">mail</span> = <span class="atom">0</span>; <span class="variable">mail</span> &lt; <span class="variable">mailArchive</span>.<span class="property">length</span>; <span class="variable">mail</span>++) {
+    <span class="keyword">var</span> <span class="variable">paragraphs</span> = <span class="variable">mailArchive</span>[<span class="variable">mail</span>].<span class="property">split</span>(<span class="string">"\n"</span>);
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variable">paragraph</span> = <span class="atom">0</span>;
+    <span class="variable">paragraph</span> &lt; <span class="variable">paragraphs</span>.<span class="property">length</span>;
+    <span class="variable">paragraph</span>++) {
+    <span class="keyword">if</span> (<span class="variable">startsWith</span>(<span class="variable">paragraphs</span>[<span class="variable">paragraph</span>], <span class="string">"urodzeni"</span>))
+    <span class="variable">addToSet</span>(<span class="variable">livingCats</span>, <span class="variable">catNames</span>(<span class="variable">paragraphs</span>[<span class="variable">paragraph</span>]));
+    <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable">startsWith</span>(<span class="variable">paragraphs</span>[<span class="variable">paragraph</span>], <span class="string">"odeszli"</span>))
+    <span class="variable">removeFromSet</span>(<span class="variable">livingCats</span>, <span class="variable">catNames</span>(<span class="variable">paragraphs</span>[<span class="variable">paragraph</span>]));
+  }
+}</pre>
+  <p>Całkiem nieźle, jeśli mogę sam siebie pochwalić.</p>
+  <p>Dlaczego funkcje <code>addToSet</code> i <code>removeFromSet</code> pobierają zbiór jako argument? Równie dobrze mogłyby bezpośrednio używać zmiennej <code>livingCats</code>. Ale dzięki zastosowanemu podejściu nie są ściśle związane z tym jednym problemem. Gdyby funkcja <code>addToSet</code> bezpośrednio operowała na zmiennej <code>livingCats</code>, musiałaby się nazywać <code>addCatsToCatSet</code> lub jakoś podobnie. Dzięki takiej budowie, jak ma teraz jest bardziej ogólna.</p>
+  <p>Funkcje warto pisać w taki sposób nawet wtedy, gdy nie planuje się ich kiedykolwiek używać do innych celów, co jest całkiem możliwe. Dzięki temu, że są „samowystarczalne”, można je czytać i zrozumieć bez potrzeby dowiadywania się, czym jest jakaś zewnętrzna zmienna o nazwie <code>livingCats</code>.</p>
+  <p>Te funkcje nie są czyste, ponieważ zmieniają obiekt, który zostaje im przekazany jako argument <code>set</code>. To sprawia, że są trochę trudniejsze od prawdziwych czystych funkcji, ale i tak o wiele mniej skomplikowane niż funkcje, które jak szaleniec zmieniają każdą wartość i zmienną, jaką mają ochotę zmienić.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Kontynuujemy omawianie algorytmu:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">findLivingCats</span>() {
+    <span class="keyword">var</span> <span class="variabledef">mailArchive</span> = <span class="variable">retrieveMails</span>();
+    <span class="keyword">var</span> <span class="variabledef">livingCats</span> = {<span class="string">"Spot"</span>: <span class="atom">true</span>};
+
+    <span class="keyword">function</span> <span class="variabledef">handleParagraph</span>(<span class="variabledef">paragraph</span>) {
+    <span class="keyword">if</span> (<span class="variable">startsWith</span>(<span class="localvariable">paragraph</span>, <span class="string">"urodzeni"</span>))
+    <span class="variable">addToSet</span>(<span class="localvariable">livingCats</span>, <span class="variable">catNames</span>(<span class="localvariable">paragraph</span>));
+    <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable">startsWith</span>(<span class="localvariable">paragraph</span>, <span class="string">"odeszli"</span>))
+    <span class="variable">removeFromSet</span>(<span class="localvariable">livingCats</span>, <span class="variable">catNames</span>(<span class="localvariable">paragraph</span>));
+  }
+
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">mail</span> = <span class="atom">0</span>; <span class="localvariable">mail</span> &lt; <span class="localvariable">mailArchive</span>.<span class="property">length</span>; <span class="localvariable">mail</span>++) {
+    <span class="keyword">var</span> <span class="variabledef">paragraphs</span> = <span class="localvariable">mailArchive</span>[<span class="localvariable">mail</span>].<span class="property">split</span>(<span class="string">"\n"</span>);
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">i</span> = <span class="atom">0</span>; <span class="localvariable">i</span> &lt; <span class="localvariable">paragraphs</span>.<span class="property">length</span>; <span class="localvariable">i</span>++)
+    <span class="localvariable">handleParagraph</span>(<span class="localvariable">paragraphs</span>[<span class="localvariable">i</span>]);
+  }
+    <span class="keyword">return</span> <span class="localvariable">livingCats</span>;
+}
+
+    <span class="keyword">var</span> <span class="variable">howMany</span> = <span class="atom">0</span>;
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variable">cat</span> <span class="keyword">in</span> <span class="variable">findLivingCats</span>())
+    <span class="variable">howMany</span>++;
+    <span class="variable">print</span>(<span class="string">"Jest "</span>, <span class="variable">howMany</span>, <span class="string">" kotów."</span>);</pre>
+  <p>Teraz cały algorytm znajduje się w funkcji. Dzięki temu po zakończeniu działania nie pozostawi bałaganu. Zmienna <code>livingCats</code> jest teraz lokalna w funkcji, a więc istnieje tylko w czasie, gdy ta funkcja jest wykonywana. Kod potrzebujący tego zbioru może wywołać funkcję <code>findLivingCats</code> i użyć jej wartości zwrotnej.</p>
+  <p>Ponadto wydawało mi się, że utworzenie osobnej funkcji <code>handleParagraph</code> również sprawi, że kod będzie bardziej przejrzysty. Jest ona jednak ściśle związana z kocim algorytmem i w innych sytuacjach byłaby nieprzydatna. Ponadto potrzebny jest jej dostęp do zmiennej <code>livingCats</code>. To wszystko sprawia, że funkcja ta doskonale nadaje się do zdefiniowania w innej funkcji. Umieszczając ją w funkcji <code>findLivingCats</code> podkreślamy, że jest przydatna tylko w niej i udostępniamy jej zmienne tej funkcji nadrzędnej.</p>
+  <p>To rozwiązanie jest tak naprawdę <em>większe</em> od poprzedniego. Ale jest za to klarowniejsze i chyba się zgodzisz, że bardziej czytelne.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Program nadal ignoruje wiele informacji znajdujących się w e-mailach. Można w nich znaleźć daty urodzin, daty śmierci oraz imiona matek.</p>
+  <p>Zaczniemy od dat. Jaki jest najlepszy sposób ich przechowywania? Moglibyśmy utworzyć obiekt z własnościami <code>year</code>, <code>month</code> i <code>day</code> i w nich zapisać odpowiednie liczby.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">when</span> = {<span class="property">year</span>: <span class="atom">1980</span>, <span class="property">month</span>: <span class="atom">2</span>, <span class="property">day</span>: <span class="atom">1</span>};</pre>
+  <p>Ale w języku JavaScript dostępny jest gotowy obiekt do przechowywania tego typu danych. Można go utworzyć przy użyciu słowa kluczowego <code>new</code>:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">when</span> = <span class="keyword">new</span> <span class="variable">Date</span>(<span class="atom">1980</span>, <span class="atom">1</span>, <span class="atom">1</span>);
+    <span class="variable">show</span>(<span class="variable">when</span>);</pre>
+  <p>Do tworzenia wartości obiektowych można używać słowa kluczowego <code>new</code>, podobnie jak nawiasów klamrowych z dwukropkami. Jednak zamiast podawać nazwy i wartości wszystkich własności, w tym przypadku obiekt tworzy się przy użyciu funkcji. Dzięki temu możliwe jest opracowanie standardowych procedur tworzenia obiektów. Funkcje tego typu nazywają się konstruktorami, a techniki ich tworzenia poznasz w <a href="/kursy/javascript/wszystko-jasne/r8-obiektowe">rozdziale 8</a>.</p>
+  <p>Konstruktora <code>Date</code> można używać na różne sposoby.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="keyword">new</span> <span class="variable">Date</span>());
+    <span class="variable">show</span>(<span class="keyword">new</span> <span class="variable">Date</span>(<span class="atom">1980</span>, <span class="atom">1</span>, <span class="atom">1</span>));
+    <span class="variable">show</span>(<span class="keyword">new</span> <span class="variable">Date</span>(<span class="atom">2007</span>, <span class="atom">2</span>, <span class="atom">30</span>, <span class="atom">8</span>, <span class="atom">20</span>, <span class="atom">30</span>));</pre>
+  <p>Jak widać, w obiektach tych można przechowywać zarówno godziny jak i daty. Jeśli nie przekaże się żadnych argumentów, zostanie utworzony obiekt zawierający bieżącą datę i godzinę. Jeśli się je zdefiniuje, to można za ich pomocą utworzyć obiekt zawierający wybraną datę i godzinę. Argumenty te kolejno oznaczają rok, miesiąc, dzień, godzinę, minutę, sekundę oraz milisekundę. Cztery ostatnie argumenty są opcjonalne i jeśli nie zostaną zdefiniowane, nadawana jest im wartość 0.</p>
+  <p>Miesiące w tych obiektach są numerowane od 0 do 11, co może powodować pomyłki. Co ciekawe, numeracja dni zaczyna się od 1.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Zawartość obiektu <code>Date</code> można zbadać przy użyciu metod <code>get...</code>.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">today</span> = <span class="keyword">new</span> <span class="variable">Date</span>();
+    <span class="variable">print</span>(<span class="string">"Rok: "</span>, <span class="variable">today</span>.<span class="property">getFullYear</span>(), <span class="string">", miesiąc: "</span>,
+    <span class="variable">today</span>.<span class="property">getMonth</span>(), <span class="string">", dzień: "</span>, <span class="variable">today</span>.<span class="property">getDate</span>());
+    <span class="variable">print</span>(<span class="string">"Godzina: "</span>, <span class="variable">today</span>.<span class="property">getHours</span>(), <span class="string">", minuta: "</span>,
+    <span class="variable">today</span>.<span class="property">getMinutes</span>(), <span class="string">", sekunda: "</span>, <span class="variable">today</span>.<span class="property">getSeconds</span>());
+    <span class="variable">print</span>(<span class="string">"Dzień tygodnia: "</span>, <span class="variable">today</span>.<span class="property">getDay</span>());</pre>
+  <p>Wszystkie te metody oprócz <code>getDay</code> mają również odpowiednik z przedrostkiem <code>set</code>, który służy do zmieniania wartości obiektu.</p>
+  <p>Wewnątrz obiektu data jest reprezentowana w postaci liczby milisekund, jaka upłynęła od 1 stycznia 1970 r. Domyślasz się pewnie, że to całkiem spora liczba.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">today</span> = <span class="keyword">new</span> <span class="variable">Date</span>();
+    <span class="variable">show</span>(<span class="variable">today</span>.<span class="property">getTime</span>());</pre>
+  <p>Jedną z najczęściej wykonywanych operacji na datach jest porównywanie.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">wallFall</span> = <span class="keyword">new</span> <span class="variable">Date</span>(<span class="atom">1989</span>, <span class="atom">10</span>, <span class="atom">9</span>);
+    <span class="keyword">var</span> <span class="variable">gulfWarOne</span> = <span class="keyword">new</span> <span class="variable">Date</span>(<span class="atom">1990</span>, <span class="atom">6</span>, <span class="atom">2</span>);
+    <span class="variable">show</span>(<span class="variable">wallFall</span> &lt; <span class="variable">gulfWarOne</span>);
+    <span class="variable">show</span>(<span class="variable">wallFall</span> == <span class="variable">wallFall</span>);
+    <span class="comment">// ale</span>
+    <span class="variable">show</span>(<span class="variable">wallFall</span> == <span class="keyword">new</span> <span class="variable">Date</span>(<span class="atom">1989</span>, <span class="atom">10</span>, <span class="atom">9</span>));</pre>
+  <p>Wyniki porównywania dat za pomocą operatorów <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code> oraz <code>&gt;=</code> są prawidłowe. Gdy obiekt daty porówna się z nim samym za pomocą operatora <code>==</code>, zwrócona zostanie wartość <code>true</code>, co również jest dobre. Jeśli jednak za pomocą operatora <code>==</code> porówna się dwa różne obiekty daty zawierające tę samą datę, zostanie zwrócony wynik <code>false</code>. Dlaczego?</p>
+  <p>Już wcześniej napisałem, że operator <code>==</code> zawsze zwraca wartość <code>false</code>, gdy porównywane są dwa różne obiekty, nawet jeżeli zawierają one identyczne własności. Jest to trochę niezgrabne i mylące rozwiązanie, ponieważ logicznie rzecz biorąc można się spodziewać, że operatory <code>&gt;=</code> i <code>==</code> powinny działać podobnie. Aby sprawdzić czy dwie daty są sobie równe, można napisać taki kod:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">wallFall1</span> = <span class="keyword">new</span> <span class="variable">Date</span>(<span class="atom">1989</span>, <span class="atom">10</span>, <span class="atom">9</span>),
+    <span class="variable">wallFall2</span> = <span class="keyword">new</span> <span class="variable">Date</span>(<span class="atom">1989</span>, <span class="atom">10</span>, <span class="atom">9</span>);
+    <span class="variable">show</span>(<span class="variable">wallFall1</span>.<span class="property">getTime</span>() == <span class="variable">wallFall2</span>.<span class="property">getTime</span>());</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Oprócz daty i godziny obiekty <code>Date</code> zawierają dodatkowo informację o strefie czasowej. Gdy w Amsterdamie jest trzynasta, to w niektórych porach roku w Londynie jest południe, a w Nowym Jorku siódma. Godziny można zatem porównywać tylko, gdy weźmie się pod uwagę strefę czasową. Za pomocą funkcji <code>getTimezoneOffset</code> obiektu <code>Date</code> można sprawdzić, o ile minut godzina zawarta w tym obiekcie różni się od czasu GMT (Greenwich Mean Time).</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">now</span> = <span class="keyword">new</span> <span class="variable">Date</span>();
+    <span class="variable">print</span>(<span class="variable">now</span>.<span class="property">getTimezoneOffset</span>());</pre>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 4.6</div>
+  <div class="exercise">
+    <pre class="preformatted">"odeszli 27.04.2006: Black Leclère"</pre>
+    <p>Data zawsze znajduje się w tym samym miejscu akapitu. Jak fajnie. Napisz funkcję o nazwie <code>extractDate</code> pobierającą taki akapit jako argument i wydobywającą z niego datę oraz zwracającą ją w obiekcie daty.</p>
+  </div>
+  
+  <div class="toggle">[pokaż rozwiązanie]</div><div style="display: none;" class="solution"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">extractDate</span>(<span class="variabledef">paragraph</span>) {
+      <span class="keyword">function</span> <span class="variabledef">numberAt</span>(<span class="variabledef">start</span>, <span class="variabledef">length</span>) {
+      <span class="keyword">return</span> <span class="variable">Number</span>(<span class="localvariable">paragraph</span>.<span class="property">slice</span>(<span class="localvariable">start</span>, <span class="localvariable">start</span> + <span class="localvariable">length</span>));
+  }
+      <span class="keyword">return</span> <span class="keyword">new</span> <span class="variable">Date</span>(<span class="localvariable">numberAt</span>(<span class="atom">14</span>, <span class="atom">4</span>), <span class="localvariable">numberAt</span>(<span class="atom">11</span>, <span class="atom">2</span>) - <span class="atom">1</span>,
+      <span class="localvariable">numberAt</span>(<span class="atom">8</span>, <span class="atom">2</span>));
+}
+
+      <span class="variable">show</span>(<span class="variable">extractDate</span>(<span class="string">"odeszli 27-04-2006: Black Leclère"</span>));</pre>
+    <p>Wywołań funkcji <code>Number</code> można by było się pozbyć, ale jak pisałem wcześniej, wolę unikać używania łańcuchów jako liczb. Funkcja wewnętrzna została utworzona po to, aby nie musieć powtarzać wywołań <code>Number</code> i <code>slice</code> trzy razy.</p>
+    <p>Zwróć uwagę na wartość <code>- 1</code> użytą jako numer miesiąca. Ciotka Emilia, jak większość ludzi liczy miesiące od 1, a więc musimy dostosować tę wartość przed dodaniem jej do konstruktora obiektu <code>Date</code>. (W przypadku numeru dnia ten problem nie występuje, ponieważ dni w obiekcie <code>Date</code> są liczone w „ludzki” sposób.)</p>
+    <p>W <a href="/kursy/javascript/wszystko-jasne/r10-wyrazenia-regularne">rozdziale 10</a> poznasz bardziej praktyczne i niezawodne sposoby wydobywania fragmentów z łańcuchów o ustalonej strukturze.</p>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Od tej pory zapisywanie kotów będzie przebiegało inaczej. Zamiast tylko umieścić wartość <code>true</code> w zbiorze, teraz będziemy zapisywać obiekt z informacjami o kocie. Gdy kot zdechnie, nie będziemy go usuwać ze zbioru, tylko dodamy do obiektu własność <code>death</code>, w której zapiszemy datę śmierci zwierzęcia.</p>
+  <p>Z tego powodu funkcje <code>addToSet</code> i <code>removeFromSet</code> stały się bezużyteczne. Potrzebujemy czegoś podobnego, ale to coś musi dodatkowo zapisywać datę urodzenia i imię matki.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">catRecord</span>(<span class="variabledef">name</span>, <span class="variabledef">birthdate</span>, <span class="variabledef">mother</span>) {
+    <span class="keyword">return</span> {<span class="property">name</span>: <span class="localvariable">name</span>, <span class="property">birth</span>: <span class="localvariable">birthdate</span>, <span class="property">mother</span>: <span class="localvariable">mother</span>};
+}
+
+    <span class="keyword">function</span> <span class="variable">addCats</span>(<span class="variabledef">set</span>, <span class="variabledef">names</span>, <span class="variabledef">birthdate</span>, <span class="variabledef">mother</span>) {
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">i</span> = <span class="atom">0</span>; <span class="localvariable">i</span> &lt; <span class="localvariable">names</span>.<span class="property">length</span>; <span class="localvariable">i</span>++)
+    <span class="localvariable">set</span>[<span class="localvariable">names</span>[<span class="localvariable">i</span>]] = <span class="variable">catRecord</span>(<span class="localvariable">names</span>[<span class="localvariable">i</span>], <span class="localvariable">birthdate</span>, <span class="localvariable">mother</span>);
+}
+    <span class="keyword">function</span> <span class="variable">deadCats</span>(<span class="variabledef">set</span>, <span class="variabledef">names</span>, <span class="variabledef">deathdate</span>) {
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">i</span> = <span class="atom">0</span>; <span class="localvariable">i</span> &lt; <span class="localvariable">names</span>.<span class="property">length</span>; <span class="localvariable">i</span>++)
+    <span class="localvariable">set</span>[<span class="localvariable">names</span>[<span class="localvariable">i</span>]].<span class="property">death</span> = <span class="localvariable">deathdate</span>;
+}</pre>
+  <p><code>catRecord</code> to osobna funkcja służąca do tworzenia tych magazynowych obiektów. Może być przydatna też w innych sytuacjach, jak np. utworzenie obiektu dla Spot. Słowo „Record” jest często używane w nazwach tego rodzaju obiektów, które służą do grupowania określonej ograniczonej liczby wartości.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Spróbujmy więc pobrać imiona kocich matek z akapitów.</p>
+  <pre class="preformatted">"urodzeni 15/11/2003 (matka Spot): White Fang"</pre>
+  <p>Oto jeden z możliwych sposobów…</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">extractMother</span>(<span class="variabledef">paragraph</span>) {
+    <span class="keyword">var</span> <span class="variabledef">start</span> = <span class="localvariable">paragraph</span>.<span class="property">indexOf</span>(<span class="string">"(matka "</span>) + <span class="string">"(matka "</span>.<span class="property">length</span>;
+    <span class="keyword">var</span> <span class="variabledef">end</span> = <span class="localvariable">paragraph</span>.<span class="property">indexOf</span>(<span class="string">")"</span>);
+    <span class="keyword">return</span> <span class="localvariable">paragraph</span>.<span class="property">slice</span>(<span class="localvariable">start</span>, <span class="localvariable">end</span>);
+}
+
+    <span class="variable">show</span>(<span class="variable">extractMother</span>(<span class="string">"urodzeni 15/11/2003 (matka Spot): White Fang"</span>));</pre>
+  <p>Zwróć uwagę, że pozycja startowa musi zostać dostosowana do długości słowa <code>"(matka "</code>, ponieważ <code>indexOf</code> zwraca pozycję początku wzorca, a nie jego końca.</p>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 4.7</div>
+  <div class="exercise">
+    <p>Działanie wykonywane przez funkcję <code>extractMother</code> można wyrazić w bardziej ogólny sposób. Napisz funkcję o nazwie <code>between</code>, która pobiera trzy argumenty łańcuchowe. Funkcja ta niech zwraca część pierwszego argumentu, która występuje między wzorcami znajdującymi się w drugim i trzecim argumencie.</p>
+    <p>Na przykład wynikiem wywołania <code>between("urodzeni 15/11/2003 (matka Spot): White Fang", "(matka ", ")")</code> powinien być łańcuch <code>"Spot"</code>.</p>
+    <p>A wynikiem wywołania <code>between("bu ] boo [ bah ] gzz", "[ ", " ]")</code> powinien być łańcuch <code>"bah"</code>.</p>
+    <p>Drugi z wymienionych przypadków łatwiej będzie zaimplementować wiedząc, że funkcji <code>indexOf</code> można przekazać drugi, opcjonalny, argument określający, w którym miejscu ma się rozpocząć szukanie.</p>
+  </div>
+  
+  <div class="toggle">[pokaż rozwiązanie]</div><div style="display: none;" class="solution"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">between</span>(<span class="variabledef">string</span>, <span class="variabledef">start</span>, <span class="variabledef">end</span>) {
+      <span class="keyword">var</span> <span class="variabledef">startAt</span> = <span class="localvariable">string</span>.<span class="property">indexOf</span>(<span class="localvariable">start</span>) + <span class="localvariable">start</span>.<span class="property">length</span>;
+      <span class="keyword">var</span> <span class="variabledef">endAt</span> = <span class="localvariable">string</span>.<span class="property">indexOf</span>(<span class="localvariable">end</span>, <span class="localvariable">startAt</span>);
+      <span class="keyword">return</span> <span class="localvariable">string</span>.<span class="property">slice</span>(<span class="localvariable">startAt</span>, <span class="localvariable">endAt</span>);
+}
+      <span class="variable">show</span>(<span class="variable">between</span>(<span class="string">"bu ] boo [ bah ] gzz"</span>, <span class="string">"[ "</span>, <span class="string">" ]"</span>));</pre>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Dzięki funkcji <code>between</code> można uprościć funkcję extractMother:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">extractMother</span>(<span class="variabledef">paragraph</span>) {
+    <span class="keyword">return</span> <span class="variable">between</span>(<span class="localvariable">paragraph</span>, <span class="string">"(matka "</span>, <span class="string">")"</span>);
+}</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Ulepszona wersja kociego algorytmu wygląda teraz tak:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">findCats</span>() {
+    <span class="keyword">var</span> <span class="variabledef">mailArchive</span> = <span class="variable">retrieveMails</span>();
+    <span class="keyword">var</span> <span class="variabledef">cats</span> = {<span class="string">"Spot"</span>: <span class="variable">catRecord</span>(<span class="string">"Spot"</span>, <span class="keyword">new</span> <span class="variable">Date</span>(<span class="atom">1997</span>, <span class="atom">2</span>, <span class="atom">5</span>),
+    <span class="string">"nieznany"</span>)};
+
+    <span class="keyword">function</span> <span class="variabledef">handleParagraph</span>(<span class="variabledef">paragraph</span>) {
+    <span class="keyword">if</span> (<span class="variable">startsWith</span>(<span class="localvariable">paragraph</span>, <span class="string">"urodzeni"</span>))
+    <span class="variable">addCats</span>(<span class="localvariable">cats</span>, <span class="variable">catNames</span>(<span class="localvariable">paragraph</span>), <span class="variable">extractDate</span>(<span class="localvariable">paragraph</span>),
+    <span class="variable">extractMother</span>(<span class="localvariable">paragraph</span>));
+    <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable">startsWith</span>(<span class="localvariable">paragraph</span>, <span class="string">"odeszli"</span>))
+    <span class="variable">deadCats</span>(<span class="localvariable">cats</span>, <span class="variable">catNames</span>(<span class="localvariable">paragraph</span>), <span class="variable">extractDate</span>(<span class="localvariable">paragraph</span>));
+  }
+
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">mail</span> = <span class="atom">0</span>; <span class="localvariable">mail</span> &lt; <span class="localvariable">mailArchive</span>.<span class="property">length</span>; <span class="localvariable">mail</span>++) {
+    <span class="keyword">var</span> <span class="variabledef">paragraphs</span> = <span class="localvariable">mailArchive</span>[<span class="localvariable">mail</span>].<span class="property">split</span>(<span class="string">"\n"</span>);
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">i</span> = <span class="atom">0</span>; <span class="localvariable">i</span> &lt; <span class="localvariable">paragraphs</span>.<span class="property">length</span>; <span class="localvariable">i</span>++)
+    <span class="localvariable">handleParagraph</span>(<span class="localvariable">paragraphs</span>[<span class="localvariable">i</span>]);
+  }
+    <span class="keyword">return</span> <span class="localvariable">cats</span>;
+}
+
+    <span class="keyword">var</span> <span class="variable">catData</span> = <span class="variable">findCats</span>();</pre>
+  <p>Mając te dodatkowe dane możemy w końcu połapać się w kotach ciotki Emilii. Poniższa funkcja może być przydatna:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">formatDate</span>(<span class="variabledef">date</span>) {
+    <span class="keyword">return</span> <span class="localvariable">date</span>.<span class="property">getDate</span>() + <span class="string">"/"</span> + (<span class="localvariable">date</span>.<span class="property">getMonth</span>() + <span class="atom">1</span>) +
+    <span class="string">"/"</span> + <span class="localvariable">date</span>.<span class="property">getFullYear</span>();
+}
+
+    <span class="keyword">function</span> <span class="variable">catInfo</span>(<span class="variabledef">data</span>, <span class="variabledef">name</span>) {
+    <span class="keyword">if</span> (!(<span class="localvariable">name</span> in <span class="localvariable">data</span>))
+    <span class="keyword">return</span> <span class="string">"Kot o imieniu "</span> + <span class="localvariable">name</span> + <span class="string">" nie jest znany światu."</span>;
+
+    <span class="keyword">var</span> <span class="variabledef">cat</span> = <span class="localvariable">data</span>[<span class="localvariable">name</span>];
+    <span class="keyword">var</span> <span class="variabledef">message</span> = <span class="localvariable">name</span> + <span class="string">", urodzony "</span> + <span class="variable">formatDate</span>(<span class="localvariable">cat</span>.<span class="property">birth</span>) +
+    <span class="string">" z matki  "</span> + <span class="localvariable">cat</span>.<span class="property">mother</span>;
+    <span class="keyword">if</span> (<span class="string">"death"</span> in <span class="localvariable">cat</span>)
+    <span class="localvariable">message</span> += <span class="string">", zdechł dnia "</span> + <span class="variable">formatDate</span>(<span class="localvariable">cat</span>.<span class="property">death</span>);
+    <span class="keyword">return</span> <span class="localvariable">message</span> + <span class="string">"."</span>;
+}
+
+    <span class="variable">print</span>(<span class="variable">catInfo</span>(<span class="variable">catData</span>, <span class="string">"Fat Igor"</span>));</pre>
+  <p>Pierwsza instrukcja <code>return</code> w funkcji <code>catInfo</code> służy jako wyjście awaryjne. Jeśli o wybranym kocie nie ma żadnych danych, reszta funkcji jest bez znaczenia, w związku z czym od razu zwracamy wartość, aby wstrzymać dalsze niepotrzebne wykonywanie kodu.</p>
+  <p>Kiedyś niektórzy programiści funkcje zawierające kilka instrukcji <code>return</code> uważali za ciężki grzech. Chodziło im o to, że wówczas trudno jest określić, która część kodu zostanie wykonana, a która nie. W <a href="/kursy/javascript/wszystko-jasne/r5-obsluga-bledow">rozdziale 5</a> poznasz techniki, dzięki którym argumenty używane przez tych programistów stały się mniej lub bardziej nieaktualne, chociaż wciąż od czasu do czasu można spotkać osoby krytykujące taki sposób użycia instrukcji return.</p>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 4.8</div>
+  <div class="exercise">
+    <p>Funkcja <code>formatDate</code> używana przez funkcję <code>catInfo</code> nie dodaje zera przed jednocyfrowymi numerami miesięcy i dni. Napisz jej nową wersję, która będzie to robić.</p>
+  </div>
+  
+  <div class="toggle">[pokaż rozwiązanie]</div><div style="display: none;" class="solution"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">formatDate</span>(<span class="variabledef">date</span>) {
+      <span class="keyword">function</span> <span class="variabledef">pad</span>(<span class="variabledef">number</span>) {
+      <span class="keyword">if</span> (<span class="localvariable">number</span> &lt; <span class="atom">10</span>)
+      <span class="keyword">return</span> <span class="string">"0"</span> + <span class="localvariable">number</span>;
+      <span class="keyword">else</span>
+      <span class="keyword">return</span> <span class="localvariable">number</span>;
+  }
+      <span class="keyword">return</span> <span class="localvariable">pad</span>(<span class="localvariable">date</span>.<span class="property">getDate</span>()) + <span class="string">"."</span> + <span class="localvariable">pad</span>(<span class="localvariable">date</span>.<span class="property">getMonth</span>() + <span class="atom">1</span>) +
+      <span class="string">"."</span> + <span class="localvariable">date</span>.<span class="property">getFullYear</span>();
+}
+      <span class="variable">print</span>(<span class="variable">formatDate</span>(<span class="keyword">new</span> <span class="variable">Date</span>(<span class="atom">2000</span>, <span class="atom">0</span>, <span class="atom">1</span>)));</pre>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 4.9</div>
+  <div class="exercise">
+    <p>Napisz funkcję o nazwie <code>oldestCat</code> przyjmującą jako argument obiekt zawierający dane kotów i zwracającą nazwę najstarszego żyjącego kota.</p>
+  </div>
+  
+  <div class="toggle">[pokaż rozwiązanie]</div><div style="display: none;" class="solution"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">oldestCat</span>(<span class="variabledef">data</span>) {
+      <span class="keyword">var</span> <span class="variabledef">oldest</span> = <span class="atom">null</span>;
+
+      <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">name</span> <span class="keyword">in</span> <span class="localvariable">data</span>) {
+      <span class="keyword">var</span> <span class="variabledef">cat</span> = <span class="localvariable">data</span>[<span class="localvariable">name</span>];
+      <span class="keyword">if</span> (!(<span class="string">"death"</span> in <span class="localvariable">cat</span>) &amp;&amp;
+
+        (<span class="localvariable">oldest</span> == <span class="atom">null</span> || <span class="localvariable">oldest</span>.<span class="property">birth</span> &gt; <span class="localvariable">cat</span>.<span class="property">birth</span>))
+      <span class="localvariable">oldest</span> = <span class="localvariable">cat</span>;
+  }
+
+      <span class="keyword">if</span> (<span class="localvariable">oldest</span> == <span class="atom">null</span>)
+      <span class="keyword">return</span> <span class="atom">null</span>;
+      <span class="keyword">else</span>
+      <span class="keyword">return</span> <span class="localvariable">oldest</span>.<span class="property">name</span>;
+}
+
+      <span class="variable">print</span>(<span class="variable">oldestCat</span>(<span class="variable">catData</span>));</pre>
+    <p>Warunek w instrukcji <code>if</code> może się wydawać bardzo skomplikowany. Można go przeczytać tak: „bieżącego kota zapisz w zmiennej <code>oldest</code> tylko, jeśli nie jest martwy i zmienna <code>oldest</code> ma wartość <code>null</code> albo zawiera kota, który urodził się później niż bieżący kot”.</p>
+    <p>Zauważ, że funkcja ta zwraca wartość <code>null</code>, jeśli w <code>data</code> nie ma żyjących kotów. Co Twoje rozwiązanie robi w tym przypadku?</p>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Skoro wiesz już jak posługiwać się tablicami, pokażę Ci jeszcze coś innego. Gdy wywoływana jest jakakolwiek funkcja, w środowisku, w którym działa tworzona jest specjalna zmienna o nazwie <code>arguments</code>. Zmienna ta odwołuje się do obiektu, który przypomina tablicę. Pierwszy argument jest własnością <code>0</code>, drugi argument jest własnością <code>1</code> itd. dla wszystkich argumentów, jakie zostały przekazane funkcji. Ponadto zmienna ta ma własność <code>length</code>.</p>
+  <p>Obiekt ten nie jest jednak prawdziwą tablicą, nie ma takich metod, jak <code>push</code> i nie aktualizuje automatycznie swojej własności <code>length</code>, gdy zostanie do niego coś dodane. Nie udało mi się dowiedzieć, czemu nie, ale należy o tym pamiętać.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">argumentCounter</span>() {
+    <span class="variable">print</span>(<span class="string">"Przekazałeś mi "</span>, <span class="localvariable">arguments</span>.<span class="property">length</span>, <span class="string">" argumentów."</span>);
+}
+    <span class="variable">argumentCounter</span>(<span class="string">"Śmierć"</span>, <span class="string">"Głód"</span>, <span class="string">"Zaraza"</span>);</pre>
+  <p>Niektóre funkcje, jak np. <code>print</code>, mogą przyjmować nieograniczoną liczbę argumentów. Funkcje te zazwyczaj przeglądają za pomocą pętli zawartość obiektu <code>arguments</code> i wykonują na niej jakieś działania. Są też funkcje przyjmujące argumenty opcjonalne, którym jeśli nie zostaną zdefiniowane przez wywołującego, zostają przypisane jakieś domyślne wartości.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">add</span>(<span class="variabledef">number</span>, <span class="variabledef">howmuch</span>) {
+    <span class="keyword">if</span> (<span class="localvariable">arguments</span>.<span class="property">length</span> &lt; <span class="atom">2</span>)
+    <span class="localvariable">howmuch</span> = <span class="atom">1</span>;
+    <span class="keyword">return</span> <span class="localvariable">number</span> + <span class="localvariable">howmuch</span>;
+}
+
+    <span class="variable">show</span>(<span class="variable">add</span>(<span class="atom">6</span>));
+    <span class="variable">show</span>(<span class="variable">add</span>(<span class="atom">6</span>, <span class="atom">4</span>));</pre>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 4.10</div>
+  <div class="exercise">
+    <p>Rozszerz funkcję <code>range</code> z <a href="#exercise2">ćwiczenia 4.2</a>, aby przyjmowała drugi argument, który jest opcjonalny. Jeśli zostanie przekazany tylko jeden argument, funkcja powinna działać tak, jak wcześniej, tzn. tworzyć zakres od 0 do podanej liczby. Jeśli natomiast zostaną podane dwa argumenty, pierwszy powinien określać początek przedziału, a drugi — koniec.</p>
+  </div>
+  
+  <div class="toggle">[pokaż rozwiązanie]</div><div style="display: none;" class="solution"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">range</span>(<span class="variabledef">start</span>, <span class="variabledef">end</span>) {
+      <span class="keyword">if</span> (<span class="localvariable">arguments</span>.<span class="property">length</span> &lt; <span class="atom">2</span>) {
+      <span class="localvariable">end</span> = <span class="localvariable">start</span>;
+      <span class="localvariable">start</span> = <span class="atom">0</span>;
+  }
+      <span class="keyword">var</span> <span class="variabledef">result</span> = [];
+      <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">i</span> = <span class="localvariable">start</span>; <span class="localvariable">i</span> &lt;= <span class="localvariable">end</span>; <span class="localvariable">i</span>++)
+      <span class="localvariable">result</span>.<span class="property">push</span>(<span class="localvariable">i</span>);
+      <span class="keyword">return</span> <span class="localvariable">result</span>;
+}
+
+      <span class="variable">show</span>(<span class="variable">range</span>(<span class="atom">4</span>));
+      <span class="variable">show</span>(<span class="variable">range</span>(<span class="atom">2</span>, <span class="atom">4</span>));</pre>
+    <p>Opcjonalny argument w tej funkcji nie działa dokładnie tak samo, jak w funkcji <code>add</code> w przykładzie powyżej. Gdy nie zostanie podany, jego rolę przejmuje pierwszy argument, a argument <code>start</code> otrzymuje wartość <code>0</code>.</p>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 4.11</div>
+  <div class="exercise">
+    <p>Może pamiętasz poniższy wiersz kodu z wprowadzenia:</p>
+    <pre class="code invalid not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">print</span>(<span class="variable">sum</span>(<span class="variable">range</span>(<span class="atom">1</span>, <span class="atom">10</span>)));</pre>
+    <p>Funkcję <code>range</code> już mamy. Do działania potrzebna jest nam jeszcze tylko funkcja <code>sum</code>. Funkcja ta przyjmuje tablicę liczb i zwraca ich sumę. Napisz ją. Nie powinna Ci sprawić problemów.</p>
+  </div>
+  
+  <div class="toggle">[pokaż rozwiązanie]</div><div style="display: none;" class="solution"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">sum</span>(<span class="variabledef">numbers</span>) {
+      <span class="keyword">var</span> <span class="variabledef">total</span> = <span class="atom">0</span>;
+      <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">i</span> = <span class="atom">0</span>; <span class="localvariable">i</span> &lt; <span class="localvariable">numbers</span>.<span class="property">length</span>; <span class="localvariable">i</span>++)
+      <span class="localvariable">total</span> += <span class="localvariable">numbers</span>[<span class="localvariable">i</span>];
+      <span class="keyword">return</span> <span class="localvariable">total</span>;
+}
+
+      <span class="variable">print</span>(<span class="variable">sum</span>(<span class="variable">range</span>(<span class="atom">1</span>, <span class="atom">10</span>)));</pre>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>W <a href="/kursy/javascript/wszystko-jasne/r2-podstawy">rozdziale 2</a> poruszone zostały funkcje <code>Math.max</code> i <code>Math.min</code>. Teraz już wiesz, że są to tak naprawdę własności <code>max</code> i <code>min</code> obiektu o nazwie <code>Math</code>. Jest to kolejna ważna rola obiektów: są to magazyny powiązanych ze sobą wartości.</p>
+  <p>W obiekcie <code>Math</code> znajduje się wiele wartości i gdyby je wszystkie zamiast w obiekcie umieszczono bezpośrednio w globalnym środowisku, to zostałoby ono, jak to się mówi, zaśmiecone. Im więcej nazw jest zajętych, tym większe ryzyko, że nazwa jakiejś zmiennej zostanie przypadkowo nadpisana. Na przykład nazwa <code>max</code> może być dość popularna.</p>
+  <p>W większości języków programowania użycie zajętej nazwy zmiennej jest niemożliwe albo wyświetlane jest ostrzeżenie, gdy ktoś próbuje takiej nazwy użyć. W JavaScripcie tak nie jest.</p>
+  <p>W każdym bądź razie obiekt <code>Math</code> zawiera masę rozmaitych funkcji i stałych matematycznych. Znajdują się w nim implementacje wszystkich funkcji trygonometrycznych ― <code>cos</code>, <code>sin</code>, <code>tan</code>, <code>acos</code>, <code>asin</code> oraz <code>atan</code>. Dostępne są też stałe π i e, które zapisane są wielkimi literami (<code>PI</code> i <code>E</code>) — wielkich liter kiedyś modnie używało się do zapisywania nazw stałych. Funkcja <code>pow</code> jest dobrym zamiennikiem dla naszych funkcji <code>power</code>. Funkcja ta dodatkowo akceptuje ujemne i ułamkowe wykładniki. Funkcja <code>sqrt</code> oblicza pierwiastki kwadratowe. Funkcje <code>max</code> i <code>min</code> zwracają większą i mniejszą z dwóch wartości. Funkcje <code>round</code>, <code>floor</code> i <code>ceil</code> zaokrąglają liczby odpowiednio do najbliższej całkowitej, całkowitej mniejszej oraz całkowitej większej liczby.</p>
+  <p>Obiekt <code>Math</code> zawiera jeszcze wiele innych wartości, ale ten rozdział jest wstępem do programowania, a nie dokumentacją. Do dokumentacji można zajrzeć, gdy podejrzewa się, że jakiś element w języku istnieje i chce się sprawdzić jego nazwę albo jak dokładnie działa. Niestety nie ma jednej pełnej dokumentacji języka JavaScript. Jest to spowodowane między innymi tym, że powstawał w chaotycznym procesie dodawania rozszerzeń przez różne przeglądarki. Dobrą dokumentacją podstawowego języka jest standard ECMA, ale jest to niezbyt czytelny dokument. W większości przypadków najlepszym źródłem informacji jest portal <a href="https://developer.mozilla.org/en/JavaScript/Reference/">Mozilla Developer Network</a>.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Może już zastanawiałeś się, jak się dowiedzieć, co dokładnie zawiera obiekt <code>Math</code>:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">for</span> (<span class="keyword">var</span> <span class="variable">name</span> <span class="keyword">in</span> <span class="variable">Math</span>)
+    <span class="variable">print</span>(<span class="variable">name</span>);</pre>
+  <p>Ale ten kod nic nie wyświetli. Podobnie będzie z poniższym kodem:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">for</span> (<span class="keyword">var</span> <span class="variable">name</span> <span class="keyword">in</span> [<span class="string">"Huey"</span>, <span class="string">"Dewey"</span>, <span class="string">"Loui"</span>])
+    <span class="variable">print</span>(<span class="variable">name</span>);</pre>
+  <p>Wyświetlone zostaną tylko cyfry <code>0</code>, <code>1</code> i <code>2</code> zamiast nazw <code>length</code>, <code>push</code> albo <code>join</code>, które na pewno tam są. Najwidoczniej niektóre własności obiektów są ukryte. Jest ku temu bardzo dobry powód: wszystkie obiekty mają po kilka metod, np. <code>toString</code> konwertująca obiekt na łańcuch i nie chcielibyśmy ich znaleźć szukając np. kotów zapisanych w obiekcie.</p>
+  <p>Nie jest dla mnie jasne, dlaczego ukryte są własności obiektu <code>Math</code>. Może ktoś chciał, aby to był obiekt tajemnic.</p>
+  <p>Wszystkie własności dodawane przez Twoje programy do obiektów są widoczne. Nie da się ich ukryć, a szkoda, bo jak zobaczysz w <a href="/kursy/javascript/wszystko-jasne/r8-obiektowe">rozdziale 8</a>, czasami możliwość dodawania do obiektów metod, które nie są widoczne dla instrukcji <code>for</code>/<code>in</code> jest przydatne.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Niektóre własności są przeznaczone tylko do odczytu, co znaczy, że można sprawdzać ich wartości, ale nie można ich modyfikować. Takie są np. własności wartości łańcuchowych.</p>
+  <p>Inne własności mogą być „aktywne”. Zmodyfikowanie ich powoduje, że <em>coś</em> się dzieje. Na przykład zmniejszenie długości tablicy powoduje usunięcie części jej elementów:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">array</span> = [<span class="string">"Niebo"</span>, <span class="string">"Ziemia"</span>, <span class="string">"Człowiek"</span>];
+    <span class="variable">array</span>.<span class="property">length</span> = <span class="atom">2</span>;
+    <span class="variable">show</span>(<span class="variable">array</span>);</pre>
+</div>
+
+<h3>Przypisy</h3>
+
+<ol>
+  <li id="footnote1">Podejście to ma kilka subtelnych wad, które zostaną omówione w <a href="/kursy/javascript/wszystko-jasne/r8-obiektowe">rozdziale 8</a>. W tym rozdziale wystarczy to, co jest.</li>
+</ol>

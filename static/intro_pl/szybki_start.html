@@ -1,0 +1,64 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>SpaceBots - szybki start</title>
+<link rel=stylesheet href=doc.css>
+<h1>SpaceBots - szybki start</h1>
+
+<p>SpaceBots to gra, w której stworzona przez ciebie sztuczna inteligencja będzie walczyć z innymi graczami o rzadkie zasoby, lepsze podzespoły oraz nowe technologie.</p>
+
+<p>Do kodowania będziesz potrzebować najnowszej przeglądarki. Pobierz Google Chrome w najnowszej wersji, czyli tzw. <a href="https://www.google.com/intl/pl/chrome/browser/canary.html">kanarka</a> albo nieco stabilniejszą wersję <a href="https://www.google.com/intl/pl/chrome/browser/beta.html">beta</a>.</p>
+
+<p>Pewnie widziałeś/aś już stronę SpaceBots. Tej oficjalnej nie możesz jednak w wygodny sposób edytować. Pobierz <a href="https://github.com/mafik/SpaceBots/archive/master.zip">kod SpaceBots</a>, rozpakuj go, wejdź do katalogu <code>SpaceBots/static/</code> i uruchom <code>server.exe</code>. Od teraz na twoim komputerze działa serwer http, który pozwoli ci grać w SpaceBots. Możesz na niego wejść przez <a href="http://localhost:8080/">http://localhost:8080/</a>.</p>
+<p>Powinien wyglądać mniej więcej tak:</p>
+<img src="intro_0.png">
+<p>Tak naprawdę łączysz się z oficjalnym serwerem SpaceBots, ale przez to, że kod strony jest teraz na twoim komputerze, możesz pisać własne skrypty oraz modyfikować te wbudowane. Zacznij od wciśnięcia <kbd>F12</kbd>. Powinny otworzyć się tzw. <em>DevToolsy</em>:</p>
+<img src="intro_1.png">
+<p>Jeśli teraz cokolwiek wyedytujesz, wszystkie zmiany pójdą w zapomnienie po odświeżeniu strony. Żeby Chrome zapisał zmiany, musisz poinformować go, gdzie znajdują się pliki strony.</p>
+<p>Kliknij na ikonę koła zębatego:</p>
+<img src="intro_2.png">
+<p>Potem wybierz <samp>Workspace</samp>:</p>
+<img src="intro_3.png">
+<p>Teraz kliknij <samp>Add folder...</samp> i dodaj katalog <code>SpaceBots/static/</code>:</p>
+<img src="intro_4.png">
+<p>Potwierdź w przeglądarce, że zezwalasz na modyfikację tego katalogu:</p>
+<img src="intro_5.png">
+<p>Z listy na dole wybierz nowo dodany katalog i kliknij w <samp>Edit...</samp>. W okienku pod tytułem <samp>Edit file system</samp>, w polu <samp>URL prefix</samp> wpisz <code>http://localhost:8080/</code>, a w polu <same>Folder path</same> wpisz <code>/</code>. Gdy skończysz wciśnij enter:</p>
+<img src="intro_6.png">
+<p>Zamknij okiena ustawień tak żeby wrócić to takiego ekranu:</p>
+<img src="intro_1.png">
+<p>Od teraz możesz edytować kod strony bezpośrednio w Chrome. Zanim weźmiemy się za edycję ustaw jeszcze okno DevToolsów w wygodniejszej pozycji. Przytrzymaj przycisk pozycji i wybierz podział pionowy:</p>
+<img src="intro_7.png">
+<p>Okienko przeskoczy na bok:</p>
+<img src="intro_8.png">
+<p>Zakładka <samp>Elements</samp>, w której się znajdujesz pokazuje drzewo elementów HTML. Może wygląda jak plik .html strony, ale teraz ten kod <em>żyje</em> w pamięci przeglądarki jako sieć komunikujących się obiektów. Nie można go przez to edytować. Żeby to zrobić, przejdź do zakładki <samp>Sources</samp>.</p>
+<img src="intro_9.png">
+<p>Po przejściu, wciśnij <kbd>Ctrl + O</kbd> i strzałkami wybierz plik <code>index.html</code>. Możesz wpisać kilka znaków z jego nazwy żeby szybciej do niego dotrzeć. To jego załadowaniu dostaniesz możliwość jego edycji:</p>
+<img src="intro_10.png">
+<p>Teraz edytując stronę możesz spokojnie usunąć lub zmodyfikować elementy strony. Zlokalizuj w kodzie i usuń elementy odpowiedzialne za:</p>
+<ul>
+  <li>skaczący znak zapytania</li>
+  <li>odtwarzacz muzyki</li>
+  <li>etykietę "Fork me on GitHub"</li>
+</ul>
+<p>Możesz edytować też kod CSS. Usuń style elementów, których już nie ma na stronie oraz wyedytuj pozycję miotełki tak żeby znalazła się bliżej krawędzi ekranu.</p>
+<p>Kiedy skończysz, zapisz zmiany <kbd>Ctrl + S</kbd> i odśwież stronę.</p>
+
+<p style="color: red">Za pomocą DevToolsów, w katalogu <code>/static</code> utwórz nowy plik - <code>bot.js</code>. Umieść w nim jakieś testowe polecenie - na przykład <code>console.log("bot.js się zgłasza");</code>. Dodaj znacznik <code>&lt;script&gt;</code> do strony tak, żeby <code>bot.js</code> załadował się przy starcie i odśwież stronę. W konsoli zobaczysz, że nowo dodany skrypt zadziałał.</p>
+
+
+<p style="color:red;">Poczytaj kod gry. Na końcu pliku <code>index.html</code> znajduje się cała seria skryptów. Możesz je otworzyć i modyfikować tak samo jak w przypadku <code>index.html</code> - za pomocą <kbd>Ctrl + O</kbd> i <kbd>Ctrl + S</kbd>. Skrypty SpaceBots są wyjątkowo dobrze udokumentowane i nie będziesz mieć z nimi żadnych problemów. Zacznij od skryptu <code>logging_in.js</code> i po kolei przeglądaj kolejne - jest w nich cała masa funkcji, z których będziesz korzystać we własnych skryptach. W ten sposób dowiesz się też jak zbudowany jest domyślny klient gry. Twoim następnym celem jest oczywiście jego modyfikacja.</p>
+
+<hr>
+
+<p>Jeśli chcesz dowiedzieć się więcej o obsłudze DevToolsów, możesz skorzystać z tych stron:</p>
+<ul>
+  <li><a href="https://developers.google.com/chrome-developer-tools/docs/authoring-development-workflow">Praca w DevTools</a></li>
+  <li><a href="https://developers.google.com/chrome-developer-tools/docs/javascript-debugging">Debugowanie JavaScriptu</a></li>
+  <li><a href="https://developers.google.com/chrome-developer-tools/docs/console">Obsługa konsoli</a></li>
+</ul>
+
+<hr>
+
+<p>Grając w SpaceBotsy będziesz programować w języku JavaScript. Jeśli go znasz, przejdź do rozdziału z opisem mechaniki SpaceBots. Jeśli nie, na kolejnych stronach będziesz mógł go poznać.</p>
+
+<p>Nie musisz go czytać w całości i spokojnie możesz robić to równolegle z poznawaniem SpaceBots. Musisz go jednak przeczytać i wyjdzie ci na zdrowie jeśli zrobisz to wcześniej niż później.</p>

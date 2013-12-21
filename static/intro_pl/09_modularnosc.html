@@ -1,0 +1,217 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Modularność</title>
+<link rel=stylesheet href=doc.css>
+<link rel=author href=http://marijnhaverbeke.nl/>
+<link rel=license href=http://creativecommons.org/licenses/by/3.0/deed.pl>
+<h1>Modularność</h1>
+
+<div class="block">
+  <p>Tematem tego rozdziału jest organizacja programów. W małych programach kwestia ta praktycznie nie występuje. Ale z czasem niektóre aplikacje rozrastają się do tego poziomu, że trudno jest zapanować nad ich strukturą i zrozumieć ich działanie. Dość szybko kod programu może zacząć przypominać <strong>spaghetti</strong>, czyli bezkształtną masę, w której wydaje się, że wszystko jest ze sobą wzajemnie powiązane.</p>
+  <p>Tworząc strukturę programu wykonuje się dwie czynności. Dzieli się go na mniejsze części zwane <strong>modułami</strong>, z których każdy pełni jakąś rolę, i określa się relacje między między nimi.</p>
+  <p>W <a href="/kursy/javascript/wszystko-jasne/r8-obiektowe">rozdziale 8</a> podczas pracy nad terrarium użyliśmy kilku funkcji utworzonych jeszcze w <a href="/kursy/javascript/wszystko-jasne/r6-programowanie-funkcyjne">rozdziale 6</a>. Ponadto w rozdziale tym zostały zdefiniowane pewne pojęcia które nie mają nic wspólnego z terrariami, takie jak metoda <code>clone</code> i typ <code>Dictionary</code>. Wszystko to zostało wrzucone do środowiska, jak do worka. Program ten można by było podzielić na moduły następująco:</p>
+  <ul>
+    <li>moduł <code>FunctionalTools</code> zawierałby funkcje z <a href="/kursy/javascript/wszystko-jasne/r6-programowanie-funkcyjne">rozdziału 6</a> i nie byłby zależny od żadnego innego.</li>
+    <li>Moduł <code>ObjectTools</code> zawierałby takie składniki, jak <code>clone</code> i <code>create</code> i byłby zależny od modułu <code>FunctionalTools</code>.</li>
+    <li>Moduł <code>Dictionary</code>, zawierający typ słownikowy byłby zależny od modułu <code>FunctionalTools</code>.</li>
+    <li>Moduł <code>Terrarium</code> byłby zależny od modułów <code>ObjectTools</code> i <code>Dictionary</code>.</li>
+  </ul>
+  <p>Gdy jeden moduł jest zależny od innego, używa jego funkcji lub zmiennych i może działać tylko, gdy ten moduł jest załadowany.</p>
+  <p>Należy uważać, aby te zależności nie tworzyły błędnego koła. Oprócz tego, że sprawiają trudności natury praktycznej (jeśli moduły <code>A</code> i <code>B</code> są wzajemnie zależne, to który powinien zostać załadowany pierwszy?), to dodatkowo zamazują relacje między modułami i mogą powodować, że powstanie modularna wersja wspominanego <strong>kodu spaghetti</strong>.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Większość nowoczesnych języków programowania ma wbudowany jakiś system modularyzacji, ale nie JavaScript. Po raz kolejny musimy sami coś wymyślić. Najprostszym sposobem wydaje się umieszczenie każdego modułu w osobnym pliku. Dzięki temu wyraźnie widać, jaki kod zawiera każdy moduł.</p>
+  <p>Przeglądarki wczytują pliki JavaScript dołączane do stron internetowych za pomocą elementu HTML <code>script</code> z atrybutem <code>src</code>. Pliki zawierające kod JavaScript najczęściej mają rozszerzenie <code>.js</code>. W konsoli ładowanie plików jest realizowane przez funkcję <code>load</code>.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">load</span>(<span class="string">"FunctionalTools.js"</span>);</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Czasami wpisanie poleceń wczytania plików w niewłaściwej kolejności powoduje błędy. Jeśli jakiś moduł próbuje utworzyć obiekt <code>Dictionary</code>, ale moduł <code>Dictionary</code> jeszcze nie został naładowany, nie uda się znaleźć konstruktora i operacja nie zostanie wykonana.</p>
+  <p>Można pomyśleć, że problem ten jest łatwy do rozwiązania. Wystarczy na początku pliku modułu umieścić kilka wywołań funkcji <code>load</code>, aby załadować wszystkie moduły, które są mu potrzebne. Niestety przeglądarki internetowe działają w taki sposób, że wywołanie funkcji <code>load</code> nie powoduje natychmiastowego załadowania pliku. Plik jest wczytywany dopiero <em>po</em> zakończeniu wykonywania bieżącego pliku. Zwykle wtedy jest już za późno.</p>
+  <p>W większości przypadków można sobie poradzić zarządzając zależnościami ręcznie: wpisując elementy <code>script</code> w kodzie HTML strony we właściwej kolejności.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Zarządzanie zależnościami można częściowo zautomatyzować na dwa sposoby. Pierwszy polega na utworzeniu osobnego pliku z informacjami o zależnościach między modułami. Plik ten może być ładowany pierwszy, a znajdujące się w nim informacje mogą być wykorzystane do określenia kolejności ładowania pozostałych plików. Drugi sposób polega na zrezygnowaniu z elementu <code>script</code> (funkcja <code>load</code> wewnętrznie go tworzy i dodaje) i pobieraniu zawartości pliku bezpośrednio (zobacz <a href="/kursy/javascript/wszystko-jasne/r14-zadania-http">rozdział 14</a>), a następnie wykonywaniu jej za pomocą funkcji <code>eval</code>. W ten sposób skrypty są ładowane natychmiast, co ułatwia pracę.</p>
+  <p>Funkcja <code>eval</code> (nazwa pochodzi od ang. słowa evaluate — oszacować) jest bardzo ciekawa. Przekazuje się jej wartość łańcuchową, a ona wykonuje ten łańcuch jako kod JavaScript.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">eval</span>(<span class="string">"print(\"Jestem łańcuchem w łańcuchu!\");"</span>);</pre>
+  <p>Zapewne domyślasz się, że przy jej użyciu można zrobić wiele fajnych rzeczy. Kod może tworzyć inny kod, a następnie go wykonywać. Jednak większość problemów, które można wykonać pomysłowo wykorzystując funkcję <code>eval</code> można również wykonać przy użyciu funkcji anonimowych, które dodatkowo stwarzają mniejsze ryzyko wystąpienia dziwnych problemów.</p>
+  <p>Gdy funkcja <code>eval</code> jest wywoływana wewnątrz funkcji, wszystkie nowe zmienne stają się lokalne w tej funkcji. Gdyby zatem w jakiejś wersji funkcji <code>load</code> użyto funkcji <code>eval</code>, załadowanie modułu <code>Dictionary</code> spowodowałoby utworzenie konstruktora <code>Dictionary</code> wewnątrz funkcji <code>load</code> i zniknąłby on natychmiast po zakończeniu działania przez tę funkcję. Istnieją sposoby na obejście tego, ale są trochę niezgrabne.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Przyjrzymy się krótko pierwszej technice zarządzania zależnościami. Potrzebny jest w niej specjalny plik zawierający informacje o zależnościach, np.:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">dependencies</span> =
+  {<span class="string">"ObjectTools.js"</span>: [<span class="string">"FunctionalTools.js"</span>],
+   <span class="string">"Dictionary.js"</span>:  [<span class="string">"ObjectTools.js"</span>],
+   <span class="string">"TestModule.js"</span>:  [<span class="string">"FunctionalTools.js"</span>, <span class="string">"Dictionary.js"</span>]};</pre>
+  <p>W obiekcie <code>dependencies</code> znajduje się po jednej własności dla każdego pliku, który zależy od innych plików. Wartości tych własności są tablicami nazw plików. Zauważ, że nie mogliśmy tu użyć obiektu <code>Dictionary</code>, ponieważ nie mamy pewności, czy moduł <code>Dictionary</code> został już załadowany. Ponieważ wszystkie własności w tym obiekcie mają końcówkę <code>.js</code>, jest mało prawdopodobne, aby kolidowały z ukrytymi własnościami typu <code>__proto__</code> czy <code>hasOwnProperty</code>.</p>
+  <p>Menedżer zależności musi wykonywać dwa działania. Po pierwsze pilnuje, aby pliki były ładowane we właściwej kolejności ładując zależności każdego pliku przed samym tym plikiem. Po drugie pilnuje, aby żaden plik nie został załadowany dwa razy. Wielokrotne wczytanie pliku może powodować problemy i jest stratą czasu.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">loadedFiles</span> = {};
+
+<span class="keyword">function</span> <span class="variable">require</span>(<span class="variabledef">file</span>) {
+  <span class="keyword">if</span> (<span class="variable">dependencies</span>[<span class="localvariable">file</span>]) {
+    <span class="keyword">var</span> <span class="variabledef">files</span> = <span class="variable">dependencies</span>[<span class="localvariable">file</span>];
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">i</span> = <span class="atom">0</span>; <span class="localvariable">i</span> &lt; <span class="localvariable">files</span>.<span class="property">length</span>; <span class="localvariable">i</span>++)
+      <span class="variable">require</span>(<span class="localvariable">files</span>[<span class="localvariable">i</span>]);
+  }
+  <span class="keyword">if</span> (!<span class="variable">loadedFiles</span>[<span class="localvariable">file</span>]) {
+    <span class="variable">loadedFiles</span>[<span class="localvariable">file</span>] = <span class="atom">true</span>;
+    <span class="variable">load</span>(<span class="localvariable">file</span>);
+  }
+}</pre>
+  <p>Teraz do ładowania plików wraz z zależnościami można używać funkcji <code>require</code>. Zwróć uwagę, jak funkcja ta rekurencyjnie wywołuje sama siebie, aby zająć się zależnościami (i ewentualnie zależnościami zależności).</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">require</span>(<span class="string">"TestModule.js"</span>);</pre>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">test</span>();</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Gdy program jest budowany z zestawu małych modułów, to zazwyczaj używa się w nim dużej liczby niewielkich plików. W programowaniu sieciowym ładowanie dużej liczby plików JavaScript może spowolnić wczytywanie stron. Ale nie musi tak być. Testowy program można napisać jako zbiór małych plików, a przez opublikowaniem w internecie można je połączyć w jeden duży plik.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Podobnie jak typ obiektowy, moduł ma interfejs. W modułach będących prostymi zbiorami funkcji, jak <code>FunctionalTools</code>, interfejs zwykle składa się z wszystkich funkcji zdefiniowanych w module. W innych przypadkach na interfejs modułu składa się tylko niewielka część zdefiniowanych w nim funkcji. Na przykład nasz system zamieniający rękopis na format HTML opisany w <a href="/kursy/javascript/wszystko-jasne/r6-programowanie-funkcyjne">rozdziale 6</a> wymaga w interfejsie tylko jednej funkcji — <code>renderFile</code>. (Podsystem tworzący kod HTML mógłby być osobnym modułem.)</p>
+  <p>W przypadku modułów zawierających definicję tylko jednego typu obiektowego, jak <code>Dictionary</code>, interfejs modułu jest tożsamy z interfejsem tego typu.</p>
+</div>
+<hr>
+<div class="block">
+  <p>W języku JavaScript zmienne wszystkie najwyższego poziomu znajdują się w jednym miejscu. W przeglądarkach tym miejscem jest obiekt o nazwie <code>window</code>. Nazwa ta jest trochę dziwna. Lepsza byłaby <code>environment</code> (środowisko) albo <code>top</code> (najwyższy), ale ponieważ przeglądarki wiążą środowisko JavaScript z oknem (albo „ramką”), ktoś uznał, że wybór nazwy <code>window</code> jest uzasadniony.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="variable">window</span>);
+<span class="variable">show</span>(<span class="variable">window</span>.<span class="property">print</span> == <span class="variable">print</span>);
+<span class="variable">show</span>(<span class="variable">window</span>.<span class="property">window</span>.<span class="property">window</span>.<span class="property">window</span>.<span class="property">window</span>);</pre>
+  <p>Jak wykazałem w trzecim wierszu powyższego kodu, nazwa <code>window</code> jest jedynie własnością obiektu środowiska wskazującą na siebie.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Gdy w środowisku znajduje się dużo kodu, używanych jest wiele nazw zmiennych najwyższego poziomu. Gdy ilość kodu będzie na tyle duża, że nie będziesz w stanie wszystkiego zapamiętać, to pojawi się ryzyko, że w końcu przez przypadek użyjesz jakiejś nazwy po raz drugi. To spowoduje awarię w miejscu, w którym używana była oryginalna wartość. Sytuacja, w której liczba zmiennych najwyższego rzędu jest bardzo duża nazywa się <strong>zaśmieceniem przestrzeni nazw</strong>. W JavaScripcie jest to bardzo niebezpieczne, ponieważ język ten nie ostrzega, gdy redefiniowana jest istniejąca zmienna.</p>
+  <p>Nie da się tego problemu rozwiązać całkowicie, ale można zredukować ryzyko starając się nie zaśmiecać środowiska. Przede wszystkim w modułach wszystkie zmienne nie należące do zewnętrznego interfejsu nie powinny być najwyższego poziomu.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Brak możliwości definiowania wewnętrznych funkcji i zmiennych w modułach oczywiście stanowi utrudnienie. Na szczęście można to obejść stosując pewną sztuczkę. Cały kod modułu pisze się w funkcji, a na koniec wszystkie zmienne należące do interfejsu modułu dodaje się do obiektu <code>window</code>. Dzięki temu, że zostały utworzone w tej samej funkcji, wszystkie funkcje modułu „widzą” się wzajemnie, ale kod znajdujący się na zewnątrz modułu ich nie widzi.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">buildMonthNameModule</span>() {
+  <span class="keyword">var</span> <span class="variabledef">names</span> = [<span class="string">"Styczeń"</span>, <span class="string">"Luty"</span>, <span class="string">"Marzec"</span>, <span class="string">"Kwiecień"</span>,
+               <span class="string">"Maj"</span>, <span class="string">"Czerwiec"</span>, <span class="string">"Lipiec"</span>, <span class="string">"Sierpień"</span>, <span class="string">"Wrzesień"</span>,
+               <span class="string">"Październik"</span>, <span class="string">"Listopad"</span>, <span class="string">"Grudzień"</span>];
+  <span class="keyword">function</span> <span class="variabledef">getMonthName</span>(<span class="variabledef">number</span>) {
+    <span class="keyword">return</span> <span class="localvariable">names</span>[<span class="localvariable">number</span>];
+  }
+  <span class="keyword">function</span> <span class="variabledef">getMonthNumber</span>(<span class="variabledef">name</span>) {
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">number</span> = <span class="atom">0</span>; <span class="localvariable">number</span> &lt; <span class="localvariable">names</span>.<span class="property">length</span>; <span class="localvariable">number</span>++) {
+      <span class="keyword">if</span> (<span class="localvariable">names</span>[<span class="localvariable">number</span>] == <span class="localvariable">name</span>)
+        <span class="keyword">return</span> <span class="localvariable">number</span>;
+    }
+  }
+
+  <span class="variable">window</span>.<span class="property">getMonthName</span> = <span class="localvariable">getMonthName</span>;
+  <span class="variable">window</span>.<span class="property">getMonthNumber</span> = <span class="localvariable">getMonthNumber</span>;
+}
+<span class="variable">buildMonthNameModule</span>();
+
+<span class="variable">show</span>(<span class="variable">getMonthName</span>(<span class="atom">11</span>));</pre>
+  <p>Jest to bardzo prosty moduł zamieniający nazwy miesięcy na numery miesięcy (np. do użytku w obiekcie <code>Date</code>, w którym styczeń to <code>0</code>). Zauważ jednak, że <code>buildMonthNameModule</code> nadal jest zmienną najwyższego poziomu nie będącą częścią interfejsu modułu. Ponadto nazwy funkcji interfejsu musimy powtarzać trzy razy. Ech.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Pierwszy problem można rozwiązać czyniąc funkcję modułu anonimową i wywołując ją bezpośrednio. W tym celu wartość funkcji musimy umieścić w klamrze, ponieważ jeśli tego nie zrobimy, dla JavaScriptu będzie to definicja zwykłej funkcji, która nie może być wywoływana bezpośrednio.</p>
+  <p>Drugi problem można rozwiązać przy użyciu funkcji pomocniczej <code>provide</code>, której można podać obiekt zawierający wartości, które muszą zostać wyeksportowane do obiektu <code>window</code>.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">provide</span>(<span class="variabledef">values</span>) {
+  <span class="variable">forEachIn</span>(<span class="localvariable">values</span>, <span class="keyword">function</span>(<span class="variabledef">name</span>, <span class="variabledef">value</span>) {
+    <span class="variable">window</span>[<span class="localvariable">name</span>] = <span class="localvariable">value</span>;
+  });
+}</pre>
+  <p>Korzystając z tego możemy napisać taki moduł:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button>(<span class="keyword">function</span>() {
+  <span class="keyword">var</span> <span class="variabledef">names</span> = [<span class="string">"Niedziela"</span>, <span class="string">"Poniedziałek"</span>, <span class="string">"Wtorek"</span>, <span class="string">"Środa"</span>,
+               <span class="string">"Czwartek"</span>, <span class="string">"Piątek"</span>, <span class="string">"Sobota"</span>];
+  <span class="variable">provide</span>({
+    <span class="property">getDayName</span>: <span class="keyword">function</span>(<span class="variabledef">number</span>) {
+      <span class="keyword">return</span> <span class="localvariable">names</span>[<span class="localvariable">number</span>];
+    },
+    <span class="property">getDayNumber</span>: <span class="keyword">function</span>(<span class="variabledef">name</span>) {
+      <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">number</span> = <span class="atom">0</span>; <span class="localvariable">number</span> &lt; <span class="localvariable">names</span>.<span class="property">length</span>; <span class="localvariable">number</span>++) {
+        <span class="keyword">if</span> (<span class="localvariable">names</span>[<span class="localvariable">number</span>] == <span class="localvariable">name</span>)
+          <span class="keyword">return</span> <span class="localvariable">number</span>;
+      }
+    }
+  });
+})();
+
+<span class="variable">show</span>(<span class="variable">getDayNumber</span>(<span class="string">"Środa"</span>));</pre>
+  <p>Nie polecam pisania modułów w taki sposób od samego początku. Podczas pracy łatwiej jest stosować prostą technikę, jaką stosowaliśmy do tej pory i wszystko wrzucać na najwyższy poziom. Dzięki temu można sprawdzać i testować wewnętrzne wartości modułu w przeglądarce. Gdy moduł zostanie ukończony, nietrudno będzie zapakować go w funkcję.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Są przypadki, w których moduł eksportuje tak dużo zmiennych, że umieszczenie ich wszystkich w środowisku najwyższego poziomu jest złym pomysłem. Wówczas można zrobić to samo, co robi standardowy obiekt <code>Math</code>, czyli zaprezentować cały moduł jako jeden obiekt, którego własności są eksportowanymi funkcjami i wartościami. Na przykład:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">HTML</span> = {
+  <span class="property">tag</span>: <span class="keyword">function</span>(<span class="variabledef">name</span>, <span class="variabledef">content</span>, <span class="variabledef">properties</span>) {
+    <span class="keyword">return</span> {<span class="property">name</span>: <span class="localvariable">name</span>, <span class="property">properties</span>: <span class="localvariable">properties</span>, <span class="property">content</span>: <span class="localvariable">content</span>};
+  },
+  <span class="property">link</span>: <span class="keyword">function</span>(<span class="variabledef">target</span>, <span class="variabledef">text</span>) {
+    <span class="keyword">return</span> <span class="variable">HTML</span>.<span class="property">tag</span>(<span class="string">"a"</span>, [<span class="localvariable">text</span>], {<span class="property">href</span>: <span class="localvariable">target</span>});
+  }
+  <span class="comment">/* ... kolejne funkcje tworzące elementy HTML ... */</span>
+};</pre>
+  <p>Gdyby zawartość modułu była potrzebna tak często, że ciągłe wpisywanie <code>HTML</code> byłoby uciążliwe, zawsze można by było go przenieść do najwyższego poziomu środowiska za pomocą funkcji <code>provide</code>.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">provide</span>(<span class="variable">HTML</span>);
+<span class="variable">show</span>(<span class="variable">link</span>(<span class="string">"http://download.oracle.com/docs/cd/E19957-01/816-6408-10/object.htm"</span>,
+          <span class="string">"Tak działają obiekty."</span>));</pre>
+  <p>Można nawet połączyć technikę funkcyjną z obiektową umieszczając wewnętrzne zmienne modułu w funkcji i zwracając przez tę funkcję obiekt zawierający jego zewnętrzny interfejs.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Podobny problem z zaśmiecaniem przestrzeni nazw występuje przy dodawaniu metod do standardowych prototypów, jak <code>Array</code> i <code>Object</code>. Jeśli dwa moduły dodadzą metodę <code>map</code> do prototypu <code>Array.prototype</code>, możesz mieć problem. Jeśli wynik działania obu tych wersji metody <code>map</code> będzie taki sam, to może nic złego się nie stać, ale to będzie czysty przypadek.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Projektowanie interfejsu modułów i typów obiektowych jest jednym z subtelnych elementów sztuki programowania. Z jednej strony nie chcemy ujawniać zbyt wielu szczegółów,  ponieważ tylko będą przeszkadzać podczas używania modułu. Z drugiej strony nie chcemy <em>nadmiernie</em> upraszczać i generalizować, ponieważ moglibyśmy uniemożliwić używanie modułu w skomplikowanych lub specjalnych sytuacjach.</p>
+  <p>Czasami dobrym rozwiązaniem jest utworzenie dwóch interfejsów. Jeden szczegółowy do zastosowań w skomplikowanych sprawach, a drugi uproszczony do użytku w pozostałych sytuacjach. Drugi interfejs można łatwo zbudować przy użyciu narzędzi udostępnianych przez pierwszy.</p>
+  <p>W innych przypadkach trzeba tylko wymyślić na czym oprzeć swój interfejs. Porównaj to z podejściami do dziedziczenia opisanymi w <a href="/kursy/javascript/wszystko-jasne/r8-obiektowe">rozdziale 8</a>. Stawiając w centrum prototypy zamiast konstruktorów udało się nam znacznie uprościć niektóre rzeczy.</p>
+  <p>Niestety najlepszym sposobem nauki projektowania poprawnych interfejsów jest używanie przez jakiś czas niepoprawnych. Gdy w końcu ma się ich dość, zaczyna się szukać sposobu na ich udoskonalenie i przy okazji sporo się uczy. Nie zakładaj, że słaby interfejs taki już po prostu musi być. Popraw go albo zapakuj w lepszy interfejs (przykład tego przedstawiłem w <a href="/kursy/javascript/wszystko-jasne/r12-dom">rozdziale 12</a>).</p>
+</div>
+<hr>
+<div class="block">
+  <p>Istnieją funkcje wymagające dużej ilości argumentów. Czasami jest to spowodowane tym, że są źle zaprojektowane i wystarczy je podzielić na kilka mniejszych funkcji. Jednak czasami nie ma innej możliwości. Zazwyczaj argumenty te mają jakieś sensowne wartości domyślne. Moglibyśmy np. napisać kolejną rozszerzoną wersję funkcji <code>range</code>.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">range</span>(<span class="variabledef">start</span>, <span class="variabledef">end</span>, <span class="variabledef">stepSize</span>, <span class="variabledef">length</span>) {
+  <span class="keyword">if</span> (<span class="localvariable">stepSize</span> == <span class="atom">undefined</span>)
+    <span class="localvariable">stepSize</span> = <span class="atom">1</span>;
+  <span class="keyword">if</span> (<span class="localvariable">end</span> == <span class="atom">undefined</span>)
+    <span class="localvariable">end</span> = <span class="localvariable">start</span> + <span class="localvariable">stepSize</span> * (<span class="localvariable">length</span> - <span class="atom">1</span>);
+
+  <span class="keyword">var</span> <span class="variabledef">result</span> = [];
+  <span class="keyword">for</span> (; <span class="localvariable">start</span> &lt;= <span class="localvariable">end</span>; <span class="localvariable">start</span> += <span class="localvariable">stepSize</span>)
+    <span class="localvariable">result</span>.<span class="property">push</span>(<span class="localvariable">start</span>);
+  <span class="keyword">return</span> <span class="localvariable">result</span>;
+}
+
+<span class="variable">show</span>(<span class="variable">range</span>(<span class="atom">0</span>, <span class="atom">undefined</span>, <span class="atom">4</span>, <span class="atom">5</span>));</pre>
+  <p>Zapamiętanie, w którym miejscu powinien znajdować się każdy z argumentów może być trudne, nie mówiąc już o tym, jak denerwujące byłoby wpisywanie <code>undefined</code> jako drugi argument zawsze, gdy używany jest argument <code>length</code>. Przekazywanie argumentów do tej funkcji moglibyśmy uprościć pakując je w obiekt.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">defaultTo</span>(<span class="variabledef">object</span>, <span class="variabledef">values</span>) {
+  <span class="variable">forEachIn</span>(<span class="localvariable">values</span>, <span class="keyword">function</span>(<span class="variabledef">name</span>, <span class="variabledef">value</span>) {
+    <span class="keyword">if</span> (!<span class="localvariable">object</span>.<span class="property">hasOwnProperty</span>(<span class="localvariable">name</span>))
+      <span class="localvariable">object</span>[<span class="localvariable">name</span>] = <span class="localvariable">value</span>;
+  });
+}
+
+<span class="keyword">function</span> <span class="variable">range</span>(<span class="variabledef">args</span>) {
+  <span class="variable">defaultTo</span>(<span class="localvariable">args</span>, {<span class="property">start</span>: <span class="atom">0</span>, <span class="property">stepSize</span>: <span class="atom">1</span>});
+  <span class="keyword">if</span> (<span class="localvariable">args</span>.<span class="property">end</span> == <span class="atom">undefined</span>)
+    <span class="localvariable">args</span>.<span class="property">end</span> = <span class="localvariable">args</span>.<span class="property">start</span> + <span class="localvariable">args</span>.<span class="property">stepSize</span> * (<span class="localvariable">args</span>.<span class="property">length</span> - <span class="atom">1</span>);
+
+  <span class="keyword">var</span> <span class="variabledef">result</span> = [];
+  <span class="keyword">for</span> (; <span class="localvariable">args</span>.<span class="property">start</span> &lt;= <span class="localvariable">args</span>.<span class="property">end</span>; <span class="localvariable">args</span>.<span class="property">start</span> += <span class="localvariable">args</span>.<span class="property">stepSize</span>)
+    <span class="localvariable">result</span>.<span class="property">push</span>(<span class="localvariable">args</span>.<span class="property">start</span>);
+  <span class="keyword">return</span> <span class="localvariable">result</span>;
+}
+
+<span class="variable">show</span>(<span class="variable">range</span>({<span class="property">stepSize</span>: <span class="atom">4</span>, <span class="property">length</span>: <span class="atom">5</span>}));</pre>
+  <p>Funkcja <code>defaultTo</code> służy do dodawania domyślnych wartości do obiektów. Kopiuje własności swojego drugiego argumentu do swojego pierwszego argumentu pomijając te, które już mają wartości.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Moduł lub grupa modułów, której można użyć w więcej niż jednym programie nazywa się <strong>biblioteką</strong>. Dla wielu języków programowania dostępne są ogromne biblioteki kodu wysokiej jakości. Dzięki temu programiści nie muszą za każdym razem pisać wszystkiego od początku i mogą szybciej pracować. Także dla języka JavaScript liczba bibliotek jest całkiem pokaźna.</p>
+  <p>I wydaje się, że wciąż rośnie. Istnieją biblioteki zawierające takie podstawowe narzędzia, jak <code>map</code> czy <code>clone</code>. W innych językach tak przydatne konstrukcje są dostępne standardowo, ale w JavaScripcie trzeba je budować samodzielnie albo używać bibliotek, jeśli chce się ich używać. Z bibliotek warto korzystać z wielu powodów: pozwalają zaoszczędzić na pracy, a zawarty w nich kod jest o wiele lepiej przetestowany niż to, co sami napiszemy.</p>
+  <p>Do najpopularniejszych bibliotek JavaScript zaliczają się <a href="http://www.prototypejs.org/">prototype</a>, <a href="http://mootools.net">mootools</a>, <a href="http://jquery.com">jQuery</a> i <a href="http://mochikit.com">MochiKit</a>. Dostępne są też bardziej rozbudowane „szkielety” zawierające znacznie więcej niż tylko zestaw podstawowych narzędzi. W tej kategorii do najpopularniejszych należą <a href="http://developer.yahoo.com/yui/">YUI</a> (własność Yahoo) i <a href="http://dojotoolkit.org/">Dojo</a>. Wszystkie wymienione biblioteki są darmowe i dostępne do pobrania w internecie. Moja ulubiona to MochiKit, ale to tylko kwestia gustu. Gdy staniesz się poważnym programistą JavaScript, przejrzyj dokumentacje tych bibliotek, aby mieć ogólne rozeznanie jak działają i do czego można je wykorzystać.</p>
+  <p>Fakt że podstawowy zestaw narzędzi jest praktycznie niezbędny do napisania jakiegokolwiek większego programu w JavaScripcie w połączeniu z faktem, że istnieje tak dużo różnych zestawów narzędzi sprawia, że programiści mają twardy orzech do zgryzienia. Muszą bowiem wybrać czy ich biblioteka ma zależeć od jakiejś innej biblioteki czy też wolą wszystko napisać od początku sami. Wybór pierwszej opcji utrudnia używanie biblioteki osobom używającym innego zestawu narzędzi, a wybór drugiej sprawia, że w kodzie biblioteki będzie dużo kodu, który nie jest niezbędny. Ten dylemat może być jedną z przyczyn, dla których wciąż jest względnie mało dobrych i powszechnie używanych bibliotek JavaScript. Niewykluczone że przyszłe zmiany w standardzie ECMAScript i przeglądarkach wiele z tych zestawów narzędzi uczynią niepotrzebnymi i częściowo problem zostanie rozwiązany.</p>
+</div>

@@ -1,0 +1,563 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Wyszukiwanie</title>
+<link rel=stylesheet href=doc.css>
+<link rel=author href=http://marijnhaverbeke.nl/>
+<link rel=license href=http://creativecommons.org/licenses/by/3.0/deed.pl>
+<h1>Wyszukiwanie</h1>
+
+<div class="block">
+  <p>W tym rozdziale nie wprowadzam żadnych nowych pojęć ściśle dotyczących języka JavaScript. Pokażę Ci natomiast, jak rozwiązać dwa problemy oraz przedstawię kilka ciekawych algorytmów i technik. Jeśli Cię to nie interesuje, możesz spokojnie pominąć ten rozdział.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Oto pierwszy z dwóch problemów. Spójrz na poniższą mapę. Widać na niej niewielką tropikalną wyspę o nazwie Hiva Oa, która leży na Oceanie Spokojnym.</p>
+  <img src="Hiva-Oa.png" alt="Wyspa Hiva Oa" width="629" height="307">
+  <p>Szare linie oznaczają drogi, a znajdujące się obok nich numery informują, jaka jest długość tych dróg. Wyobraź sobie, że potrzebujesz programu znajdującego najkrótszą drogę między dwoma punktami na Hiva Oa. Jak się do tego zabrać? Pomyśl o tym przez chwilę.</p>
+  <p>Hej. Nie uciekaj do następnego rozdziału, tylko naprawdę spróbuj wymyślić jakieś sposoby na rozwiązanie tego zadania i zastanów się, jakie problemy możesz przy tym napotkać. Czytając techniczną książkę bardzo łatwo jest tylko rzucić okiem na tekst, pokiwać głową z uznaniem i od razu zapomnieć, co się przeczytało. Jeśli jednak naprawdę wysilisz się, aby rozwiązać problem, stanie się on <em>Twoim</em> problemem i jego rozwiązanie będzie Ci bliższe.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Pierwszym aspektem tej kwestii jest reprezentacja danych. Informacje przedstawione na obrazku dla komputera są mało przydatne. Moglibyśmy spróbować napisać program wydobywający informacje z mapy, ale byłoby to bardzo skomplikowane zadanie. Gdybyśmy mieli do zinterpretowania 20 tysięcy takich map, to pewnie byśmy napisali taki program, ale w tym przypadku zinterpretujemy mapę sami i zdobyte informacje przedstawimy w bardziej zrozumiały dla komputera sposób.</p>
+  <p>Co program powinien wiedzieć? Musi mieć możliwość sprawdzania, które miejsca są ze sobą połączone i jaką długość mają łączące je drogi. Miejsca i drogi na tej wyspie tworzą tzw. <strong>graf</strong> (jest to pojęcie matematyczne). Grafy można przechowywać na wiele sposobów. Jednym z najprostszych z nich jest utworzenie tablicy obiektów drogowych zawierających własności określające nazwy punktów końcowych i długość…</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">roads</span> = [{<span class="property">point1</span>: <span class="string">"Point Kiukiu"</span>, <span class="property">point2</span>: <span class="string">"Hanaiapa"</span>, <span class="property">length</span>: <span class="atom">19</span>},
+             {<span class="property">point1</span>: <span class="string">"Point Kiukiu"</span>, <span class="property">point2</span>: <span class="string">"Mt Feani"</span>, <span class="property">length</span>: <span class="atom">15</span>}
+    <span class="comment">/* itd. */</span>];</pre>
+  <p>Jednak program szukając drogi bardzo często będzie potrzebował listy wszystkich dróg zaczynających się w określonym miejscu, podobnie jak osoba stojąca na rozdrożu i szukająca drogowskazu „Hanaiapa: 19km, Mount Feani: 15km”. Byłoby fajnie, gdyby dało się to zrobić łatwo i szybko.</p>
+  <p>Mając taką reprezentację, jak powyższa za każdym razem, gdy potrzebujemy takiej „drogowskazowej” listy, musimy przeglądać całą listę dróg, aby wybrać odpowiednie. Lepszym rozwiązaniem byłoby zapisanie tej listy bezpośrednio. Możemy np. użyć obiektu wiążącego nazwy miejsc z listami drogowskazów:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">roads</span> = {<span class="string">"Point Kiukiu"</span>: [{<span class="property">to</span>: <span class="string">"Hanaiapa"</span>, <span class="property">distance</span>: <span class="atom">19</span>},
+                              {<span class="property">to</span>: <span class="string">"Mt Feani"</span>, <span class="property">distance</span>: <span class="atom">15</span>},
+                              {<span class="property">to</span>: <span class="string">"Taaoa"</span>, <span class="property">distance</span>: <span class="atom">15</span>}],
+    <span class="string">"Taaoa"</span>: [<span class="comment">/* itd. */</span>]};</pre>
+  <p>Mając taki obiekt, aby znaleźć drogi z Point Kiukiu, wystarczy zajrzeć do <code>roads["Point Kiukiu"]</code>.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Jednak ta reprezentacja zawiera duplikaty informacji: droga między A i B jest zaznaczona zarówno w A jak i B. Już pierwsza wersja wymagała sporo pisania, a ta wymaga jeszcze więcej.</p>
+  <p>Na szczęście możemy wykorzystać umiejętność komputera do wykonywania powtarzalnych czynności. Możemy określić drogi raz i wygenerować odpowiednią strukturę danych za pomocą komputera. Zaczniemy od zainicjowania pustego obiektu o nazwie <code>roads</code> i napisania funkcji <code>makeRoad</code>:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">roads</span> = {};
+    <span class="keyword">function</span> <span class="variable">makeRoad</span>(<span class="variabledef">from</span>, <span class="variabledef">to</span>, <span class="variabledef">length</span>) {
+    <span class="keyword">function</span> <span class="variabledef">addRoad</span>(<span class="variabledef">from</span>, <span class="variabledef">to</span>) {
+    <span class="keyword">if</span> (!(<span class="localvariable">from</span> in <span class="variable">roads</span>))
+    <span class="variable">roads</span>[<span class="localvariable">from</span>] = [];
+    <span class="variable">roads</span>[<span class="localvariable">from</span>].<span class="property">push</span>({<span class="property">to</span>: <span class="localvariable">to</span>, <span class="property">distance</span>: <span class="localvariable">length</span>});
+  }
+    <span class="localvariable">addRoad</span>(<span class="localvariable">from</span>, <span class="localvariable">to</span>);
+    <span class="localvariable">addRoad</span>(<span class="localvariable">to</span>, <span class="localvariable">from</span>);
+}</pre>
+  <p>Elegancko, prawda? Zwróć uwagę, że w funkcji wewnętrznej <code>addRoad</code> użyte zostały parametry o takich samych nazwach (<code>from</code> i <code>to</code>), jak w funkcji zewnętrznej. Nie spowoduje to konfliktów, ponieważ wewnątrz funkcji <code>addRoad</code> nazwy te odnoszą się do parametrów funkcji <code>addRoad</code>, a poza nią — do do parametrów funkcji <code>makeRoad</code>.</p>
+  <p>Instrukcja <code>if</code> w funkcji <code>addRoad</code> sprawdza czy istnieje tablica miejsc związanych z lokalizacją określoną w <code>from</code>. Jeśli nie ma, dodaje pustą tablicę. Dzięki temu w następnym wierszu można przyjąć, że taka tablica istnieje i bezpiecznie wstawić do niej nową drogę.</p>
+  <p>Teraz informacje z mapy wyglądają tak:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">makeRoad</span>(<span class="string">"Point Kiukiu"</span>, <span class="string">"Hanaiapa"</span>, <span class="atom">19</span>);
+    <span class="variable">makeRoad</span>(<span class="string">"Point Kiukiu"</span>, <span class="string">"Mt Feani"</span>, <span class="atom">15</span>);
+    <span class="variable">makeRoad</span>(<span class="string">"Point Kiukiu"</span>, <span class="string">"Taaoa"</span>, <span class="atom">15</span>);
+    <span class="comment">// ...</span></pre>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 7.1</div>
+  <div class="exercise">
+    <p>W powyższym opisie łańcuch <code>"Point Kiukiu"</code> nadal występuje trzy razy po kolei. Moglibyśmy nasz opis jeszcze bardziej skrócić, gdybyśmy zezwolili na określanie kilku dróg w jednym wierszu.</p>
+    <p>Napisz funkcję o nazwie <code>makeRoads</code> pobierającą dowolną nieparzystą liczbę argumentów. Pierwszy argument jest zawsze punktem początkowym dróg, a każda para argumentów znajdująca się za nim określa punkt końcowy i długość drogi.</p>
+    <p>Nie duplikuj kodu funkcji <code>makeRoad</code>, tylko spraw, aby funkcja <code>makeRoads</code> wywoływała <code>makeRoad</code>.</p>
+  </div>
+  <div class="toggle">[pokaż rozwiązanie]</div><div class="solution" style="display: none;"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">makeRoads</span>(<span class="variabledef">start</span>) {
+      <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">i</span> = <span class="atom">1</span>; <span class="localvariable">i</span> &lt; <span class="localvariable">arguments</span>.<span class="property">length</span>; <span class="localvariable">i</span> += <span class="atom">2</span>)
+      <span class="variable">makeRoad</span>(<span class="localvariable">start</span>, <span class="localvariable">arguments</span>[<span class="localvariable">i</span>], <span class="localvariable">arguments</span>[<span class="localvariable">i</span> + <span class="atom">1</span>]);
+}</pre>
+    <p>Funkcja ta ma jeden nazwany parametr o nazwie <code>start</code>, a pozostałe pobiera z quasi-tablicy <code>arguments</code>. Zmienna <code>i</code> ma początkową wartość <code>1</code>, ponieważ musi pominąć pierwszy parametr. Przypomnę też, że zapis <code>i += 2</code> jest skróconą formą konstrukcji <code>i = i + 2</code>.</p>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">roads</span> = {};
+      <span class="variable">makeRoads</span>(<span class="string">"Point Kiukiu"</span>, <span class="string">"Hanaiapa"</span>, <span class="atom">19</span>,
+      <span class="string">"Mt Feani"</span>, <span class="atom">15</span>, <span class="string">"Taaoa"</span>, <span class="atom">15</span>);
+      <span class="variable">makeRoads</span>(<span class="string">"Airport"</span>, <span class="string">"Hanaiapa"</span>, <span class="atom">6</span>, <span class="string">"Mt Feani"</span>, <span class="atom">5</span>,
+      <span class="string">"Atuona"</span>, <span class="atom">4</span>, <span class="string">"Mt Ootua"</span>, <span class="atom">11</span>);
+      <span class="variable">makeRoads</span>(<span class="string">"Mt Temetiu"</span>, <span class="string">"Mt Feani"</span>, <span class="atom">8</span>, <span class="string">"Taaoa"</span>, <span class="atom">4</span>);
+      <span class="variable">makeRoads</span>(<span class="string">"Atuona"</span>, <span class="string">"Taaoa"</span>, <span class="atom">3</span>, <span class="string">"Hanakee pearl lodge"</span>, <span class="atom">1</span>);
+      <span class="variable">makeRoads</span>(<span class="string">"Cemetery"</span>, <span class="string">"Hanakee pearl lodge"</span>, <span class="atom">6</span>, <span class="string">"Mt Ootua"</span>, <span class="atom">5</span>);
+      <span class="variable">makeRoads</span>(<span class="string">"Hanapaoa"</span>, <span class="string">"Mt Ootua"</span>, <span class="atom">3</span>);
+      <span class="variable">makeRoads</span>(<span class="string">"Puamua"</span>, <span class="string">"Mt Ootua"</span>, <span class="atom">13</span>, <span class="string">"Point Teohotepapapa"</span>, <span class="atom">14</span>);
+
+      <span class="variable">show</span>(<span class="variable">roads</span>[<span class="string">"Airport"</span>]);</pre>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Definiując kilka wygodnych operacji udało się nam znacznie skrócić nasz opis informacji o drogach. Można powiedzieć, że zwięźle wyraziliśmy te informacje poprzez rozszerzenie słownika. Zdefiniowanie „małego języka” jak ten jest często bardzo przydatną techniką — jeśli kiedykolwiek będziesz musiał wielokrotnie wpisywać ten sam kod,  postaraj się opracować słownik, który pozwoli Ci to skrócić.</p>
+  <p>Wpisywanie niepotrzebnego kodu jest nie tylko żmudne, ale i łatwo przy tym popełnić błąd, ponieważ przy wykonywaniu czynności niewymagających myślenia ludzie często popełniają błędy. Ponadto wielokrotnie powtarzający się kod trudno jest modyfikować, ponieważ jeśli jakaś struktura powtarza się w kodzie setki razy, trzeba wprowadzić zmiany w setkach miejsc. </p>
+</div>
+<hr>
+<div class="block">
+  <p>Jeśli wykonałeś wszystkie wcześniejsze fragmenty kodu, powinieneś teraz mieć zmienną o nazwie <code>roads</code> zawierającą wszystkie drogi na wyspie. Gdy będziemy potrzebować dróg zaczynających się w wybranym miejscu, wystarczy, że napiszemy <code>roads[place]</code>. Jeżeli jednak ktoś popełni błąd przy wpisywaniu nazwy miejsca, co jest całkiem możliwe biorąc pod uwagę, jak one wyglądają, zamiast spodziewanej tablicy otrzyma wartość <code>undefined</code> i wystąpią różne dziwne błędy. Dlatego napiszemy funkcję, która będzie pobierała tablice dróg i krzyczała na nas, gdy podamy nieznaną nazwę miejsca:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">roadsFrom</span>(<span class="variabledef">place</span>) {
+    <span class="keyword">var</span> <span class="variabledef">found</span> = <span class="variable">roads</span>[<span class="localvariable">place</span>];
+    <span class="keyword">if</span> (<span class="localvariable">found</span> == <span class="atom">undefined</span>)
+    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="variable">Error</span>(<span class="string">"Nie znaleziono miejsca o nazwie '"</span> + <span class="localvariable">place</span> + <span class="string">"'."</span>);
+    <span class="keyword">else</span>
+    <span class="keyword">return</span> <span class="localvariable">found</span>;
+}
+
+    <span class="variable">show</span>(<span class="variable">roadsFrom</span>(<span class="string">"Puamua"</span>));</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Oto pierwsza próba napisania algorytmu <strong>wyszukiwania drogi</strong>, tzw. metoda hazardzisty (ang. gambler’s method):</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">gamblerPath</span>(<span class="variabledef">from</span>, <span class="variabledef">to</span>) {
+    <span class="keyword">function</span> <span class="variabledef">randomInteger</span>(<span class="variabledef">below</span>) {
+    <span class="keyword">return</span> <span class="variable">Math</span>.<span class="property">floor</span>(<span class="variable">Math</span>.<span class="property">random</span>() * <span class="localvariable">below</span>);
+  }
+    <span class="keyword">function</span> <span class="variabledef">randomDirection</span>(<span class="variabledef">from</span>) {
+    <span class="keyword">var</span> <span class="variabledef">options</span> = <span class="variable">roadsFrom</span>(<span class="localvariable">from</span>);
+    <span class="keyword">return</span> <span class="localvariable">options</span>[<span class="localvariable">randomInteger</span>(<span class="localvariable">options</span>.<span class="property">length</span>)].<span class="property">to</span>;
+  }
+
+    <span class="keyword">var</span> <span class="variabledef">path</span> = [];
+    <span class="keyword">while</span> (<span class="atom">true</span>) {
+    <span class="localvariable">path</span>.<span class="property">push</span>(<span class="localvariable">from</span>);
+    <span class="keyword">if</span> (<span class="localvariable">from</span> == <span class="localvariable">to</span>)
+    <span class="keyword">break</span>;
+    <span class="localvariable">from</span> = <span class="localvariable">randomDirection</span>(<span class="localvariable">from</span>);
+  }
+    <span class="keyword">return</span> <span class="localvariable">path</span>;
+}
+
+    <span class="variable">show</span>(<span class="variable">gamblerPath</span>(<span class="string">"Hanaiapa"</span>, <span class="string">"Mt Feani"</span>));</pre>
+  <p>Na każdym rozgałęzieniu dróg hazardzista rzuca kostką, aby zdecydować, w którą stronę pójść. Jeśli wyjdzie mu, że powinien wrócić tam, skąd przyszedł, to również to zrobi. W końcu dotrze w miejsce docelowe, ponieważ wszystkie miejsca na wyspie są ze sobą połączone.</p>
+  <p>Najmniej zrozumiały wiersz kodu w tym przykładzie to zapewne ten zawierający instrukcję <a name="key3"></a><code>Math.random</code>. Funkcja ta zwraca pseudolosową liczbę<a href="#footnote1" class="footref">1</a> z przedziału 0-1. Wywołaj ją kilka razy w konsoli, a w większości przypadków za każdym razem otrzymasz inną liczbę. Funkcja <code>randomInteger</code> mnoży tę liczbę przez otrzymany argument i zaokrągla wynik w dół za pomocą funkcji <code>Math.floor</code>. Dzięki temu instrukcja <code>randomInteger(3)</code> może zwrócić liczby <code>0</code>, <code>1</code> oraz <code>2</code>.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Metoda hazardzisty jest dobra dla tych, którzy brzydzą się uporządkowaną strukturą i nie lubią planować oraz ciągle szukają przygód. My jednak mieliśmy napisać program znajdujący <em>najkrótszą</em> drogę między dwoma miejscami, a więc musimy bardziej się postarać.</p>
+  <p>Bardzo proste podejście do rozwiązania tego problemu nosi nazwę „generuj i sprawdzaj”. Polega ono na:</p>
+  <ol>
+    <li>wygenerowaniu wszystkich możliwych tras,</li>
+    <li>i wybraniu z otrzymanego zbioru najkrótszej trasy łączącej punkt początkowy z końcowym.</li>
+  </ol>
+  <p>Realizacja drugiego kroku jest łatwa. Natomiast pierwszy krok może sprawiać problemy. Jeśli dopuści się trasy z kołami, to będzie nieskończona liczba tras. Oczywiście trasy z kołami nie mogą być najkrótsze dokądkolwiek, a dodatkowo można odrzucić trasy nie zaczynające się w punkcie początkowym. Dla małego grafu, jak Hiva Oa powinno być możliwe wygenerowanie wszystkich niecyklicznych (wolnych od kół) tras zaczynających się w określonym punkcie.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Wcześniej jednak będziemy potrzebować pewnych nowych narzędzi. Pierwszym z nich jest funkcja o nazwie <code>member</code> służąca do sprawdzania, czy wybrany element znajduje się w tablicy. Trasa będzie przechowywana jako tablica nazw i docierając w nowe miejsce algorytm będzie wywoływał funkcję <code>member</code>, aby sprawdzić czy już w tym miejscu był. Może to wyglądać następująco:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">member</span>(<span class="variabledef">array</span>, <span class="variabledef">value</span>) {
+    <span class="keyword">var</span> <span class="variabledef">found</span> = <span class="atom">false</span>;
+    <span class="variable">forEach</span>(<span class="localvariable">array</span>, <span class="keyword">function</span>(<span class="variabledef">element</span>) {
+    <span class="keyword">if</span> (<span class="localvariable">element</span> === <span class="localvariable">value</span>)
+    <span class="localvariable">found</span> = <span class="atom">true</span>;
+  });
+    <span class="keyword">return</span> <span class="localvariable">found</span>;
+}
+
+    <span class="variable">print</span>(<span class="variable">member</span>([<span class="atom">6</span>, <span class="atom">7</span>, <span class="string">"Bordeaux"</span>], <span class="atom">7</span>));</pre>
+  <p>Teraz jednak przeglądana będzie cała tablica, nawet jeśli wartość zostanie znaleziona natychmiast na pierwszej pozycji. Co za marnotrawstwo. W pętli <code>for</code> można zakończyć iterację za pomocą instrukcji <code>break</code>, ale w pętli <code>forEach</code> tak się nie da, ponieważ treść pętli jest funkcją, a instrukcja <code>break</code> nie służy do wychodzenia z funkcji. Jednym z możliwych rozwiązań jest dostosowanie <code>forEach</code>, aby rozpoznawała określony typ wyjątków jako sygnał do przerwania.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">Break</span> = {<span class="property">toString</span>: <span class="keyword">function</span>() {<span class="keyword">return</span> <span class="string">"Break"</span>;}};
+
+    <span class="keyword">function</span> <span class="variable">forEach</span>(<span class="variabledef">array</span>, <span class="variabledef">action</span>) {
+    <span class="keyword">try</span> {
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">i</span> = <span class="atom">0</span>; <span class="localvariable">i</span> &lt; <span class="localvariable">array</span>.<span class="property">length</span>; <span class="localvariable">i</span>++)
+    <span class="localvariable">action</span>(<span class="localvariable">array</span>[<span class="localvariable">i</span>]);
+  }
+    <span class="keyword">catch</span> (<span class="variabledef">exception</span>) {
+    <span class="keyword">if</span> (<span class="localvariable">exception</span> != <span class="variable">Break</span>)
+    <span class="keyword">throw</span> <span class="localvariable">exception</span>;
+  }
+}</pre>
+  <p>Teraz gdy funkcja <code>action</code> zgłosi wyjątek <code>Break</code>, funkcja <code>forEach</code> go przechwyci i przerwie iterację. Obiekt przechowywany w zmiennej <code>Break</code> jest używany wyłącznie w celach porównawczych. Własność <code>toString</code> dodałem mu po to, aby ułatwić zorientowanie się, co za dziwną wartość otrzymaliśmy, gdy jakimś cudem wyjątek <code>Break</code> pojawi się poza <code>forEach</code>.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Możliwość wyjścia z pętli <code>forEach</code> może być bardzo przydatna, ale w przypadku funkcji <code>member</code> wynik jest raczej nieładny, ponieważ trzeba zapisać wynik, a następnie go zwrócić. Możemy dodać jeszcze jeden rodzaj wyjątku, <code>Return</code>, z własnością <code>value</code> i zwracać tę wartość w <code>forEach</code>, gdy taki wyjątek zostanie zgłoszony, ale to by było bardzo przypadkowe i nieeleganckie rozwiązanie. Tak naprawdę potrzebujemy nowej funkcji wyższego rzędu o nazwie <code>any</code> (lub czasami <code>some</code>). Oto jej implementacja:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">any</span>(<span class="variabledef">test</span>, <span class="variabledef">array</span>) {
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">i</span> = <span class="atom">0</span>; <span class="localvariable">i</span> &lt; <span class="localvariable">array</span>.<span class="property">length</span>; <span class="localvariable">i</span>++) {
+    <span class="keyword">var</span> <span class="variabledef">found</span> = <span class="localvariable">test</span>(<span class="localvariable">array</span>[<span class="localvariable">i</span>]);
+    <span class="keyword">if</span> (<span class="localvariable">found</span>)
+    <span class="keyword">return</span> <span class="localvariable">found</span>;
+  }
+    <span class="keyword">return</span> <span class="atom">false</span>;
+}
+
+    <span class="keyword">function</span> <span class="variable">member</span>(<span class="variabledef">array</span>, <span class="variabledef">value</span>) {
+    <span class="keyword">return</span> <span class="variable">any</span>(<span class="variable">partial</span>(<span class="variable">op</span>[<span class="string">"==="</span>], <span class="localvariable">value</span>), <span class="localvariable">array</span>);
+}
+
+    <span class="variable">print</span>(<span class="variable">member</span>([<span class="string">"Strach"</span>, <span class="string">"Obrzydzenie"</span>], <span class="string">"Wyparcie"</span>));</pre>
+  <p>Funkcja <code>any</code> przegląda elementy tablicy od lewej i wykonuje na nich funkcję testową. Gdy funkcja testowa zwróci wartość oznaczającą prawdę, funkcja <code>any</code> zwraca tę wartość. Jeśli wartość oznaczająca prawdę nie zostanie znaleziona, następuje zwrot wartości <code>false</code>. Wywołanie <code>any(test, array)</code> jest mniej więcej równoważne z wyrażeniem <code>test(array[0]) || test(array[1]) ||…</code> itd.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Podobnie jak operator <code>&amp;&amp;</code> ma uzupełnienie w postaci operatora <code>||</code>, tak funkcja <code>any</code> ma uzupełnienie w postaci funkcji <code>every</code>:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">every</span>(<span class="variabledef">test</span>, <span class="variabledef">array</span>) {
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">i</span> = <span class="atom">0</span>; <span class="localvariable">i</span> &lt; <span class="localvariable">array</span>.<span class="property">length</span>; <span class="localvariable">i</span>++) {
+    <span class="keyword">var</span> <span class="variabledef">found</span> = <span class="localvariable">test</span>(<span class="localvariable">array</span>[<span class="localvariable">i</span>]);
+    <span class="keyword">if</span> (!<span class="localvariable">found</span>)
+    <span class="keyword">return</span> <span class="localvariable">found</span>;
+  }
+    <span class="keyword">return</span> <span class="atom">true</span>;
+}
+
+    <span class="variable">show</span>(<span class="variable">every</span>(<span class="variable">partial</span>(<span class="variable">op</span>[<span class="string">"!="</span>], <span class="atom">0</span>), [<span class="atom">1</span>, <span class="atom">2</span>, -<span class="atom">1</span>]));</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Kolejna funkcja, jakiej będziemy potrzebować to <code>flatten</code>. Będzie pobierała tablicę tablic i wstawiała elementy tych tablic do jednej dużej tablicy.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button>  <span class="keyword">function</span> <span class="variable">flatten</span>(<span class="variabledef">arrays</span>) {
+    <span class="keyword">var</span> <span class="variabledef">result</span> = [];
+    <span class="variable">forEach</span>(<span class="localvariable">arrays</span>, <span class="keyword">function</span> (<span class="variabledef">array</span>) {
+    <span class="variable">forEach</span>(<span class="localvariable">array</span>, <span class="keyword">function</span> (<span class="variabledef">element</span>){<span class="localvariable">result</span>.<span class="property">push</span>(<span class="localvariable">element</span>);});
+    });
+    <span class="keyword">return</span> <span class="localvariable">result</span>;
+  }</pre>
+  <p>To samo można by było zrobić przy użyciu metody <code>concat</code> i jakiegoś rodzaju funkcji <code>reduce</code>, ale takie rozwiązanie byłoby mniej wydajne. Podobnie jak wielokrotne łączenie łańcuchów jest wolniejsze od umieszczenia fragmentów w tablicy i wywołanie funkcji <code>join</code>, także wielokrotne łączenie tablic powoduje powstanie niepotrzebnych pośrednich wartości tablicowych.</p>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 7.2</div>
+  <div class="exercise">
+    <p>Przed rozpoczęciem generowania dróg potrzebujemy jeszcze jednej funkcji wyższego rzędu. Jest to funkcja <code>filter</code>. Podobnie jak <code>map</code> funkcja ta jako argumenty pobiera funkcję oraz tablicę i tworzy nową tablicę, tylko zamiast zapisywać w tej nowej tablicy wyniki wykonania funkcji z argumentu na tablicy z argumentu, zwraca tablicę zawierającą tylko te wartości ze starej tablicy, dla których funkcja z argumentu zwróciła wartość oznaczającą prawdę. Poniżej znajduje się kod implementacji tej funkcji.</p>
+  </div>
+  <div class="toggle">[pokaż rozwiązanie]</div><div class="solution" style="display: none;"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">filter</span>(<span class="variabledef">test</span>, <span class="variabledef">array</span>) {
+      <span class="keyword">var</span> <span class="variabledef">result</span> = [];
+      <span class="variable">forEach</span>(<span class="localvariable">array</span>, <span class="keyword">function</span> (<span class="variabledef">element</span>) {
+      <span class="keyword">if</span> (<span class="localvariable">test</span>(<span class="localvariable">element</span>))
+      <span class="localvariable">result</span>.<span class="property">push</span>(<span class="localvariable">element</span>);
+  });
+      <span class="keyword">return</span> <span class="localvariable">result</span>;
+}
+
+      <span class="variable">show</span>(<span class="variable">filter</span>(<span class="variable">partial</span>(<span class="variable">op</span>[<span class="string">"&gt;"</span>], <span class="atom">5</span>), [<span class="atom">0</span>, <span class="atom">4</span>, <span class="atom">8</span>, <span class="atom">12</span>]));</pre>
+    <p>Jeśli wynik tego zastosowania funkcji <code>filter</code> zaskoczył Cię, pamiętaj że argument podany do funkcji <code>partial</code> jest używany jako <em>pierwszy</em> argument funkcji, a więc zostaje użyty po lewej stronie operatora <code>&gt;</code>.)</p>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Wyobraź sobie, jak mógłby wyglądać algorytm generowania tras ― zaczynałby działanie od miejsca początkowego i generował trasy dla każdej drogi wychodzącej z tego miejsca. Na końcu każdej z tych dróg generowałby kolejne trasy. Nie podążałby tylko jedną drogą, ale rozgałęziałby się. Z tego powodu naturalnym sposobem na jego realizację jest rekurencja.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">possibleRoutes</span>(<span class="variabledef">from</span>, <span class="variabledef">to</span>) {
+    <span class="keyword">function</span> <span class="variabledef">findRoutes</span>(<span class="variabledef">route</span>) {
+    <span class="keyword">function</span> <span class="variabledef">notVisited</span>(<span class="variabledef">road</span>) {
+    <span class="keyword">return</span> !<span class="variable">member</span>(<span class="localvariable">route</span>.<span class="property">places</span>, <span class="localvariable">road</span>.<span class="property">to</span>);
+    }
+    <span class="keyword">function</span> <span class="variabledef">continueRoute</span>(<span class="variabledef">road</span>) {
+    <span class="keyword">return</span> <span class="localvariable">findRoutes</span>({<span class="property">places</span>: <span class="localvariable">route</span>.<span class="property">places</span>.<span class="property">concat</span>([<span class="localvariable">road</span>.<span class="property">to</span>]),
+    <span class="property">length</span>: <span class="localvariable">route</span>.<span class="property">length</span> + <span class="localvariable">road</span>.<span class="property">distance</span>});
+    }
+
+    <span class="keyword">var</span> <span class="variabledef">end</span> = <span class="localvariable">route</span>.<span class="property">places</span>[<span class="localvariable">route</span>.<span class="property">places</span>.<span class="property">length</span> - <span class="atom">1</span>];
+    <span class="keyword">if</span> (<span class="localvariable">end</span> == <span class="localvariable">to</span>)
+    <span class="keyword">return</span> [<span class="localvariable">route</span>];
+    <span class="keyword">else</span>
+    <span class="keyword">return</span> <span class="variable">flatten</span>(<span class="variable">map</span>(<span class="localvariable">continueRoute</span>, <span class="variable">filter</span>(<span class="localvariable">notVisited</span>,
+    <span class="variable">roadsFrom</span>(<span class="localvariable">end</span>))));
+  }
+    <span class="keyword">return</span> <span class="localvariable">findRoutes</span>({<span class="property">places</span>: [<span class="localvariable">from</span>], <span class="property">length</span>: <span class="atom">0</span>});
+}
+
+    <span class="variable">show</span>(<span class="variable">possibleRoutes</span>(<span class="string">"Point Teohotepapapa"</span>, <span class="string">"Point Kiukiu"</span>).<span class="property">length</span>);
+    <span class="variable">show</span>(<span class="variable">possibleRoutes</span>(<span class="string">"Hanapaoa"</span>, <span class="string">"Mt Ootua"</span>));</pre>
+  <p>Ta funkcja zwraca tablicę obiektów tras, z których każdy zawiera tablicę miejsc, przez które dana trasa przechodzi oraz długość. Funkcja <code>findRoutes</code> rekurencyjnie kontynuuje trasę zwracając tablicę zawierającą każde możliwe rozszerzenie tej trasy. Gdy koniec trasy jest miejscem, do którego chcemy dotrzeć, zwraca tę trasę, ponieważ kontynuowanie poza to miejsce byłoby bezcelowe. Jeśli jest to inne miejsce, musimy kontynuować. Najtrudniejszy do rozszyfrowania jest wiersz kodu zawierający wywołania funkcji <code>flatten</code>/<code>map</code>/<code>filter</code>. Można go odczytać tak: „Weź wszystkie drogi wychodzące z bieżącej lokalizacji, odrzuć te, które prowadzą do już odwiedzonych przez tę trasę miejsc. Kontynuuj podążanie każdą z tych dróg, aby otrzymać tablicę ukończonych tras dla każdej z nich, a następnie umieść te wszystkie trasy w jednej wielkiej tablicy, która zostanie zwrócona”.</p>
+  <p>W tym wierszu dużo się dzieje. Dlatego właśnie pomocne są dobre abstrakcje: dzięki nim można wyrażać skomplikowane działania bez potrzeby pisania całych ekranów kodu.</p>
+  <p>Czy ta funkcja nie jest nieskończoną rekurencją, biorąc pod uwagę, że ciągle wywołuje samą siebie (poprzez funkcję <code>continueRoute</code>)? Nie, w pewnym momencie wszystkie wychodzące drogi dojdą do miejsc, przez które trasa już przeszła i wynikiem funkcji <code>filter</code> będzie pusta tablica. Wynikiem mapowania pustej tablicy będzie pusta tablica, której spłaszczenie (flatten) również zwróci pustą tablicę. A więc wywołanie funkcji <code>findRoutes</code> na ślepym zaułku spowoduje powstanie pustej tablicy, która oznacza, że „nie ma możliwości kontynuowania tej trasy”.</p>
+  <p>Zwróć uwagę, że miejsca są dołączane do tras za pomocą metody <code>concat</code>, a nie <code>push</code>. Metoda <code>concat</code> tworzy nową tablicę, podczas gdy <code>push</code> modyfikuje istniejącą. Jako że funkcja może z jednej częściowej trasy rozgałęzić się na kilka tras, nie możemy modyfikować tablicy reprezentującej oryginalną trasę, ponieważ tablica ta jest potrzebna kilka razy.</p>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 7.3</div>
+  <div class="exercise">
+    <p>Mając wszystkie możliwe trasy możemy spróbować znaleźć najkrótszą. Napisz funkcję o nazwie <code>shortestRoute</code>, która popdobnie jak <code>possibleRoutes</code>, jako argumenty pobiera nazwy punktów początkowego i końcowego. Niech zwraca jeden obiekt trasy typu tworzonego przez funkcję <code>possibleRoutes</code>.</p>
+  </div>
+  <div class="toggle">[pokaż rozwiązanie]</div><div class="solution" style="display: none;"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">shortestRoute</span>(<span class="variabledef">from</span>, <span class="variabledef">to</span>) {
+      <span class="keyword">var</span> <span class="variabledef">currentShortest</span> = <span class="atom">null</span>;
+      <span class="variable">forEach</span>(<span class="variable">possibleRoutes</span>(<span class="localvariable">from</span>, <span class="localvariable">to</span>), <span class="keyword">function</span>(<span class="variabledef">route</span>) {
+      <span class="keyword">if</span> (!<span class="localvariable">currentShortest</span> || <span class="localvariable">currentShortest</span>.<span class="property">length</span> &gt; <span class="localvariable">route</span>.<span class="property">length</span>)
+      <span class="localvariable">currentShortest</span> = <span class="localvariable">route</span>;
+  });
+      <span class="keyword">return</span> <span class="localvariable">currentShortest</span>;
+}</pre>
+    <p>Sztuka w „minimalizowaniu” i „maksymalizowaniu” algorytmów polega na tym, aby niczego nie zepsuć, gdy otrzyma się pustą tablicę. W tym przypadku wiemy, że każde dwa miejsca łączy przynajmniej jedna droga, a więc możemy ten problem zignorować. Ale byłoby to nieprofesjonalne. Co się stanie, gdy droga z Puamua do Mount Ootua, która jest stroma i błotnista, zostanie zmieciona z powierzchni przez lawinę błotną? Byłoby wstyd, gdyby miało to unieruchomić naszą funkcję i dlatego gdy żadne trasy nie zostaną znalezione, zwracamy <code>null</code>.</p>
+    <p>Poniżej przedstawione jest funkcyjne podejście z abstrakcją wszystkiego, co się dało:</p>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">minimise</span>(<span class="variabledef">func</span>, <span class="variabledef">array</span>) {
+      <span class="keyword">var</span> <span class="variabledef">minScore</span> = <span class="atom">null</span>;
+      <span class="keyword">var</span> <span class="variabledef">found</span> = <span class="atom">null</span>;
+      <span class="variable">forEach</span>(<span class="localvariable">array</span>, <span class="keyword">function</span>(<span class="variabledef">element</span>) {
+      <span class="keyword">var</span> <span class="variabledef">score</span> = <span class="localvariable">func</span>(<span class="localvariable">element</span>);
+      <span class="keyword">if</span> (<span class="localvariable">minScore</span> == <span class="atom">null</span> || <span class="localvariable">score</span> &lt; <span class="localvariable">minScore</span>) {
+      <span class="localvariable">minScore</span> = <span class="localvariable">score</span>;
+      <span class="localvariable">found</span> = <span class="localvariable">element</span>;
+    }
+  });
+      <span class="keyword">return</span> <span class="localvariable">found</span>;
+}
+
+      <span class="keyword">function</span> <span class="variable">getProperty</span>(<span class="variabledef">propName</span>) {
+      <span class="keyword">return</span> <span class="keyword">function</span>(<span class="variabledef">object</span>) {
+      <span class="keyword">return</span> <span class="localvariable">object</span>[<span class="localvariable">propName</span>];
+  };
+}
+
+      <span class="keyword">function</span> <span class="variable">shortestRoute</span>(<span class="variabledef">from</span>, <span class="variabledef">to</span>) {
+      <span class="keyword">return</span> <span class="variable">minimise</span>(<span class="variable">getProperty</span>(<span class="string">"length"</span>), <span class="variable">possibleRoutes</span>(<span class="localvariable">from</span>, <span class="localvariable">to</span>));
+}</pre>
+    <p>Niestety ta wersja jest trzy razy dłuższa od poprzedniej. W programach, w których trzeba coś zminimalizować dobrym pomysłem jest napisanie ogólnego algorytmu, aby można go było użyć wielokrotnie. W większości przypadków pierwsza wersja powinna być wystarczająco dobra.</p>
+    <p>Zwróć jednak uwagę na funkcję <code>getProperty</code>, która jest często przydatna przy programowaniu funkcyjnym z użyciem obiektów.</p>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Sprawdźmy, jaką trasę nasz algorytm znajdzie między Point Kiukiu i Point Teohotepapapa…</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="variable">shortestRoute</span>(<span class="string">"Point Kiukiu"</span>, <span class="string">"Point Teohotepapapa"</span>).<span class="property">places</span>);</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Dla takiej małej wyspy, jak Hiva Oa wygenerowanie wszystkich możliwych tras nie wymaga dużo pracy. Jeśli jednak spróbujesz to samo zrobić dla szczegółowej mapy np. Belgii, to zajmie Ci to niesłychanie dużo czasu i pamięci komputerowej. A jednak zapewne nie raz widziałeś internetowe narzędzia do planowania podróży. Są one w stanie wskazać mniej więcej najlepszą trasę w gigantycznej sieci dróg w ciągu zaledwie kilku sekund. Jak to robią?</p>
+  <p>Jeśli uważnie czytałeś, to mogłeś zauważyć, że nie trzeba generować wszystkich tras do samego końca. Jeśli zaczniemy porównywać trasy <em>podczas</em> ich budowania, możemy uniknąć tworzenia tego wielkiego zbioru tras i po znalezieniu pierwszej trasy prowadzącej do celu możemy zaniechać badania tras, które są dłuższe od już znalezionej.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Aby to sprawdzić, użyjemy jako mapy siatki o wymiarach 20 na 20:</p>
+  <img src="height.png" alt="Siatka mapy" width="403" height="403">
+  <p>Jest to mapa topograficzna górzystego obszaru. Żółte punkty to szczyty, a niebieskie to doliny. Obszar jest podzielony na prostokąty o rozmiarze 100 metrów. Mamy do dyspozycji funkcję o nazwie <code>heightAt</code>, która zwraca wysokość w metrach dowolnego prostokąta na mapie, przy czym prostokąty są reprezentowane jako obiekty z własnościami <code>x</code> i <code>y</code>.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">print</span>(<span class="variable">heightAt</span>({<span class="property">x</span>: <span class="atom">0</span>, <span class="property">y</span>: <span class="atom">0</span>}));
+    <span class="variable">print</span>(<span class="variable">heightAt</span>({<span class="property">x</span>: <span class="atom">11</span>, <span class="property">y</span>: <span class="atom">18</span>}));</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Chcemy przejść przez ten obszar pieszo rozpoczynając wędrówkę w lewym górnym rogu, a kończąc w prawym dolnym. Do siatki można podejść jak do grafu. Każdy prostokąt jest węzłem połączonym z prostokątami, które go otaczają.</p>
+  <p>Nie lubimy marnować energii i dlatego chcielibyśmy znaleźć jak najłatwiejszą trasę. Wchodzenie pod górę jest o wiele trudniejsze niż schodzenie w dół, a schodzenie w dół jest trudniejsze niż marsz po poziomym podłożu<a href="#footnote2" class="footref">2</a>. Ta funkcja oblicza liczbę „metrów ważonych” między dwoma przylegającymi do siebie prostokątami. Wynik ten określa jak bardzo się zmęczymy przechodząc z jednego do drugiego prostokąta. Wędrówka pod górę liczy się jako dwa razy cięższa od schodzenia w dół.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">weightedDistance</span>(<span class="variabledef">pointA</span>, <span class="variabledef">pointB</span>) {
+    <span class="keyword">var</span> <span class="variabledef">heightDifference</span> = <span class="variable">heightAt</span>(<span class="localvariable">pointB</span>) - <span class="variable">heightAt</span>(<span class="localvariable">pointA</span>);
+    <span class="keyword">var</span> <span class="variabledef">climbFactor</span> = (<span class="localvariable">heightDifference</span> &lt; <span class="atom">0</span> ? <span class="atom">1</span> : <span class="atom">2</span>);
+    <span class="keyword">var</span> <span class="variabledef">flatDistance</span> = (<span class="localvariable">pointA</span>.<span class="property">x</span> == <span class="localvariable">pointB</span>.<span class="property">x</span> || <span class="localvariable">pointA</span>.<span class="property">y</span> == <span class="localvariable">pointB</span>.<span class="property">y</span> ? <span class="atom">100</span> : <span class="atom">141</span>);
+    <span class="keyword">return</span> <span class="localvariable">flatDistance</span> + <span class="localvariable">climbFactor</span> * <span class="variable">Math</span>.<span class="property">abs</span>(<span class="localvariable">heightDifference</span>);
+}</pre>
+  <p>Zwróć uwagę na obliczenia <code>flatDistance</code>. Jeśli dwa punkty znajdują się w tym samym wierszu lub tej samej kolumnie, to znaczy, że znajdują się obok siebie i odległość między nimi wynosi sto metrów. W przeciwnym razie można przyjąć, że prostokąty sąsiadują po przekątnej, a odległość po przekątnej między dwoma prostokątami o takim rozmiarze wynosi sto razy pierwiastek kwadratowy z dwóch, czyli w przybliżeniu <code>141</code>. Funkcja ta nie może być wywoływana dla kwadratów, które się ze sobą nie stykają. (Mogłaby to dokładnie sprawdzać, ale jest zbyt leniwa.)</p>
+</div>
+<hr>
+<div class="block">
+  <p>Punkty na mapie są reprezentowane przez obiekty zawierające własności <code>x</code> i <code>y</code>. Poniżej znajdują się trzy funkcje przydatne w pracy z takimi obiektami:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">point</span>(<span class="variabledef">x</span>, <span class="variabledef">y</span>) {
+    <span class="keyword">return</span> {<span class="property">x</span>: <span class="localvariable">x</span>, <span class="property">y</span>: <span class="localvariable">y</span>};
+}
+
+    <span class="keyword">function</span> <span class="variable">addPoints</span>(<span class="variabledef">a</span>, <span class="variabledef">b</span>) {
+    <span class="keyword">return</span> <span class="variable">point</span>(<span class="localvariable">a</span>.<span class="property">x</span> + <span class="localvariable">b</span>.<span class="property">x</span>, <span class="localvariable">a</span>.<span class="property">y</span> + <span class="localvariable">b</span>.<span class="property">y</span>);
+}
+
+    <span class="keyword">function</span> <span class="variable">samePoint</span>(<span class="variabledef">a</span>, <span class="variabledef">b</span>) {
+    <span class="keyword">return</span> <span class="localvariable">a</span>.<span class="property">x</span> == <span class="localvariable">b</span>.<span class="property">x</span> &amp;&amp; <span class="localvariable">a</span>.<span class="property">y</span> == <span class="localvariable">b</span>.<span class="property">y</span>;
+}
+
+    <span class="variable">show</span>(<span class="variable">samePoint</span>(<span class="variable">addPoints</span>(<span class="variable">point</span>(<span class="atom">10</span>, <span class="atom">10</span>), <span class="variable">point</span>(<span class="atom">4</span>, -<span class="atom">2</span>)),
+    <span class="variable">point</span>(<span class="atom">14</span>, <span class="atom">8</span>)));</pre>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 7.4</div>
+  <div class="exercise">
+    <p>Aby znaleźć trasy na tej mapie, znowu potrzebujemy funkcji do tworzenia „drogowskazów” czyli list kierunków, w których można pójść z określonego miejsca. Napisz funkcję o nazwie <code>possibleDirections</code> pobierającą jako argument obiekt punktu i zwracającą tablicę pobliskich punktów. Możemy przechodzić tylko do sąsiadujących punktów, zarówno na wprost jak i po ukosie, a więc każdy kwadrat może mieć maksymalnie ośmiu sąsiadów. Uważaj, aby nie zwracać kwadratów leżących poza mapą. Dla nas w tym przypadku krawędź mapy oznacza koniec świata.</p>
+  </div>
+  <div class="toggle">[pokaż rozwiązanie]</div><div class="solution" style="display: none;"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">possibleDirections</span>(<span class="variabledef">from</span>) {
+      <span class="keyword">var</span> <span class="variabledef">mapSize</span> = <span class="atom">20</span>;
+      <span class="keyword">function</span> <span class="variabledef">insideMap</span>(<span class="variabledef">point</span>) {
+      <span class="keyword">return</span> <span class="localvariable">point</span>.<span class="property">x</span> &gt;= <span class="atom">0</span> &amp;&amp; <span class="localvariable">point</span>.<span class="property">x</span> &lt; <span class="localvariable">mapSize</span> &amp;&amp;
+      <span class="localvariable">point</span>.<span class="property">y</span> &gt;= <span class="atom">0</span> &amp;&amp; <span class="localvariable">point</span>.<span class="property">y</span> &lt; <span class="localvariable">mapSize</span>;
+  }
+
+      <span class="keyword">var</span> <span class="variabledef">directions</span> = [<span class="variable">point</span>(-<span class="atom">1</span>, <span class="atom">0</span>), <span class="variable">point</span>(<span class="atom">1</span>, <span class="atom">0</span>), <span class="variable">point</span>(<span class="atom">0</span>, -<span class="atom">1</span>),
+      <span class="variable">point</span>(<span class="atom">0</span>, <span class="atom">1</span>), <span class="variable">point</span>(-<span class="atom">1</span>, -<span class="atom">1</span>), <span class="variable">point</span>(-<span class="atom">1</span>, <span class="atom">1</span>),
+      <span class="variable">point</span>(<span class="atom">1</span>, <span class="atom">1</span>), <span class="variable">point</span>(<span class="atom">1</span>, -<span class="atom">1</span>)];
+      <span class="keyword">return</span> <span class="variable">filter</span>(<span class="localvariable">insideMap</span>, <span class="variable">map</span>(<span class="variable">partial</span>(<span class="variable">addPoints</span>, <span class="localvariable">from</span>),
+      <span class="localvariable">directions</span>));
+}
+
+      <span class="variable">show</span>(<span class="variable">possibleDirections</span>(<span class="variable">point</span>(<span class="atom">0</span>, <span class="atom">0</span>)));</pre>
+    <p>Zmienną <code>mapSize</code> utworzyłem tylko po to, aby nie musieć wpisywać <code>20</code> dwa razy. Gdybyśmy za jakiś czas chcieli użyć tej funkcji na innej mapie, jej kod wyglądałby niezgrabnie z tymi wszystkimi <code>20</code>, które trzeba by było pozmieniać. Moglibyśmy nawet funkcji <code>mapSize</code> użyć jako argumentu funkcji <code>possibleDirections</code>, dzięki czemu moglibyśmy jej używać na innych mapach bez zmieniania czegokolwiek. Uznałem jednak, że tutaj nie jest to konieczne, a w razie potrzeby zawsze można to zmienić.</p>
+    <p>Dlaczego w takim razie nie utworzyłem zmiennej do przechowywania wartości <code>0</code>, która również występuje dwa razy? Przyjmuję założenie, że mapy zawsze zaczynają się od <code>0</code> i jest mało prawdopodobne, żeby wartość ta miała się zmienić, a dodatkowa zmienna powoduje tylko więcej bałaganu.</p>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Aby znaleźć trasę na tej mapie i uniknąć wyłączenia programu przez przeglądarkę z powodu zbyt długiego czasu działania, musimy skończyć z amatorskimi rozwiązaniami i zaimplementować poważny algorytm. Problemy tego typu były już wielokrotnie analizowane, czego wynikiem jest wiele różnych rozwiązań (niektóre genialne inne bezużyteczne). Jednym z najpopularniejszych i najbardziej wydajnych jest tzw. <strong>A*</strong> (wym. <strong>A-star</strong>). Do końca tego rozdziału będziemy zajmować się implementowaniem algorytmu A* do znajdowania tras na naszej mapie.</p>
+  <p>Zanim przejdę do objaśniania samego algorytmu, kilka słów o rodzaju problemów, jakie można za jego pomocą rozwiązać. Problem ze znajdowaniem tras w grafach polega na tym, że jeśli graf jest duży, to zawiera bardzo dużo potencjalnych tras. Nasz algorytm znajdowania tras na wyspie Hiva Oa wykazał, że gdy graf jest niewielki, to wystarczy uważać, aby ścieżki nie przechodziły więcej niż raz przez jeden punkt. Jednak w naszej nowej mapie to nie wystarczy.</p>
+  <p>Sedno problemu tkwi w tym, że jest zbyt wiele możliwości pójścia w niewłaściwym kierunku. Jeśli nie znajdziemy sposobu na pokierowanie naszych poszukiwań ścieżek w kierunku celu, podczas wybierania kierunku kontynuacji poszukiwań będzie istniało większe ryzyko wyboru niewłaściwego kierunku niż szansa na wybór odpowiedniego. Jeśli w ten sposób będziemy generować ścieżki, otrzymamy ich ogromną ilość i nawet jeśli któraś z nich doprowadzi nas do punktu docelowego, to i tak nie będziemy mieć pewności, że będzie to najkrótsza droga.</p>
+  <p>Dlatego w pierwszej kolejności powinniśmy badać tylko te kierunki, które dają szansę na dojście do celu. W takiej siatce, jak nasza mapa ścieżkę można z grubsza ocenić sprawdzając jej długość i odległość jej końca od punktu docelowego. Sumując długość ścieżki i szacunkową odległość, jaka pozostała do przejścia można ocenić, które ścieżki są obiecujące. Jeśli będziemy najpierw badać obiecujące ścieżki, zmarnujemy mniej czasu na bezużyteczne.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Ale to wciąż za mało. Gdyby nasza mapa przedstawiała idealnie płaski teren, ścieżka wyglądająca na obiecującą prawie zawsze byłaby najlepsza i moglibyśmy użyć powyższej metody do osiągnięcia naszego celu. Ale na naszej mapie mamy wzgórza i zbocza gór blokujące ścieżki, przez co trudno z góry powiedzieć, który kierunek jest najlepszą ścieżką. Przez to nadal jesteśmy zmuszeni badać zbyt dużą liczbę ścieżek.</p>
+  <p>Aby to zmienić, możemy sprytnie wykorzystać fakt, że zawsze najpierw sprawdzamy najbardziej obiecującą ścieżkę. Gdy dowiemy się, że ścieżka A jest najlepszą drogą do punktu X, możemy to zapamiętać. Gdy później ścieżka B również dojdzie do punktu X, będziemy wiedzieć, że to nie jest najlepsza droga i nie będziemy musieli dalej jej badać. W ten sposób można zaoszczędzić programowi konieczności tworzenia wielu niepotrzebnych ścieżek.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Zasada działania interesującego nas algorytmu jest następująca…</p>
+  <p>Są dwie informacje, które należy cały czas śledzić. Pierwsza z nich nazywa się listą otwartą (ang. open list) i zawiera częściowe trasy, które trzeba jeszcze zbadać. Każda trasa ma punktację obliczoną poprzez zsumowanie jej długości z szacowaną odległością od celu. Szacunek zawsze musi być optymistyczny, tzn. nigdy nie należy przeszacowywać odległości. Druga informacja to zbiór węzłów, które widzieliśmy z najkrótszymi częściowymi ścieżkami, po których do nich dotarliśmy. Zbiór ten nazwiemy listą osiągniętych celów (ang. reached list). Zaczynamy od dodania do listy otwartej trasy zawierającej tylko węzeł początkowy i zapisania go na liście osiągniętych celów.</p>
+  <p>Następnie, dopóki są węzły na liście otwartej, pobieramy węzeł o najniższej (najlepszej) punktacji i znajdujemy drogi kontynuacji (wywołując funkcję <code>possibleDirections</code>). Dla każdego zwróconego węzła tworzymy nową trasę dodając go do oryginalnej trasy i dostosowując jej długość za pomocą funkcji <code>weightedDistance</code>. Punkt końcowy każdej z tych nowych tras jest następnie szukany na liście osiągniętych celów.</p>
+  <p>Jeśli węzła nie ma jeszcze na tej liście, oznacza to że jeszcze nie mieliśmy z nim do czynienia i dodajemy nową trasę do listy otwartej oraz zapisujemy to na liście osiągniętych celów. Jeśli <em>widzieliśmy</em> węzeł wcześniej, porównujemy punktację nowej trasy z punktacją trasy na liście osiągniętych celów. Jeśli nowa trasa jest krótsza, zastępujemy nią istniejącą trasę. W przeciwnym razie odrzucamy nową trasę, ponieważ znamy już lepszą drogę do tego miejsca.</p>
+  <p>Czynności te powtarzamy aż trasa pobrana z listy otwartej będzie kończyć się w węźle docelowym, co oznacza, że znaleźliśmy trasę, albo aż lista otwarta zostanie wyczerpana, co będzie oznaczać, że nie ma drogi do tego miejsca. Na naszej mapie nie ma miejsc nie do przejścia, a więc zawsze znajdzie się trasa.</p>
+  <p>Skąd wiadomo, że pierwsza znaleziona pełna trasa pobrana z listy otwartej jest najkrótsza? Wiemy to dzięki temu, że do zbadania zawsze wybieramy tylko trasy o najniższej punktacji. Punktacja trasy składa się z jej długości plus <em>optymistycznego</em> szacunku pozostałej długości. Oznacza to, że jeśli trasa ma najniższą punktację na liście otwartej, jest najlepszą drogą do swojego bieżącego punktu końcowego — nie ma możliwości, aby inna trasa później znalazła lepszą drogę do tego samego punktu, ponieważ gdyby było to możliwe, miałaby niższą punktację.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Nie przejmuj się, jeśli to wszystko wydaje Ci się zagmatwane. W zrozumieniu takich algorytmów, jak ten bardzo pomaga skojarzenie ich z czymś, co się już wcześniej widziało. Ma się wówczas punkt odniesienia. Początkujący programiście są pozbawieni takiego punktu i dlatego trudno jest im się połapać. Po prostu uświadom sobie, że rozważania przedstawione w tym rozdziale dotyczą zaawansowanych zagadnień. Przeczytaj go w całości, a potem wróć do niego po przestudiowaniu reszty książki, jeśli będziesz mieć ochotę na małe wyzwanie.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Obawiam się, że w jednym aspekcie algorytmu znowu będę musiał skorzystać z magicznych sztuczek. Lista otwarta musi być w stanie pomieścić dużą liczbę tras oraz szybko znajdować wśród nich trasy o najniższej punktacji. Przechowywanie ich w normalny sposób i przeszukiwanie tablicy byłoby o wiele za wolne. Dlatego dam Ci do dyspozycji strukturę danych o nazwie kopiec binarny. Kopce binarne tworzy się przy użyciu słowa <code>new</code>, podobnie jak obiekty <code>Date</code>, podając im jako argument funkcję służącą do „punktowania” swoich elementów. Powstały obiekt ma metody <code>push</code> i <code>pop</code>, podobnie jak tablice, z tym że <code>pop</code> zawsze zwraca element o najniższej punktacji, zamiast elementu, który został dodany jako ostatni.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">identity</span>(<span class="variabledef">x</span>) {
+    <span class="keyword">return</span> <span class="localvariable">x</span>;
+}
+
+    <span class="keyword">var</span> <span class="variable">heap</span> = <span class="keyword">new</span> <span class="variable">BinaryHeap</span>(<span class="variable">identity</span>);
+    <span class="variable">forEach</span>([<span class="atom">2</span>, <span class="atom">4</span>, <span class="atom">5</span>, <span class="atom">1</span>, <span class="atom">6</span>, <span class="atom">3</span>], <span class="keyword">function</span>(<span class="variabledef">number</span>) {
+    <span class="variable">heap</span>.<span class="property">push</span>(<span class="localvariable">number</span>);
+});
+    <span class="keyword">while</span> (<span class="variable">heap</span>.<span class="property">size</span>() &gt; <span class="atom">0</span>)
+    <span class="variable">show</span>(<span class="variable">heap</span>.<span class="property">pop</span>());</pre>
+  <p>W <a href="/kursy/javascript/wszystko-jasne/d2-kopiec-binarny">dodatku 2</a> opisałem implementację tej struktury danych. Warto przeczytać. Najlepiej zrobić to po lekturze <a href="/kursy/javascript/wszystko-jasne/r8-obiektowe">rozdziału 8</a>.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Potrzeba wyciśnięcia maksimum wydajności ma jeszcze inny efekt. W algorytmie dotyczącym wyspy Hiva Oa do przechowywania tras używano tablic lokalizacji, które podczas przedłużania kopiowano przy użyciu metody <code>concat</code>. Tym razem nie możemy pozwolić sobie na kopiowanie tablic, ponieważ liczba tras będzie o wiele większa. Zamiast tego do przechowywania tras będziemy używać „łańcuchów” obiektów. Każdy obiekt w łańcuchu ma pewne własności, jak punkt na mapie i długość trasy do tego miejsca, a także własność wskazującą na poprzedni obiekt w łańcuchu. Wygląda to mniej więcej tak:</p>
+  <img src="objectchain.png" alt="Ilustracja drzewa obiektów" width="350" height="228">
+  <p>Zielone koła to istotne obiekty, a linie reprezentują własności ― końcówka z kropką wskazuje wartość własności. Obiekt <code>A</code> jest początkiem tej trasy. Obiekt <code>B</code> służy do budowy nowej trasy, która jest kontynuowana z punktu <code>A</code>. Ma własność, którą nazwiemy <code>from</code>, wskazującą rasę, na której bazuje. Jeśli później będziemy chcieli odtworzyć trasę, będziemy mogli pójść po tych własnościach, aby znaleźć wszystkie punkty, przez które trasa ta przechodziła. Zwróć uwagę, że punkt <code>B</code> należy do dwóch tras, z których jedna kończy się w punkcie <code>D</code>, a druga w <code>E</code>. Gdy tras jest dużo, można w ten sposób zaoszczędzić dużo miejsca — każda nowa trasa wymaga tylko jednego nowego obiektu, ponieważ pozostałe dzieli z innymi trasami, które rozpoczęły się w taki sam sposób.</p>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 7.5</div>
+  <div class="exercise">
+    <p>Napisz funkcję o nazwie <code>estimatedDistance</code> optymistycznie szacującą odległość między dwoma punktami. Może nie brać pod uwagę danych dotyczących wysokości, czyli traktować mapę jako płaski teren. Pamiętaj, że poruszać możemy się tylko na wprost i po skosie oraz, że odległość na ukos między dwoma kwadratami wynosi <code>141</code>.</p>
+  </div>
+  <div class="toggle">[pokaż rozwiązanie]</div><div class="solution" style="display: none;"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">estimatedDistance</span>(<span class="variabledef">pointA</span>, <span class="variabledef">pointB</span>) {
+      <span class="keyword">var</span> <span class="variabledef">dx</span> = <span class="variable">Math</span>.<span class="property">abs</span>(<span class="localvariable">pointA</span>.<span class="property">x</span> - <span class="localvariable">pointB</span>.<span class="property">x</span>),
+      <span class="variabledef">dy</span> = <span class="variable">Math</span>.<span class="property">abs</span>(<span class="localvariable">pointA</span>.<span class="property">y</span> - <span class="localvariable">pointB</span>.<span class="property">y</span>);
+      <span class="keyword">if</span> (<span class="localvariable">dx</span> &gt; <span class="localvariable">dy</span>)
+      <span class="keyword">return</span> (<span class="localvariable">dx</span> - <span class="localvariable">dy</span>) * <span class="atom">100</span> + <span class="localvariable">dy</span> * <span class="atom">141</span>;
+      <span class="keyword">else</span>
+      <span class="keyword">return</span> (<span class="localvariable">dy</span> - <span class="localvariable">dx</span>) * <span class="atom">100</span> + <span class="localvariable">dx</span> * <span class="atom">141</span>;
+}</pre>
+    <p>Te dziwne wzory służą do rozłożenia ścieżki na część prostą i skośną. Spójrz na poniższą przykładową ścieżkę.</p>
+    <img src="diagonalpath.png" alt="Ilustracja skośnej ścieżki" width="183" height="102">
+    <p>Ścieżka ta ma <code>6</code> kwadratów szerokości i <code>3</code> kwadraty wysokości, a więc wykonujemy <code>6 - 3 = 3</code> prostych ruchów i <code>3</code> skośne.</p>
+    <p>Moglibyśmy odległość między dwoma punktami obliczać przy użyciu funkcji implementującej twierdzenie Pitagorasa. Potrzebujemy optymistycznego szacunku, a przyjęcie założenia, że można iść prosto do celu na pewno jest optymistyczne. Jednak im szacunek jest bliższy rzeczywistej odległości, tym mniej bezużytecznych ścieżek program musi sprawdzić.</p>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 7.6</div>
+  <div class="exercise">
+    <p>Do przechowywania listy otwartej użyjemy kopca binarnego. A jaka struktura danych byłaby dobra dla listy osiągniętych celów? Będziemy w niej wyszukiwać trasy na podstawie par współrzędnych <code>x</code>, <code>y</code>. Najlepiej żeby to wyszukiwanie było szybkie. Napisz trzy funkcje, <code>makeReachedList</code>, <code>storeReached</code> oraz <code>findReached</code>. Pierwsza niech tworzy Twoją strukturę danych, druga niech pobiera listę osiągniętych celów, punkt oraz trasę i zapisuje w tej strukturze trasę, a trzecia niech pobiera listę celów osiągniętych oraz punkt i pobiera trasę albo zwraca wartość <code>undefined</code> oznaczającą, że dla danego punktu nie została znaleziona żadna trasa.</p>
+  </div>
+  <div class="toggle">[pokaż rozwiązanie]</div><div class="solution" style="display: none;"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <p>Jednym z dobrych pomysłów może być użycie obiektu zawierającego obiekty. Jedna ze współrzędnych punktów, np. <code>x</code>, jest używana jako nazwa własności dla zewnętrznego obiektu, a druga, <code>y</code>, dla obiektu wewnętrznego. To wymaga jednak prowadzenia zapisów, ponieważ czasami szukany obiekt wewnętrzny jeszcze nie będzie istniał.</p>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">makeReachedList</span>() {
+      <span class="keyword">return</span> {};
+}
+
+      <span class="keyword">function</span> <span class="variable">storeReached</span>(<span class="variabledef">list</span>, <span class="variabledef">point</span>, <span class="variabledef">route</span>) {
+      <span class="keyword">var</span> <span class="variabledef">inner</span> = <span class="localvariable">list</span>[<span class="localvariable">point</span>.<span class="property">x</span>];
+      <span class="keyword">if</span> (<span class="localvariable">inner</span> == <span class="atom">undefined</span>) {
+      <span class="localvariable">inner</span> = {};
+      <span class="localvariable">list</span>[<span class="localvariable">point</span>.<span class="property">x</span>] = <span class="localvariable">inner</span>;
+  }
+      <span class="localvariable">inner</span>[<span class="localvariable">point</span>.<span class="property">y</span>] = <span class="localvariable">route</span>;
+}
+
+      <span class="keyword">function</span> <span class="variable">findReached</span>(<span class="variabledef">list</span>, <span class="variabledef">point</span>) {
+      <span class="keyword">var</span> <span class="variabledef">inner</span> = <span class="localvariable">list</span>[<span class="localvariable">point</span>.<span class="property">x</span>];
+      <span class="keyword">if</span> (<span class="localvariable">inner</span> == <span class="atom">undefined</span>)
+      <span class="keyword">return</span> <span class="atom">undefined</span>;
+      <span class="keyword">else</span>
+      <span class="keyword">return</span> <span class="localvariable">inner</span>[<span class="localvariable">point</span>.<span class="property">y</span>];
+}</pre>
+    <p>Inną możliwością jest połączenie współrzędnych <code>x</code> i <code>y</code> punktu w jedną nazwę własności i użycie jej do przechowywania tras w pojedynczym obiekcie.</p>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">pointID</span>(<span class="variabledef">point</span>) {
+      <span class="keyword">return</span> <span class="localvariable">point</span>.<span class="property">x</span> + <span class="string">"-"</span> + <span class="localvariable">point</span>.<span class="property">y</span>;
+}
+
+      <span class="keyword">function</span> <span class="variable">makeReachedList</span>() {
+      <span class="keyword">return</span> {};
+}
+
+      <span class="keyword">function</span> <span class="variable">storeReached</span>(<span class="variabledef">list</span>, <span class="variabledef">point</span>, <span class="variabledef">route</span>) {
+      <span class="localvariable">list</span>[<span class="variable">pointID</span>(<span class="localvariable">point</span>)] = <span class="localvariable">route</span>;
+}
+
+      <span class="keyword">function</span> <span class="variable">findReached</span>(<span class="variabledef">list</span>, <span class="variabledef">point</span>) {
+      <span class="keyword">return</span> <span class="localvariable">list</span>[<span class="variable">pointID</span>(<span class="localvariable">point</span>)];
+}</pre>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Definiowanie typu struktury danych poprzez dostarczenie zbioru funkcji do tworzenia jej egzemplarzy i manipulowania nimi to bardzo przydatna technika. Umożliwia to oddzielenie kodu korzystającego z tej struktury od szczegółów implementacyjnych samej tej struktury. Zwróć uwagę, że bez względu na to, która z powyższych dwóch implementacji zostanie użyta, kod korzystający z listy celów osiągniętych działa dokładnie tak samo. Dla niego nie ma znaczenia, jakiego rodzaju obiekty są używane, dopóki otrzymuje takie wyniki, jakich potrzebuje.</p>
+  <p>Bardziej szczegółowo na ten temat piszę w <a href="/kursy/javascript/wszystko-jasne/r8-obiektowe">rozdziale 8</a>, w którym nauczysz się tworzyć typy obiektowe, takie jak <code>BinaryHeap</code>, które tworzy się przy użyciu słowa kluczowego <code>new</code> i mają metody służące do manipulowania nimi.</p>
+</div>
+<hr>
+<div class="block">
+  <p>W końcu możemy napisać funkcję znajdującą ścieżki:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">findRoute</span>(<span class="variabledef">from</span>, <span class="variabledef">to</span>) {
+    <span class="keyword">var</span> <span class="variabledef">open</span> = <span class="keyword">new</span> <span class="variable">BinaryHeap</span>(<span class="variable">routeScore</span>);
+    <span class="keyword">var</span> <span class="variabledef">reached</span> = <span class="variable">makeReachedList</span>();
+
+    <span class="keyword">function</span> <span class="variabledef">routeScore</span>(<span class="variabledef">route</span>) {
+    <span class="keyword">if</span> (<span class="localvariable">route</span>.<span class="property">score</span> == <span class="atom">undefined</span>)
+    <span class="localvariable">route</span>.<span class="property">score</span> = <span class="variable">estimatedDistance</span>(<span class="localvariable">route</span>.<span class="property">point</span>, <span class="localvariable">to</span>) +
+    <span class="localvariable">route</span>.<span class="property">length</span>;
+    <span class="keyword">return</span> <span class="localvariable">route</span>.<span class="property">score</span>;
+  }
+    <span class="keyword">function</span> <span class="variabledef">addOpenRoute</span>(<span class="variabledef">route</span>) {
+    <span class="localvariable">open</span>.<span class="property">push</span>(<span class="localvariable">route</span>);
+    <span class="variable">storeReached</span>(<span class="localvariable">reached</span>, <span class="localvariable">route</span>.<span class="property">point</span>, <span class="localvariable">route</span>);
+  }
+    <span class="localvariable">addOpenRoute</span>({<span class="property">point</span>: <span class="localvariable">from</span>, <span class="property">length</span>: <span class="atom">0</span>});
+
+    <span class="keyword">while</span> (<span class="localvariable">open</span>.<span class="property">size</span>() &gt; <span class="atom">0</span>) {
+    <span class="keyword">var</span> <span class="variabledef">route</span> = <span class="localvariable">open</span>.<span class="property">pop</span>();
+    <span class="keyword">if</span> (<span class="variable">samePoint</span>(<span class="localvariable">route</span>.<span class="property">point</span>, <span class="localvariable">to</span>))
+    <span class="keyword">return</span> <span class="localvariable">route</span>;
+    
+    <span class="variable">forEach</span>(<span class="variable">possibleDirections</span>(<span class="localvariable">route</span>.<span class="property">point</span>), <span class="keyword">function</span>(<span class="variabledef">direction</span>) {
+    <span class="keyword">var</span> <span class="variabledef">known</span> = <span class="variable">findReached</span>(<span class="localvariable">reached</span>, <span class="localvariable">direction</span>);
+    <span class="keyword">var</span> <span class="variabledef">newLength</span> = <span class="localvariable">route</span>.<span class="property">length</span> +
+    <span class="variable">weightedDistance</span>(<span class="localvariable">route</span>.<span class="property">point</span>, <span class="localvariable">direction</span>);
+    <span class="keyword">if</span> (!<span class="localvariable">known</span> || <span class="localvariable">known</span>.<span class="property">length</span> &gt; <span class="localvariable">newLength</span>){
+    <span class="keyword">if</span> (<span class="localvariable">known</span>)
+    <span class="localvariable">open</span>.<span class="property">remove</span>(<span class="localvariable">known</span>);        
+    <span class="localvariable">addOpenRoute</span>({<span class="property">point</span>: <span class="localvariable">direction</span>,
+    <span class="property">from</span>: <span class="localvariable">route</span>,
+    <span class="property">length</span>: <span class="localvariable">newLength</span>});
+      }
+    });
+  }
+    <span class="keyword">return</span> <span class="atom">null</span>;
+}</pre>
+  <p>Najpierw tworzone są potrzebne struktury danych — lista otwarta i lista osiągniętych celów. <code>routeScore</code> to funkcja punktująca przekazywana do kopca binarnego. Zwróć uwagę, że zapisuje swój wynik w obiekcie trasy, aby uniknąć konieczności jego wielokrotnego obliczania.</p>
+  <p>Funkcja pomocnicza <code>addOpenRoute</code> dodaje nową trasę do list otwartej i osiągniętych celów. Zostaje natychmiast użyta do dodania początku trasy. Zauważ, że obiekty tras zawsze mają własności <code>point</code>, która zawiera punkt będący końcem trasy, i <code>length</code>, która zawiera bieżącą długość trasy. Trasy o długości większej niż jeden kwadrat mają też własność <code>from</code>, wskazującą poprzedni kwadrat.</p>
+  <p>Pętla <code>while</code>, zgodnie z opisem algorytmu, pobiera z listy otwartej trasę o najniższej punktacji i sprawdza, czy doprowadzi nas ona do celu. Jeśli nie, musimy kontynuować przedłużając ją. Tym zajmuje się kod <code>forEach</code>. Szuka tego nowego punktu na liście osiągniętych celów. Jeśli go tam nie znajdzie lub znaleziony węzeł ma większą długość niż nowa trasa, tworzony jest nowy obiekt trasy, który zostaje dodany do list otwartej i osiągniętych celów, a istniejąca trasa (jeśli jest) zostaje usunięta z listy otwartej.</p>
+  <p>A co jeśli trasy w <code>known</code> nie ma na liście otwartej? Musi być, ponieważ trasy z listy otwartej są usuwane tylko wtedy, gdy zostaje odkryte, że stanowią najbardziej optymalną drogę do celu. Jeśli spróbujemy usunąć z kopca binarnego wartość, której w nim nie ma, kopiec zgłosi wyjątek, a więc jeśli moje rozumowanie jest niepoprawne, podczas wykonywania funkcji zapewne zobaczymy wyjątek.</p>
+  <p>Gdy kod staje się na tyle skomplikowany, że zaczynasz mieć wątpliwości, co do niektórych jego części, dobrze jest dodać kilka testów zgłaszających wyjątki, aby wiedzieć, co jest nie tak. Dzięki temu ma się pewność, że nie „prześlizgnie” się żaden błąd, a gdy wystąpi usterka, będzie ją można od razu naprawić.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Zwróć uwagę, że mimo iż w algorytmie tym nie użyto rekurencji, to i tak przeglądane są wszystkie odgałęzienia. Lista otwarta pełni podobną rolę, jak stos wywołań funkcji w wersji z rekurencją rozwiązującej problem wyspy Hiva Oa, tzn. prowadzi rejestr ścieżek, które jeszcze trzeba zbadać. Każdy rekurencyjny algorytm można zapisać w sposób nierekurencyjny używając struktury danych do przechowywania „rzeczy, które jeszcze trzeba zrobić”.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Pora wypróbować nasz program:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">route</span> = <span class="variable">findRoute</span>(<span class="variable">point</span>(<span class="atom">0</span>, <span class="atom">0</span>), <span class="variable">point</span>(<span class="atom">19</span>, <span class="atom">19</span>));</pre>
+  <p>Jeśli wykonałeś wszystkie poprzednie fragmenty kodu i nie spowodowałeś w żadnym z nich błędu, powyższe wywołanie powinno zwrócić obiekt trasy (może to chwilę potrwać). Obiekt ten jest mało czytelny. Można to zmienić przy użyciu funkcji <code>showRoute</code> wyświetlającej trasę na mapie, jeśli konsola będzie wystarczająco duża.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">showRoute</span>(<span class="variable">route</span>);</pre>
+  <p>Do funkcji <code>showRoute</code> można także przekazywać kilka tras, co może być przydatne np. przy planowaniu wycieczki krajoznawczej, która musi zawierać piękny widok o współrzędnych <code>11</code>, <code>17</code>.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">showRoute</span>(<span class="variable">findRoute</span>(<span class="variable">point</span>(<span class="atom">0</span>, <span class="atom">0</span>), <span class="variable">point</span>(<span class="atom">11</span>, <span class="atom">17</span>)),
+    <span class="variable">findRoute</span>(<span class="variable">point</span>(<span class="atom">11</span>, <span class="atom">17</span>), <span class="variable">point</span>(<span class="atom">19</span>, <span class="atom">19</span>)));</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Różne wersje algorytmu znajdowania optymalnej trasy na grafie mogą być zastosowane do różnych problemów, które wcale nie muszą być związane z szukaniem fizycznych dróg. Na przykład program, którego zadaniem jest upakowanie jak największej liczby klocków w ograniczonej przestrzeni może badać różne „trasy” otrzymywane poprzez umieszczenie określonego klocka w określonym miejscu. Ścieżki kończące się zbyt małą ilością miejsca dla ostatnich klocków są ślepymi zaułkami, a ścieżki, w których mieszczą się wszystkie klocki są rozwiązaniami.</p>
+</div>
+<h3>Przypisy</h3>
+<ol>
+  <li id="footnote1">Komputery to maszyny deterministyczne: zawsze reagują w ten sam sposób na dane wejściowe, przez co nie mogą generować rzeczywiście losowych danych. Dlatego musimy polegać na szeregach liczb, które wyglądają na losowe, a w rzeczywistości są wynikiem skomplikowanych deterministycznych obliczeń.</li>
+  <li id="footnote2">Naprawdę tak jest.</li>
+</ol>

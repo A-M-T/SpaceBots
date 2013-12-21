@@ -1,0 +1,175 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Obsługa błędów</title>
+<link rel=stylesheet href=doc.css>
+<link rel=author href=http://marijnhaverbeke.nl/>
+<link rel=license href=http://creativecommons.org/licenses/by/3.0/deed.pl>
+<h1>Obsługa błędów</h1>
+
+<div class="block">
+  <p>Pisanie programów, które działają, gdy wszystko się udaje jest dobre na początek. Jednak prawdziwe wyzwanie to napisać program, który potrafi odpowiednio się zachować, gdy wystąpią jakieś niespodziewane zdarzenia.</p>
+  <p>Wyróżnia się dwa rodzaje trudnych sytuacji, w jakich może znaleźć się program: spowodowane błędem programisty i przez czynniki zewnętrzne. Przykładem pierwszego rodzaju problemów jest niepodanie funkcji wymaganego argumentu. Natomiast czynnikiem zewnętrznym niezależnym od programisty jest np. sytuacja, gdy program wymaga podania hasła, a zamiast niego otrzymuje pusty łańcuch.</p>
+  <p>Ogólnie rzecz biorąc błędy programistyczne po prostu trzeba znaleźć i poprawić. Natomiast błędy spowodowane czynnikami zewnętrznymi należy przewidzieć, aby opracować algorytmy pozwalające programowi wyjść z trudnych sytuacji (np. ponownie wyświetlając prośbę o podanie imienia) albo przynajmniej zakończyć działanie w elegancki i kontrolowany sposób.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Ważne jest, aby umieć oceniać, do której kategorii należy dany błąd. Weźmy np. naszą starą funkcję <code>power</code>:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">power</span>(<span class="variabledef">base</span>, <span class="variabledef">exponent</span>) {
+    <span class="keyword">var</span> <span class="variabledef">result</span> = <span class="atom">1</span>;
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">count</span> = <span class="atom">0</span>; <span class="localvariable">count</span> &lt; <span class="localvariable">exponent</span>; <span class="localvariable">count</span>++)
+    <span class="localvariable">result</span> *= <span class="localvariable">base</span>;
+    <span class="keyword">return</span> <span class="localvariable">result</span>;
+}</pre>
+  <p>Gdy jakiś wariat spróbuje wykonać wywołanie <code>power("Królik", 4)</code>, to jest to oczywiście błąd programistyczny, ale czy wywołanie <code>power(9, 0.5)</code> też nim jest? Nasza funkcja nie obsługuje potęg ułamkowych, ale w matematyce takie potęgowanie jest jak najbardziej dozwolone (funkcja <code>Math.pow</code> też je obsługuje). Jeśli nie ma całkowitej jasności co do tego, jakie wartości przyjmuje funkcja, zazwyczaj dobrym posunięciem jest wypisanie przyjmowanych argumentów w komentarzu.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Co powinna zrobić funkcja, gdy napotka problem, którego sama nie może rozwiązać? W <a href="/kursy/javascript/wszystko-jasne/r4-obiekty-tablice/">rozdziale 4</a> napisaliśmy funkcję o nazwie <code>between</code>:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">between</span>(<span class="variabledef">string</span>, <span class="variabledef">start</span>, <span class="variabledef">end</span>) {
+    <span class="keyword">var</span> <span class="variabledef">startAt</span> = <span class="localvariable">string</span>.<span class="property">indexOf</span>(<span class="localvariable">start</span>) + <span class="localvariable">start</span>.<span class="property">length</span>;
+    <span class="keyword">var</span> <span class="variabledef">endAt</span> = <span class="localvariable">string</span>.<span class="property">indexOf</span>(<span class="localvariable">end</span>, <span class="localvariable">startAt</span>);
+    <span class="keyword">return</span> <span class="localvariable">string</span>.<span class="property">slice</span>(<span class="localvariable">startAt</span>, <span class="localvariable">endAt</span>);
+}</pre>
+  <p>Jeśli ciągi <code>start</code> i <code>end</code> nie zostaną znalezione w łańcuchu, funkcja <code>indexOf</code> zwróci <code>-1</code> i funkcja <code>between</code> zwróci same bzdury: wywołanie <code>between("Your mother!", "{-", "-}")</code> zwróci <code>"our mother"</code>.</p>
+  <p>Gdy w czasie działania programu funkcja zostanie wywołana w taki sposób, kod który ją wywołał otrzyma łańcuch zgodnie z oczekiwaniami i będzie na nim dalej operował. Jednak łańcuch zwrócony przez funkcję jest nieprawidłowy i wynik działań na nim wykonywanych również będzie niepoprawny. A jeśli będziesz mieć pecha, błąd ten ujawni się dopiero po tym, jak zostanie wykonanych kolejnych 20 funkcji. Znalezienie przyczyny problemów w takiej sytuacji jest bardzo trudne.</p>
+  <p>W niektórych rzadkich przypadkach można sobie darować sprawdzanie, czy funkcja działa prawidłowo. Jeśli np. wiadomo, że funkcja będzie wywoływana tylko w kilku miejscach i w każdym z nich otrzyma poprawne dane wejściowe, to zazwyczaj nie ma sensu trudzić się i rozbudowywać funkcję o niepotrzebne mechanizmy zachowania w trudnych sytuacjach.</p>
+  <p>Jednak najczęściej funkcje, które w żaden sposób nie informują o błędach są trudne w użyciu, a nawet niebezpieczne. Co by było, gdyby w kodzie wywołującym funkcję <code>between</code> chciano sprawdzić, czy wszystko poszło dobrze? Nie da się tego zrobić, chyba że zrobi się jeszcze raz to samo, co zrobiła funkcja <code>between</code> i porówna otrzymany wynik z wynikiem zwróconym przez tę funkcję. Tak nie powinno być. Jednym z możliwych rozwiązań jest sprawienie, aby funkcja <code>between</code> zwracała jakąś specjalną wartość, np. <code>false</code> albo <code>undefined</code>, gdy wystąpi błąd w jej działaniu.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">between</span>(<span class="variabledef">string</span>, <span class="variabledef">start</span>, <span class="variabledef">end</span>) {
+    <span class="keyword">var</span> <span class="variabledef">startAt</span> = <span class="localvariable">string</span>.<span class="property">indexOf</span>(<span class="localvariable">start</span>);
+    <span class="keyword">if</span> (<span class="localvariable">startAt</span> == -<span class="atom">1</span>)
+    <span class="keyword">return</span> <span class="atom">undefined</span>;
+    <span class="localvariable">startAt</span> += <span class="localvariable">start</span>.<span class="property">length</span>;
+    <span class="keyword">var</span> <span class="variabledef">endAt</span> = <span class="localvariable">string</span>.<span class="property">indexOf</span>(<span class="localvariable">end</span>, <span class="localvariable">startAt</span>);
+    <span class="keyword">if</span> (<span class="localvariable">endAt</span> == -<span class="atom">1</span>)
+    <span class="keyword">return</span> <span class="atom">undefined</span>;
+
+    <span class="keyword">return</span> <span class="localvariable">string</span>.<span class="property">slice</span>(<span class="localvariable">startAt</span>, <span class="localvariable">endAt</span>);
+}</pre>
+  <p>Nietrudno zauważyć, że kod wychwytujący błędy raczej nie dodaje funkcjom urody. Ale teraz w kodzie, który wywoła funkcję <code>between</code> można napisać coś takiego:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">input</span> = <span class="variable">prompt</span>(<span class="string">"Powiedz mi coś"</span>, <span class="string">""</span>);
+    <span class="keyword">var</span> <span class="variable">parenthesized</span> = <span class="variable">between</span>(<span class="variable">input</span>, <span class="string">"("</span>, <span class="string">")"</span>);
+    <span class="keyword">if</span> (<span class="variable">parenthesized</span> != <span class="atom">undefined</span>)
+    <span class="variable">print</span>(<span class="string">"Napisałeś w nawiasie „"</span>, <span class="variable">parenthesized</span>, <span class="string">"”."</span>);</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Czasami zwrócenie specjalnej wartości jest idealnym rozwiązaniem na wypadek wystąpienia błędu. Metoda ta ma jednak wady. Po pierwsze funkcja może i bez tego zwracać wszystkie możliwe wartości. Spójrz np. na poniższą funkcję, która pobiera ostatni element z tablicy:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">lastElement</span>(<span class="variabledef">array</span>) {
+    <span class="keyword">if</span> (<span class="localvariable">array</span>.<span class="property">length</span> &gt; <span class="atom">0</span>)
+    <span class="keyword">return</span> <span class="localvariable">array</span>[<span class="localvariable">array</span>.<span class="property">length</span> - <span class="atom">1</span>];
+    <span class="keyword">else</span>
+    <span class="keyword">return</span> <span class="atom">undefined</span>;
+}
+
+    <span class="variable">show</span>(<span class="variable">lastElement</span>([<span class="atom">1</span>, <span class="atom">2</span>, <span class="atom">undefined</span>]));</pre>
+  <p>Czy tablica miała ostatni element? Po samej wartości zwróconej przez funkcję <code>lastElement</code> nie można się o tym dowiedzieć.</p>
+  <p>Druga wada metody zwracania specjalnej wartości jest to, że jej zastosowanie może powodować bałagan. Jeśli w jakimś miejscu funkcja <code>between</code> zostanie wywołana 10 razy, to trzeba będzie 10 razy sprawdzić, czy została zwrócona wartość <code>undefined</code>. Ponadto, jeśli funkcja <code>between</code> zostanie wywołana przez inną funkcję nie mającą mechanizmu ochronnego przed awarią, będzie musiała sprawdzić wartość zwrotną funkcji <code>between</code>, i jeśli będzie nią <code>undefined</code>, funkcja ta może zwrócić wywołującemu <code>undefined</code> lub jakąś inną specjalną wartość.</p>
+  <p>Czasami, gdy wydarzy się coś dziwnego, najlepszym rozwiązaniem jest natychmiastowe wstrzymanie dalszych działań i przejście w miejsce zawierające algorytm pozwalający rozwiązać ten problem.</p>
+  <p>Na szczęście konstrukcje tego typu występują w wielu językach programowania. Ogólnie techniki te nazywają się obsługą błędów.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Teoretycznie obsługa błędów polega na zgłaszaniu przez kod (ang. raise lub throw) wyjątków, które są wartościami. Zgłaszanie wyjątków to trochę jak turbodoładowany zwrot wartości przez funkcję — następuje nie tylko wyjście z bieżącej funkcji, ale i z kodu wywołującego aż do najwyższego poziomu, gdzie rozpoczęła się bieżąca ścieżka wykonywania. Proces ten nazywa się rozwijaniem stosu. Przypomnij sobie stos wywołań, o którym była mowa w <a href="/kursy/javascript/wszystko-jasne/r3-funkcje/">rozdziale 3</a>. Wyjątek przebiega przez cały ten stos i odrzuca po drodze wszystkie napotkane konteksty wywołań.</p>
+  <p>Gdyby wyjątek przechodził przez stos bez żadnych przeszkód, nie byłby przydatny i stanowiłby jedynie nowatorski sposób wywoływania awarii w programie. Na szczęście w różnych miejscach stosu na wyjątki można zastawiać pułapki. Służą do tego klauzule catch, które pozwalają przechwycić wyjątek i podjąć w związku z tym jakieś czynności, po wykonaniu których program może kontynuować działanie od miejsca, w którym wyjątek został przechwycony.</p>
+  <p>Na przykład:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">lastElement</span>(<span class="variabledef">array</span>) {
+    <span class="keyword">if</span> (<span class="localvariable">array</span>.<span class="property">length</span> &gt; <span class="atom">0</span>)
+    <span class="keyword">return</span> <span class="localvariable">array</span>[<span class="localvariable">array</span>.<span class="property">length</span> - <span class="atom">1</span>];
+    <span class="keyword">else</span>
+    <span class="keyword">throw</span> <span class="string">"Nie można pobrać ostatniego elementu pustej tablicy."</span>;
+}
+
+    <span class="keyword">function</span> <span class="variable">lastElementPlusTen</span>(<span class="variabledef">array</span>) {
+    <span class="keyword">return</span> <span class="variable">lastElement</span>(<span class="localvariable">array</span>) + <span class="atom">10</span>;
+}
+
+    <span class="keyword">try</span> {
+    <span class="variable">print</span>(<span class="variable">lastElementPlusTen</span>([]));
+}
+    <span class="keyword">catch</span> (<span class="variabledef">error</span>) {
+    <span class="variable">print</span>(<span class="string">"Coś poszło nie tak: "</span>, <span class="localvariable">error</span>);
+}</pre>
+  <p><code>throw</code> to słowo kluczowe służące do zgłaszania wyjątków. Za pomocą słowa kluczowego <code>try</code> zastawia się pułapki na wyjątki: jeśli kod znajdujący się za nim zgłosi wyjątek, zostanie wykonany blok kodu w klauzuli <code>catch</code>. Zmienna, której nazwa znajduje się w nawiasie za słowem <code>catch</code> jest nazwą wartości wyjątku wewnątrz tego bloku.</p>
+  <p>Zwróć uwagę, że w funkcji <code>lastElementPlusTen</code> kompletni zignorowano to, że wykonywanie funkcji <code>lastElement</code> mogłoby się nie powieść. Jest to wielka zaleta wyjątków — kod obsługi błędów jest potrzebny tylko w miejscu wystąpienia błędu i jego obsługi. W funkcjach znajdujących się pomiędzy nie trzeba się tym przejmować.</p>
+  <p>No, może prawie.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Rozważmy następujący przykład: funkcja o nazwie <code>processThing</code> chce sprawić, aby podczas jej wykonywania zmienna najwyższego poziomu <code>currentThing</code> wskazywała określoną wartość, aby inne funkcje również miały dostęp do tej wartości. Normalnie oczywiście wartość tę przekazałoby się jako argument, ale przyjmij na chwilę, że byłoby to niepraktyczne. Gdy funkcja zakończy działanie, zmienna <code>currentThing</code> powinna zostać ustawiona z powrotem na <code>null</code>.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">currentThing</span> = <span class="atom">null</span>;
+
+    <span class="keyword">function</span> <span class="variable">processThing</span>(<span class="variabledef">thing</span>) {
+    <span class="keyword">if</span> (<span class="variable">currentThing</span> != <span class="atom">null</span>)
+    <span class="keyword">throw</span> <span class="string">"O, nie! Już coś przetwarzamy!"</span>;
+
+    <span class="variable">currentThing</span> = <span class="localvariable">thing</span>;
+    <span class="comment">/* jakieś skomplikowane operacje... */</span>
+    <span class="variable">currentThing</span> = <span class="atom">null</span>;
+}</pre>
+  <p>A co będzie, jeśli wyjątek zostanie zgłoszony w trakcie wykonywania tych skomplikowanych operacji? Wówczas wywołanie funkcji <code>processThing</code> zostanie wyrzucone ze stosu przez wyjątek i zmienna <code>currentThing</code> nie zostanie z powrotem ustawiona na <code>null</code>.</p>
+  <p>Po instrukcjach <code>try</code> może znajdować się dodatkowo słowo kluczowe <code>finally</code> określające blok kodu, który ma zostać wykonany po próbie wykonania bloku <code>try</code> bez względu na to, <em>co</em> się stanie. Jeśli funkcja musi coś po sobie uporządkować, to ten kod porządkujący powinien właśnie być umieszczony w bloku <code>finally</code>:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">processThing</span>(<span class="variabledef">thing</span>) {
+    <span class="keyword">if</span> (<span class="variable">currentThing</span> != <span class="atom">null</span>)
+    <span class="keyword">throw</span> <span class="string">"O, nie! Już coś przetwarzamy!"</span>;
+
+    <span class="variable">currentThing</span> = <span class="localvariable">thing</span>;
+    <span class="keyword">try</span> {
+    <span class="comment">/* jakieś skomplikowane operacje... */</span>
+  }
+    <span class="keyword">finally</span> {
+    <span class="variable">currentThing</span> = <span class="atom">null</span>;
+  }
+}</pre>
+</div>
+<hr>
+<div class="block">
+  <p>W programach JavaScript występuje wiele różnych błędów, które powodują zgłoszenie wyjątków przez środowisko. Na przykład:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">try</span> {
+    <span class="variable">print</span>(<span class="variable">Sasquatch</span>);
+}
+    <span class="keyword">catch</span> (<span class="variabledef">error</span>) {
+    <span class="variable">print</span>(<span class="string">"Wyjątek: "</span> + <span class="localvariable">error</span>.<span class="property">message</span>);
+}</pre>
+  <p>W takich przypadkach zgłaszane są specjalne obiekty wyjątków. Każdy z nich ma własność <code>message</code> zawierającą opis problemu. Podobne obiekty można tworzyć za pomocą słowa kluczowego <code>new</code> i konstruktora <code>Error</code>:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">throw</span> <span class="keyword">new</span> <span class="variable">Error</span>(<span class="string">"Pożar!"</span>);</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Jeśli wyjątek przejdzie przez cały stos i nic go po drodze nie przechwyci, to zostanie obsłużony przez środowisko. Obsługa ta w każdej przeglądarce może być inna. Niektóre aplikacje mogą zapisywać informacje o błędzie w dzienniku, a inne wyświetlać okno z opisem błędu.</p>
+  <p>Błędy powodowane przez kod wpisany w konsoli na tej stronie są przechwytywane przez konsolę i wyświetlane wraz z innymi wynikami.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Dla większości programistów wyjątki to nic więcej, jak mechanizm obsługi błędów. Jednak w istocie są one kolejnym sposobem sterowania wykonywaniem programu. Można je np. wykorzystać jako rodzaj instrukcji <code>break</code> w funkcjach rekurencyjnych. Poniżej znajduje się kod dość dziwnej funkcji, która sprawdza czy obiekt, i znajdujące się w jego wnętrzu obiekty, zawiera przynajmniej siedem wartości <code>true</code>:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">FoundSeven</span> = {};
+
+    <span class="keyword">function</span> <span class="variable">hasSevenTruths</span>(<span class="variabledef">object</span>) {
+    <span class="keyword">var</span> <span class="variabledef">counted</span> = <span class="atom">0</span>;
+
+    <span class="keyword">function</span> <span class="variabledef">count</span>(<span class="variabledef">object</span>) {
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">name</span> <span class="keyword">in</span> <span class="localvariable">object</span>) {
+    <span class="keyword">if</span> (<span class="localvariable">object</span>[<span class="localvariable">name</span>] === <span class="atom">true</span>) {
+    <span class="localvariable">counted</span>++;
+    <span class="keyword">if</span> (<span class="localvariable">counted</span> == <span class="atom">7</span>)
+    <span class="keyword">throw</span> <span class="variable">FoundSeven</span>;
+      }
+    <span class="keyword">else</span> <span class="keyword">if</span> (typeof <span class="localvariable">object</span>[<span class="localvariable">name</span>] == <span class="string">"object"</span>) {
+    <span class="localvariable">count</span>(<span class="localvariable">object</span>[<span class="localvariable">name</span>]);
+      }
+    }
+  }
+
+    <span class="keyword">try</span> {
+    <span class="localvariable">count</span>(<span class="localvariable">object</span>);
+    <span class="keyword">return</span> <span class="atom">false</span>;
+  }
+    <span class="keyword">catch</span> (<span class="variabledef">exception</span>) {
+    <span class="keyword">if</span> (<span class="localvariable">exception</span> != <span class="variable">FoundSeven</span>)
+    <span class="keyword">throw</span> <span class="localvariable">exception</span>;
+    <span class="keyword">return</span> <span class="atom">true</span>;
+  }
+}</pre>
+  <p>Wewnętrzna funkcja <code>count</code> jest rekurencyjnie wywoływana dla każdego obiektu będącego częścią argumentu. Gdy wartość zmiennej <code>counted</code> dojdzie do siedmiu, nie ma sensu kontynuować liczenia, ale sam zwrot z bieżącego wywołania funkcji <code>count</code> niekoniecznie zatrzyma liczenie, ponieważ pod nim mogą być jeszcze inne wywołania. Dlatego użyliśmy instrukcji throw, która powoduje wyjście z wywołań funkcji <code>count</code> i przejście do bloku <code>catch</code>.</p>
+  <p>Jednak zwrócenie jedynie wartości <code>true</code> w przypadku wyjątku jest niepoprawne. Coś innego mogłoby pójść nie tak i dlatego najpierw sprawdzamy, czy wyjątek jest utworzonym specjalnie na tę okazję obiektem <code>FoundSeven</code>. Jeśli nie, ten blok <code>catch</code> nie wie, jak go obsłużyć, a więc ponawia jego zgłoszenie.</p>
+  <p>W ten sposób często działa się też przy obsłudze błędów ― blok <code>catch</code> powinien obsługiwać tylko te wyjątki, które potrafi obsłużyć. Zwracanie wartości łańcuchowych za pomocą instrukcji throw, jak w niektórych pokazanych w tym rozdziale przykładach, rzadko kiedy jest dobrym pomysłem, ponieważ trudno jest rozpoznać typ wyjątku. Lepszym pomysłem jest zwracanie niepowtarzalnych wartości, jak np. obiekt <code>FoundSeven</code> albo wprowadzenie nowego typu obiektów, o czym będzie mowa w <a href="/kursy/javascript/wszystko-jasne/r8-obiektowe/">rozdziale 8</a>.</p>
+</div>

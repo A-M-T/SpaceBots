@@ -1,0 +1,82 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Mniej znane instrukcje sterujące</title>
+<link rel=stylesheet href=doc.css>
+<link rel=author href=http://marijnhaverbeke.nl/>
+<link rel=license href=http://creativecommons.org/licenses/by/3.0/deed.pl>
+<h1>Mniej znane instrukcje sterujące</h1>
+
+<div class="block">
+  <p>W <a href="/kursy/javascript/wszystko-jasne/r2-podstawy/">rozdziale 2</a> opisane są najczęściej używane <strong>instrukcje sterujące</strong>, takie jak <code>while</code>, <code>for</code> i <code>break</code>. Dla uproszczenia w rozdziale tym niektóre struktury pominąłem, ponieważ moim zdaniem są o wiele mniej przydatne. W tym dodatku znajduje się opis tych pominiętych struktur.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Pierwsza z nich to instrukcja <code>do</code>. Działa podobnie do instrukcji <code>while</code>, tylko zamiast wykonywać swoje instrukcje zero lub więcej razy wykonuje je przynajmniej raz. <strong>Instrukcja <code>do</code></strong> wygląda następująco:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">do</span> {
+    <span class="keyword">var</span> <span class="variable">answer</span> = <span class="variable">prompt</span>(<span class="string">"Powiedz „muuu”."</span>, <span class="string">""</span>);
+    <span class="variable">print</span>(<span class="string">"Powiedziałeś „"</span>, <span class="variable">answer</span>, <span class="string">"”."</span>);
+} <span class="keyword">while</span> (<span class="variable">answer</span> != <span class="string">"muuu"</span>);</pre>
+  <p>Aby podkreślić fakt, że warunek jest sprawdzany dopiero <em>po</em> jednokrotnym wykonaniu kodu pętli, zapisuje się go za treścią główną pętli.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Kolejna instrukcja to <code>continue</code>. Jest ona blisko spokrewniona z instrukcją <code>break</code> i w niektórych przypadkach może ją zastępować. Podczas gdy <code>break</code> powoduje <em>wyskok</em> z pętli i kontynuowanie wykonywania programu od miejsca za pętlą, <code>continue</code> powoduje przejście do następnej iteracji pętli.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">for</span> (<span class="keyword">var</span> <span class="variable">i</span> = <span class="atom">0</span>; <span class="variable">i</span> &lt; <span class="atom">10</span>; <span class="variable">i</span>++) {
+    <span class="keyword">if</span> (<span class="variable">i</span> % <span class="atom">3</span> != <span class="atom">0</span>)
+    <span class="keyword">continue</span>;
+    <span class="variable">print</span>(<span class="variable">i</span>, <span class="string">" jest podzielne przez trzy."</span>);
+}</pre>
+  <p>Podobny efekt można uzyskać przy użyciu samej instrukcji <code>if</code>, ale w niektórych przypadkach instrukcja <code>continue</code> wygląda lepiej.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Jeśli pętla znajduje się w innej pętli, instrukcje <code>break</code> i <code>continue</code> dotyczą tylko wewnętrznej pętli. Czasami jednak trzeba wyjść z <em>zewnętrznej</em> pętli. Aby móc odwoływać się do wybranej pętli, można przypisać jej etykietę. Etykieta to nazwa (może być dowolna poprawna nazwa zmiennej) z dwukropkiem (<code>:</code>).</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="property">outer</span>: <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variable">sideA</span> = <span class="atom">1</span>; <span class="variable">sideA</span> &lt; <span class="atom">10</span>; <span class="variable">sideA</span>++) {
+    <span class="property">inner</span>: <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variable">sideB</span> = <span class="atom">1</span>; <span class="variable">sideB</span> &lt; <span class="atom">10</span>; <span class="variable">sideB</span>++) {
+    <span class="keyword">var</span> <span class="variable">hypotenuse</span> = <span class="variable">Math</span>.<span class="property">sqrt</span>(<span class="variable">sideA</span> * <span class="variable">sideA</span> + <span class="variable">sideB</span> * <span class="variable">sideB</span>);
+    <span class="keyword">if</span> (<span class="variable">hypotenuse</span> % <span class="atom">1</span> == <span class="atom">0</span>) {
+    <span class="variable">print</span>(<span class="string">"Trójkąt prostokątny o przyprostokątnych o długości "</span>,
+    <span class="variable">sideA</span>, <span class="string">" i "</span>, <span class="variable">sideB</span>, <span class="string">" ma przeciwprostokątną długości "</span>,
+    <span class="variable">hypotenuse</span>, <span class="string">"."</span>);
+    <span class="keyword">break</span> <span class="variable">outer</span>;
+    }
+  }
+}</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Następna konstrukcja to <strong><code>switch</code></strong>, której można używać do wybierania bloków kodu do wykonania zależnie od jakiejś wartości. Jest to bardzo wygodna konstrukcja, ale jej składnia w języku JavaScript (zapożyczona z języka C) jest tak nieporadna i brzydka, że zamiast niej wolę używać szeregów instrukcji <code>if</code>.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">weatherAdvice</span>(<span class="variabledef">weather</span>) {
+    <span class="keyword">switch</span>(<span class="localvariable">weather</span>) {
+    <span class="keyword">case</span> <span class="string">"deszcz"</span>:
+    <span class="variable">print</span>(<span class="string">"Weź parasol."</span>);
+    <span class="keyword">break</span>;
+    <span class="keyword">case</span> <span class="string">"słońce"</span>:
+    <span class="variable">print</span>(<span class="string">"Ubierz się lekko."</span>);
+    <span class="keyword">case</span> <span class="string">"chmury"</span>:
+    <span class="variable">print</span>(<span class="string">"Wyjdź na dwór."</span>);
+    <span class="keyword">break</span>;
+    <span class="property">default</span>:
+    <span class="variable">print</span>(<span class="string">"Nie wiadomo, jaka jest pogoda: "</span>, <span class="localvariable">weather</span>);
+    <span class="keyword">break</span>;
+  }
+}
+
+    <span class="variable">weatherAdvice</span>(<span class="string">"słońce"</span>);</pre>
+  <p>W bloku <code>switch</code> można wpisać dowolną liczbę klauzul <code>case</code>. Program przeskoczy do etykiety odpowiadającej wartości podanej instrukcji <code>switch</code> (porównując wartości przy użyciu operacji równoważnej z operatorem <code>===</code>, dzięki czemu nie wystąpi automatyczna konwersja typu) albo do klauzuli <code>default</code>, jeśli nie zostanie znaleziona żadna pasująca wartość. Następnie wykona znajdujące się tam instrukcje oraz <em>będzie kontynuował</em> wykonywanie instrukcji kolejnych etykiet, aż napotka instrukcję <code>break</code>. W niektórych przypadkach, jak np. <code>"słońce"</code> w przykładzie, można to wykorzystać do tego, aby móc użyć wspólnego kodu dla niektórych przypadków (zalecenie wyjścia na dwór znajduje się w przypadku zarówno słonecznej jak i wietrznej pogody). Zazwyczaj konstrukcje te wymuszają tylko dodanie wielu brzydkich instrukcji <code>break</code> albo powodują problemy, gdy się o takiej instrukcji zapomni.</p>
+  <p>Podobnie jak pętle, instrukcje <code>switch</code> mogą mieć etykiety.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Na koniec zostawiłem <strong>słowo kluczowe <code>with</code></strong>. Nigdy go nie <em>użyłem</em> w żadnym prawdziwym programie, ale widziałem je w cudzych programach i dlatego myślę, że warto je znać. Kod z użyciem słowa kluczowego <code>with</code> wygląda tak:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">scope</span> = <span class="string">"outside"</span>;
+    <span class="keyword">var</span> <span class="variable">object</span> = {<span class="property">name</span>: <span class="string">"Ignatius"</span>, <span class="property">scope</span>: <span class="string">"inside"</span>};
+    <span class="keyword">with</span>(<span class="variable">object</span>) {
+    <span class="variable">print</span>(<span class="string">"Name == "</span>, <span class="variable">name</span>, <span class="string">", scope == "</span>, <span class="variable">scope</span>);
+    <span class="variable">name</span> = <span class="string">"Raoul"</span>;
+    <span class="keyword">var</span> <span class="variable">newVariable</span> = <span class="atom">49</span>;
+}
+    <span class="variable">show</span>(<span class="variable">object</span>.<span class="property">name</span>);
+    <span class="variable">show</span>(<span class="variable">newVariable</span>);</pre>
+  <p>Wewnątrz bloku własności obiektu przekazanego do <code>with</code> zachowują się jak zmienne. Aczkolwiek <em>nie</em> są do niego dodawane jako własności nowo utworzone zmienne. Podejrzewam, że konstrukcja ta miała być przydatna w metodach, w których intensywnie wykorzystywane są własności ich obiektów. Pisanie takiej metody można zacząć od <code>with(this) {...}</code> i wówczas nie trzeba ciągle pisać <code>this</code>.</p>
+</div>

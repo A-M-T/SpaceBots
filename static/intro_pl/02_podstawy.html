@@ -1,0 +1,488 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Podstawy JavaScriptu. Wartości, zmienne i kontrola sterowania</title>
+<link rel=stylesheet href=doc.css>
+<link rel=author href=http://marijnhaverbeke.nl/>
+<link rel=license href=http://creativecommons.org/licenses/by/3.0/deed.pl>
+<h1>Podstawy JavaScriptu. Wartości, zmienne i kontrola sterowania</h1>
+
+<div class="block">
+  <p>W świecie komputerów istnieją tylko dane. Jeśli coś nie jest informacją, to po prostu nie istnieje. Mimo że wszystkie dane to w istocie jedynie sekwencje bitów <a class="footref" href="#footnote1">1</a>, a więc zasadniczo są tym samym, każda informacje odgrywa jakąś rolę. W systemie JavaScriptu większość danych jest zgrabnie wyodrębniona w postaci tzw. wartości. Każda wartość ma typ determinujący, jaką rolę ta wartość może pełnić. Wyróżnia się sześć podstawowych typów danych: liczby, łańcuchy, wartości logiczne, obiekty, funkcje oraz wartości niezdefiniowane.</p>
+  <p>Aby utworzyć wartość, wystarczy nadać jej nazwę. Jest to bardzo wygodne. Nie trzeba gromadzić materiałów do budowy wartości, ani za nie płacić. Wystarczy tylko nadać jej nazwę i <em>abrakadabra</em>, gotowe. Chociaż oczywiście wartości nie biorą się z niczego. Każda musi być gdzieś zapisana i jeśli utworzysz gigantyczną liczbę wartości na raz, to może zabraknąć Ci miejsca w pamięci komputera. Na szczęście problem ten dotyczy tylko sytuacji, w których wszystkie te wartości są potrzebne na raz. Gdy wartość przestaje być używana, zostaje usunięta i pozostaje po niej tylko kilka bitów. Bity te są odzyskiwane, aby można było ich użyć do przechowywania następnych wartości.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Wartości typu liczbowego to, jak się można spodziewać, liczby. Zapisuje się je tak, jak normalne liczby:</p>
+  <pre class="code expression not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><span class="atom">144</span></pre>
+  <p>Jeśli wpiszesz tę liczbę w konsoli, w oknie wyjściowym pokaże się ta sama liczba. Wpisany przez Ciebie tekst spowodował utworzenie wartości liczbowej, a konsola wyświetliła ją na ekranie. Ten przykład niczego ciekawego nie pokazuje, ale wkrótce będziemy tworzyć wartości na inne sposoby i wówczas możliwość wypróbowania tego, co się utworzyło w konsoli będzie bardzo przydatna.</p>
+  <p>A tak wygląda liczba <code>144</code> w postaci bitowej<a class="footref" href="#footnote2">2</a>:</p>
+  <pre class="preformatted">0100000001100010000000000000000000000000000000000000000000000000</pre>
+  <p>Powyższa liczba składa się z 64 bitów. Z tylu bitów składają się wszystkie liczby w języku <strong>JavaScript</strong>, co ma jeden ważny skutek: ilość liczb, jakie można w ten sposób wyrazić jest ograniczona. Za pomocą trzech cyfr dziesiętnych można wyrazić tylko liczby od 0 do 999, czyli 10<sup>3</sup> = 1000 różnych liczb. Przy użyciu 64 cyfr binarnych można zapisać 2<sup>64</sup> różnych liczb. To bardzo dużo, więcej niż 10<sup>19</sup> (jedynka z dziewiętnastoma zerami).</p>
+  <p>Jednak nie wszystkie liczby całkowite mniejsze od 10<sup>19</sup> dadzą się wyrazić przy użyciu typów liczbowych języka JavaScript. Jednym z powodów jest to, że istnieją również liczby ujemne i jeden bit musi zostać użyty do przechowywania znaku liczby. Jeszcze większym problemem jest to, że reprezentowane muszą być liczby nie będące całkowitymi. Dlatego 11 bitów jest używanych do przechowywania informacji o położeniu kropki oddzielającej część całkowitą od ułamkowej.</p>
+  <p>W ten sposób pozostają 52 bity<a class="footref" href="#footnote3">3</a>. Każda liczba całkowita mniejsza od 2<sup>52</sup> (co jest więcej niż 10<sup>15</sup>) da się bez problemu wyrazić w JavaScripcie. Zazwyczaj używa się o wiele mniejszych liczb i opisane problemy w ogóle nas nie dotyczą. Bardzo dobrze. Nie mam nic przeciwko bitom, ale żeby cokolwiek zrobić, trzeba mieć ich ogromną ilość. Gdy jest to możliwe, przyjemniej jest posługiwać się większymi obiektami.</p>
+  <p>Liczby ułamkowe zapisuje się z użyciem kropki.</p>
+  <pre class="code expression not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><span class="atom">9.81</span></pre>
+  <p>Do wyrażania bardzo dużych i bardzo małych liczb można też używać notacji naukowej. W tym celu należy dodać literę <code>e</code> i wykładnik potęgi:</p>
+  <pre class="code expression not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><span class="atom">2.998e8</span></pre>
+  <p>Powyższy zapis jest równoważny z 2.998 * 10<sup>8</sup> = 299800000.</p>
+  <p>Działania wykonywane na liczbach całkowitych mieszczących się w granicy 52 bitów są zawsze dokładne. Niestety tego samego nie można powiedzieć o liczbach ułamkowych. Tak samo, jak nie można przy użyciu skończonej liczby cyfr dziesiętnych precyzyjnie określić wartości liczby π (pi), wielu liczb nie można precyzyjnie wyrazić przy użyciu tylko 64 bitów. Szkoda, ale tak naprawdę powoduje to realne problemy tylko w pewnych specyficznych sytuacjach. Ważne jest, aby o tym pamiętać i traktować ułamkowe liczby dziesiętne jako przybliżenia, a nie dokładne wartości.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Liczb najczęściej używa się do wykonywania działań arytmetycznych. Działania te, np. dodawanie czy mnożenie, polegają na pobraniu dwóch liczb i utworzeniu z nich nowej wartości. W języku JavaScript wygląda to tak:</p>
+  <pre class="code expression not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><span class="atom">100</span> + <span class="atom">4</span> * <span class="atom">11</span></pre>
+  <p>Znaki <code>+</code> i <code>*</code> nazywają się operatorami. Pierwszy oznacza dodawanie, a drugi mnożenie. Umieszczenie operatora między dwiema wartościami powoduje zastosowanie go do tych wartości i utworzenie nowej wartości.</p>
+  <p>Czy ten przykład oznacza „dodaj 4 do 100, a następnie pomnóż otrzymany wynik przez 11”, czy może jednak mnożenie zostanie wykonane przed dodawaniem? Jak zapewne zgadłeś, najpierw wykonane zostanie mnożenie. Ale, podobnie jak w matematyce, można to zmienić za pomocą nawiasów:</p>
+  <pre class="code expression not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button>(<span class="atom">100</span> + <span class="atom">4</span>) * <span class="atom">11</span></pre>
+  <p>Do odejmowania służy operator <code>-</code>, a do dzielenia —<code>/</code>. Gdy w wyrażeniu znajduje się kilka operatorów i nie ma żadnych nawiasów, działania są wykonywane zgodnie z zasadami kolejności wykonywania działań. W pierwszym przykładzie udowodniłem, że mnożenie ma pierwszeństwo przed dodawaniem. Dzielenie i mnożenie są zawsze wykonywane przed odejmowaniem i dodawaniem. Jeśli obok siebie wystąpią operatory o takim samym priorytecie (<code>1 - 1 + 1</code>), to są  wykonywane po kolei od lewej.</p>
+  <p>Spróbuj obliczyć wynik poniższego wyrażenia, a potem wykonaj program, aby sprawdzić, czy dobrze policzyłeś…</p>
+  <pre class="code expression not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><span class="atom">115</span> * <span class="atom">4</span> - <span class="atom">4</span> + <span class="atom">88</span> / <span class="atom">2</span></pre>
+  <p>Nie musisz jednak zbytnio przejmować się zasadami kolejności wykonywania działań, ponieważ w razie wątpliwości zawsze możesz użyć nawiasów.</p>
+  <p>Istnieje jeszcze jeden operator arytmetyczny, którego możesz nie znać. Oznacza się go symbolem <code>%</code> i reprezentuje on działanie zwracania reszty z dzielenia. Wynikiem działania <code>X % Y</code> będzie reszta z podzielenia <code>X</code> przez <code>Y</code>. Na przykład <code>314 % 100</code> wynosi <code>14</code>, <code>10 % 3</code> wynosi <code>1</code>, a <code>144 % 12</code> równa się <code>0</code>. Reszta z dzielenia ma taki sam priorytet, jak mnożenie i dzielenie.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Drugi typ danych to łańcuch. Jego przeznaczenie nie jest w tak oczywisty sposób związane z nazwą, jak w przypadku liczb, ale ten typ również jest bardzo potrzebny. Łańcuchy służą do reprezentowania tekstu, a ich nazwa zapewne wzięła się stąd, że wartości tego typu są po prostu ciągami znaków. Łańcuchy zapisuje się cudzysłowach prostych:</p>
+  <pre class="code expression not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><span class="string">"Załataj moją łódkę gumą do żucia."</span></pre>
+  <p>W podwójnym cudzysłowie można wpisać prawie wszystko, a JavaScript zrobi z tego wartość łańcuchową. Jest jednak kilka znaków, na które trzeba uważać. Po pierwsze trudności w cudzysłowie sprawiają właśnie cudzysłowy. Po drugie problemy możesz mieć ze wstawianiem znaków nowego wiersza, czyli tych znaków, które są wstawiane, gdy użytkownik naciśnie klawisz <kbd>Enter</kbd>. Ich również nie można umieszczać w cudzysłowach, ponieważ każdy łańcuch musi w całości znajdować się w jednym wierszu.</p>
+  <p>Do wstawiania tych znaków do łańcuchów używa się sztuczki. Ukośnik (<code>\</code>) w cudzysłowie oznacza, że znak znajdujący się za nim ma specjalne znaczenie. Jeśli za ukośnikiem znajduje się cudzysłów prosty, to cudzysłów ten nie spowoduje zakończenia łańcucha, ale stanie się jego częścią. Natomiast znak <code>n</code> za ukośnikiem oznacza nowy wiersz. Analogicznie <code>t</code> za ukośnikiem oznacza tabulator<a class="footref" href="#footnote4">4</a>.</p>
+  <pre class="code expression not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><span class="string">"To jest pierwszy wiersz\nA to jest drugi wiersz"</span></pre>
+  <p>Jeśli wpiszesz ten tekst w konsoli, to zostanie on wyświetlony w oknie wyjściowym w niezmienionej formie, tzn. z cudzysłowami i ukośnikami. Aby zobaczyć sam wynik, możesz wpisać np. <code>print("a\nb")</code>. Działanie tej instrukcji zostanie szczegółowo objaśnione później.</p>
+  <p>Oczywiście zdarza się też, że w tekście ma znajdować się sam ukośnik jako jeden ze zwykłych znaków. Aby umieścić ukośnik w łańcuchu, należy wpisać dwa ukośniki bezpośrednio obok siebie:</p>
+  <pre class="code expression not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><span class="string">"Znak nowego wiersza zapisuje się tak: \"\\n\"."</span></pre>
+</div>
+<hr>
+<div class="block">
+  <p>Łańcuchów nie można dzielić, mnożyć ani odejmować. <em>Można</em> natomiast używać z nimi operatora <code>+</code>. Jednak w przypadku łańcuchów operator ten nie dodaje tylko wykonuje konkatenację, czyli po prostu łączenie.</p>
+  <pre class="code expression not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><span class="string">"kon"</span> + <span class="string">"kat"</span> + <span class="string">"e"</span> + <span class="string">"nacja"</span></pre>
+  <p>Na łańcuchach można wykonywać także inne działania, ale wrócimy do tego później.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Nie wszystkie operatory mają postać symboliczną. Niektóre występują jako słowa. Na przykład operator <code>typeof</code> tworzy wartość łańcuchową reprezentującą typ podanej mu wartości.</p>
+  <pre class="code expression not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button>typeof <span class="atom">4.5</span></pre>
+  <p>Operatory, które poznałeś wcześniej działały na dwóch argumentach, natomiast <code>typeof</code> pobiera tylko jeden. Operatory wykonujące działania na dwóch argumentach nazywają się binarnymi lub dwuargumentowymi, natomiast działające na pojedynczych wartościach to operatory jednoargumentowe. Operator minus może być używany zarówno jako dwu- jak i jednoargumentowy:</p>
+  <pre class="code expression not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button>- (<span class="atom">10</span> - <span class="atom">2</span>)</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Kolejnym typem wartości są wartości logiczne. Są tylko dwie takie wartości: <code>true</code> i <code>false</code>. Oto jeden ze sposobów na uzyskanie wartości <code>true</code>:</p>
+  <pre class="code expression not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><span class="atom">3</span> &gt; <span class="atom">2</span></pre>
+  <p>Natomiast <code>false</code> można otrzymać tak:</p>
+  <pre class="code expression not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><span class="atom">3</span> &lt; <span class="atom">2</span></pre>
+  <p>Mam nadzieję, że wiesz, co oznaczają znaki <code>&gt;</code> i <code>&lt;</code>. Są to odpowiednio znak większości i mniejszości. Są to operatory dwuargumentowe, a wynikiem ich działania jest wartość logiczna oznaczająca, czy dane wyrażenie jest prawdziwe, czy fałszywe.</p>
+  <p>W ten sam sposób można porównywać łańcuchy:</p>
+  <pre class="code expression not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><span class="string">"Aardvark"</span> &lt; <span class="string">"Zoroaster"</span></pre>
+  <p>Łańcuchy są porządkowane mniej więcej alfabetycznie. Mniej więcej… Wielkie litery są zawsze „mniejsze” od małych, a więc wartością wyrażenia <code>"Z" &lt; "a"</code> (wielka litera Z i mała litera a) jest <code>true</code>. Znaki nie należące do alfabetu (<code>!</code>, <code>@</code>, itd.) również są uwzględniane w porządkowaniu. W rzeczywistości porównywanie znaków odbywa się na podstawie standardu Unicode. W standardzie tym każdemu znakowi, jaki sobie można wyobrazić, od znaków greckiego alfabetu przez arabski, japoński i tamilski aż po polski, przypisany jest numer. Numery te ułatwiają przechowywanie łańcuchów w komputerze, ponieważ można je zapisywać jako listy liczb. Podczas porównywania łańcuchów JavaScript porównuje po prostu numery znaków w tych łańcuchach od lewej.</p>
+  <p>Inne operatory tego typu to <code>&gt;=</code> (większy lub równy), <code>&lt;=</code> (mniejszy lub równy), <code>==</code> (równy) oraz <code>!=</code> (różny).</p>
+  <pre class="code expression not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><span class="string">"Szast"</span> != <span class="string">"Prast"</span></pre>
+  <pre class="code expression not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><span class="atom">5e2</span> == <span class="atom">500</span></pre>
+</div>
+<hr>
+<div class="block">
+  <p>Na wartościach logicznych można też wykonywać pewne działania, które są bardzo przydatne. JavaScript obsługuje trzy operatory logiczne: <em>i</em>, <em>lub</em> oraz <em>nie</em>. Można ich używać do „rozumowania” o wartościach logicznych.</p>
+  <p>Logiczne <em>and</em> jest reprezentowane przez operator <code>&amp;&amp;</code>. Jest to operator logiczny, który zwraca wartość <code>true</code> tylko wtedy, gdy oba jego argumenty mają wartość <code>true</code>.</p>
+  <pre class="code expression not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><span class="atom">true</span> &amp;&amp; <span class="atom">false</span></pre>
+  <p>Operator <code>||</code> to logiczne <em>lub</em>. Zwraca wartość <code>true</code>, gdy którykolwiek z jego argumentów ma wartość <code>true</code>:</p>
+  <pre class="code expression not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><span class="atom">true</span> || <span class="atom">false</span></pre>
+  <p>Operator logicznego <em>nie</em> ma postać wykrzyknika (<code>!</code>). Jest to operator jednoargumentowy zamieniający podaną mu wartość na przeciwną, a więc <code>!true</code> oznacza <code>false</code>, a <code>!false</code> oznacza <code>true</code>.</p>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćw. 2.1</div>
+  <div class="exercise">
+    <pre class="code expression not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button>((<span class="atom">4</span> &gt;= <span class="atom">6</span>) || (<span class="string">"zielona"</span> != <span class="string">"trawa"</span>)) &amp;&amp;
+
+   !(((<span class="atom">12</span> * <span class="atom">2</span>) == <span class="atom">144</span>) &amp;&amp; <span class="atom">true</span>)</pre>
+    <p>Prawda czy fałsz? W kodzie tym znajduje się sporo nawiasów, które ułatwiają jego zrozumienie, ale nie są niezbędne. Można go zapisać prościej w taki sposób:</p>
+    <pre class="code expression not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button>(<span class="atom">4</span> &gt;= <span class="atom">6</span> || <span class="string">"zielona"</span> != <span class="string">"trawa"</span>) &amp;&amp;
+
+   !(<span class="atom">12</span> * <span class="atom">2</span> == <span class="atom">144</span> &amp;&amp; <span class="atom">true</span>)</pre>
+  </div>
+  
+  <div class="toggle">[pokaż rozwiązanie]</div><div style="display: none;" class="solution"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <p>Wynikiem tego wyrażenia jest <code>true</code>. Można je rozłożyć na czynniki:</p>
+    <pre class="code expression not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button>(<span class="atom">false</span> || <span class="atom">true</span>) &amp;&amp; !(<span class="atom">false</span> &amp;&amp; <span class="atom">true</span>)</pre>
+    <pre class="code expression not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><span class="atom">true</span> &amp;&amp; !<span class="atom">false</span></pre>
+    <pre class="code expression not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><span class="atom">true</span></pre>
+    <p>Mam nadzieję, że zauważyłeś, że wyrażenie <code>"zielona" != "trawa"</code> jest prawdziwe. Oczywiście trawa może być zielona, ale to są dwa różne słowa.</p>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Nie zawsze jest oczywiste, czy nawiasy są potrzebne. Zazwyczaj wystarczy tylko pamiętać, że z operatorów poznanych do tej pory najniższy priorytet ma <code>||</code>, następny jest <code>&amp;&amp;</code>, później są operatory porównawcze (<code>&gt;</code>, <code>==</code> itd.), a potem reszta. Priorytety operatorów zostały tak dobrane, że w prostych przypadkach można obejść się z minimalną ilością nawiasów.</p>
+</div>
+<hr>
+<div class="block">
+  <p>We wszystkich przedstawionych do tej pory przykładach język JavaScript był używany w taki sam sposób, jak używa się kalkulatora kieszonkowego. Po prostu tworzone były określone wartości, na których wykonywano działania przy użyciu operatorów. Tworzenie wartości w ten sposób jest ważną częścią każdego programu JavaScript, ale nie jedyną. Kod zwracający jakąś wartość nazywa się wyrażeniem. Wyrażeniem jest każda wartość zapisana bezpośrednio w kodzie (np. <code>22</code> albo <code>"psychoanaliza"</code>). To, co znajduje się w nawiasie również jest wyrażeniem. Jest nim także operator dwuargumentowy zastosowany do dwóch wyrażeń jak i operator jednoargumentowy zastosowany do jednego wyrażenia.</p>
+  <p>Są jeszcze inne sposoby tworzenia wyrażeń, ale poznasz je w stosownym czasie.</p>
+  <p>Istnieje też jednostka programowa o szerszym zakresie niż wyrażenie. Jest to instrukcja. Program jest zestawem instrukcji. Większość z nich jest zakończona średnikiem (<code>;</code>). Najprostsza instrukcja to wyrażenie zakończone średnikiem. To jest program:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="atom">1</span>;
+!<span class="atom">false</span>;</pre>
+  <p>Program ten jest bezużyteczny. Wyrażenie może być jedynie treścią stanowiącą jakąś wartość, natomiast instrukcja ma sens tylko wtedy, gdy coś zmienia. Może np. drukować coś na ekranie — to liczy się jako zmiana czegoś w otaczającym świecie — albo zmieniać wewnętrzny stan programu, co spowoduje zmianę działania dalszych instrukcji. Zmiany te nazywają się „skutkami ubocznymi”. Instrukcje w powyższym przykładzie tworzą tylko wartości <code>1</code> i <code>true</code>, a następnie wrzucają je do wora z nieużywanymi bitami<a class="footref" href="#footnote5">5</a>. Nie ma to żadnego wpływu na otaczający je świat i nie wywołuje żadnych skutków ubocznych.</p>
+</div>
+<hr>
+<div class="block">
+  <p>W jaki sposób program utrzymuje swój stan wewnętrzny? Jak to się dzieje, że różne rzeczy są przez niego pamiętane? Widzieliśmy już przykłady tworzenia nowych wartości z istniejących wartości. Te operacje nie powodowały zmiany tych starych wartości, a nowa wartość musi zostać od razu użyta, jeśli nie chcemy, aby zniknęła.  Dlatego do przechowywania wartości w języku JavaScript używa się zmiennych.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">iloczyn</span> = <span class="atom">5</span> * <span class="atom">5</span>;</pre>
+  <p><strong>Zmienna</strong> musi mieć nazwę i może wskazywać jakąś wartość. Powyższa instrukcja tworzy zmienną o nazwie <code>iloczyn</code> i zapisuje w niej wynik mnożenia <code>5</code> razy <code>5</code>.</p>
+  <p>Gdy uruchomisz ten program, możesz wpisać w konsoli słowo <code>iloczyn</code>, aby wyświetlić wartość <code>25</code>. Nazwa zmiennej służy do pobierania reprezentowanej przez nią wartości. Można też napisać <code>iloczyn + 1</code>. Nazw zmiennych można używać jako wyrażeń, a więc mogą one wchodzić w skład także większych wyrażeń.</p>
+  <p>Do tworzenia zmiennych służy słowo kluczowe <code>var</code>. Po nim należy wpisać nazwę zmiennej. Jako nazwy zmiennej można użyć prawie każdego słowa. Nie można natomiast w nazwach zmiennych używać spacji.  Także cyfry są dozwolone, np. <code>iloczyn22</code>, ale nie mogą znajdować się na początku. Znaki <code>$</code> i <code>_</code> również mogą występować w nazwach zmiennych i mają w nich taki sam status, jak litery, a więc nazwa <code>$_$</code> jest poprawna.</p>
+  <p>Jeśli chcesz utworzonej zmiennej od razu przypisać wartość, co często się robi, możesz użyć operatora <code>=</code>, aby przypisać jej wartość jakiegoś wyrażenia.</p>
+  <p>Przypisanie zmiennej wartości nie oznacza, że musi tak pozostać na zawsze. Wartość istniejącej zmiennej można w dowolnym momencie zmienić za pomocą operatora <code>=</code>.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">iloczyn</span> = <span class="atom">4</span> * <span class="atom">4</span>;</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Zmienne najlepiej jest wyobrażać sobie jako przyssawki, nie pudełka. Jest tak dlatego, ponieważ wartości <em>nie</em> są w nich przechowywane, a jedynie zmienne do tych wartości <em>się odwołują</em> ― nie ma przeszkód, aby dwie różne zmienne odwoływały się do tej samej wartości. Program ma dostęp tylko do tych wartości, do których są jakieś odwołania. Gdy trzeba coś zapamiętać, przyczepia się do tego nową przyssawkę albo odczepia się istniejącą od czegoś innego i przyczepia w nowym miejscu: aby zapamiętać, ile pieniędzy winny jest Ci Lutek, możesz napisać…</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">dlugLutka</span> = <span class="atom">140</span>;</pre>
+  <p>Gdy Lutek zwróci część tej kwoty, wartość tę można zmniejszyć przypisując zmiennej nową liczbę:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">dlugLutka</span> = <span class="variable">dlugLutka</span> - <span class="atom">35</span>;</pre>
+  <p>Zbiór zmiennych i ich wartości w określonym czasie nazywa się środowiskiem. Nie jest ono puste podczas uruchamiania programu. Zawsze znajduje się w nim kilka standardowych zmiennych. Gdy przeglądarka wczytuje stronę, tworzy nowe środowisko i dodaje do niego te standardowe zmienne. Zmienne tworzone i modyfikowane przez programy na tej stronie istnieją dopóki nie zostanie otwarta nowa strona.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Wiele wartości dostępnych w standardowym środowisku jest typu funkcyjnego. Funkcja to fragment programu zapakowanego w wartości. Zazwyczaj fragment ten robi coś pożytecznego i można go wywołać za pomocą zawierającej go wartości. W środowisku przeglądarki istnieje zmienna <code>alert</code> przechowująca funkcję wyświetlającą małe okienko dialogowe z komunikatem. Używa się jej następująco:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">alert</span>(<span class="string">"Awokado"</span>);</pre>
+  <p>Wykonanie kodu funkcji nazywa się wywołaniem funkcji. Do tego celu używa się nawiasu. Wywołać przy użyciu nawiasów można każde wyrażenie tworzące wartość funkcyjną. W powyższym przykładzie funkcji przekazano wartość <code>"Awokado"</code>, która została wyświetlona jako napis w oknie dialogowym. Wartości przekazywane do funkcji nazywają się parametrami lub argumentami. Funkcja <code>alert</code> wymaga tylko jednego argumentu, ale są funkcje, którym trzeba podać więcej parametrów.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Wyświetlenie okna dialogowego jest efektem ubocznym. Wiele funkcji jest przydatnych właśnie ze względu na ich efekty uboczne. Funkcja może też tworzyć wartość i wtedy jest przydatna mimo że nie ma skutku ubocznego. Istnieje np. funkcja o nazwie <code>Math.max</code>, która przyjmuje dowolną liczbę wartości liczbowych i zwraca największą z nich:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">alert</span>(<span class="variable">Math</span>.<span class="property">max</span>(<span class="atom">2</span>, <span class="atom">4</span>));</pre>
+  <p>Tworzenie wartości przez funkcję nazywa się zwracaniem wartości. Ponieważ w języku JavaScript wartości są zawsze tworzone przez wyrażenia, wywołań funkcji można używać jako składników większych wyrażeń:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">alert</span>(<span class="variable">Math</span>.<span class="property">min</span>(<span class="atom">2</span>, <span class="atom">4</span>) + <span class="atom">100</span>);</pre>
+  <p>Techniki tworzenia własnych funkcji są opisane w <a href="/kursy/javascript/wszystko-jasne/r3-funkcje/">rozdziale 3</a>.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Jak pokazałem w poprzednich przykładach, za pomocą funkcji <code>alert</code> można wyświetlić wynik jakiegoś wyrażenia. Chociaż te okienka, które trzeba zamykać kliknięciem niejednego już doprowadziły do szewskiej pasji. Dlatego od tej pory będziemy używać podobnej funkcji, o nazwie <code>print</code>, która nie wyświetla okna dialogowego, tylko drukuje wartość w polu wyjściowym konsoli. Funkcja <code>print</code> nie jest standardową funkcją JavaScript i nie jest normalnie obsługiwana przez przeglądarki, ale można jej używać na stronach tego podręcznika.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">print</span>(<span class="string">"N"</span>);</pre>
+  <p>Podobną funkcją również dostępną tylko na tych stronach jest <code>show</code>. Funkcja <code>print</code> drukuje swój argument jako tekst, natomiast <code>show</code> próbuje zaprezentować go w taki sposób, jak wyglądałby w programie, dzięki czemu otrzymujemy więcej informacji na temat typu wartości. Na przykład wartości łańcuchowe przez funkcję <code>show</code> są wyświetlane wraz z cudzysłowami:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="string">"N"</span>);</pre>
+  <p>W standardowym środowisku przeglądarek dostępnych jest jeszcze kilka innych funkcji wyświetlających wyskakujące okienka. Np. za pomocą funkcji <code>confirm</code> można wyświetlić okno, w którym użytkownik musi kliknąć przycisk <span class="oblique">OK</span> lub <span class="oblique">Anuluj</span> jako odpowiedź na pytanie. Jeśli użytkownik kliknie przycisk <span class="oblique">OK</span>, funkcja zwraca wartość <code>true</code>, a jeśli użytkownik kliknie przycisk <span class="oblique">Anuluj</span>, funkcja zwraca wartość <code>false</code>.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="variable">confirm</span>(<span class="string">"Możemy?"</span>));</pre>
+  <p>Funkcji <code>prompt</code> można użyć, aby zadać pytanie otwarte. Pierwszy argument zawiera pytanie, a drugi tekst, który zostanie wstępnie wyświetlony w polu tekstowym na odpowiedź. Gdy użytkownik wpisze jakiś tekst w oknie, funkcja zwróci go jako łańcuch.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="variable">prompt</span>(<span class="string">"Powiedz nam wszystko, co wiesz."</span>, <span class="string">"..."</span>));</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Prawie każdej zmiennej w środowisku można nadać nową wartość. Bywa to przydatne, ale i niebezpieczne. Jeśli funkcji <code>print</code> przypisze się wartość <code>8</code>, to nie będzie można już nic przy jej użyciu wydrukować. Na szczęście w konsoli znajduje się duży przycisk Reset przywracający środowisko do pierwotnego stanu.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Liniowe programy nie są zbyt interesujące. Gdy program zawiera więcej niż jedną instrukcję, instrukcje te, jak nietrudno się domyślić, są wykonywane po kolei zaczynając od góry.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">liczba</span> = <span class="variable">Number</span>(<span class="variable">prompt</span>(<span class="string">"Wybierz liczbę"</span>, <span class="string">""</span>));
+    <span class="variable">print</span>(<span class="string">"Twoja liczba jest kwadratowym pierwiastkiem liczby "</span> +
+      (<span class="variable">liczba</span> * <span class="variable">liczba</span>));</pre>
+  <p>Funkcja <code>Number</code> konwertuje wartość na liczbę, co w tym przypadku było konieczne, ponieważ funkcja <code>prompt</code> zwraca łańcuch. Istnieją też funkcje o nazwach <code>String</code> i <code>Boolean</code> zamieniające wartości odpowiednio na łańcuchy i typ logiczny.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Spróbujmy napisać program drukujący wszystkie liczby parzyste z przedziału od 0 do 12. Oto jedna z możliwości:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">print</span>(<span class="atom">0</span>);
+    <span class="variable">print</span>(<span class="atom">2</span>);
+    <span class="variable">print</span>(<span class="atom">4</span>);
+    <span class="variable">print</span>(<span class="atom">6</span>);
+    <span class="variable">print</span>(<span class="atom">8</span>);
+    <span class="variable">print</span>(<span class="atom">10</span>);
+    <span class="variable">print</span>(<span class="atom">12</span>);</pre>
+  <p>To działa, ale programy pisze się po to, aby <em>zmniejszyć</em> ilość pracy, a nie sobie jej dodać. Gdybyśmy chcieli wyświetlić wszystkie parzyste liczby z przedziału do 100, to powyższa metoda byłaby niesamowicie pracochłonna. Dlatego potrzebujemy jakiegoś sposobu na wielokrotne wykonywanie kodu.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">biezacaLiczba</span> = <span class="atom">0</span>;
+    <span class="keyword">while</span> (<span class="variable">biezacaLiczba</span> &lt;= <span class="atom">12</span>) {
+    <span class="variable">print</span>(<span class="variable">biezacaLiczba</span>);
+    <span class="variable">biezacaLiczba</span> = <span class="variable">biezacaLiczba</span> + <span class="atom">2</span>;
+}</pre>
+  <p>Instrukcję <code>while</code> mogłeś już zauważyć w rozdziale wstępnym. Instrukcja zaczynająca się od słowa <code>while</code> stanowi pętlę. Pętla zaburza normalny tok wykonywania instrukcji, ponieważ może zmusić program do wykonania określonego zestawu instrukcji wielokrotnie. W tym przypadku za słowem <code>while</code> znajduje się wyrażenie w nawiasie (nawias ten jest tu obowiązkowy), które decyduje o tym, czy działanie pętli ma zostać zakończone, czy być kontynuowane. Dopóki wartością logiczną tego wyrażenia jest <code>true</code>, pętla powtarza wykonywanie zawartego w niej kodu. Gdy wartość wyrażenia logicznego zmieni się na false, następuje przejście na dół pętli i wykonywana jest dalsza część programu w normalny sposób.</p>
+  <p>Zmienna <code>biezacaLiczba</code> demonstruje, w jaki sposób za pomocą zmiennej można śledzić postęp wykonywania programu. W każdym powtórzeniu pętli wartość tej zmiennej jest zwiększana o <code>2</code> i na początku każdego powtórzenia wartość ta jest porównywana z liczbą <code>12</code>, w celu określenia, czy należy wykonać następne powtórzenie, czy nie.</p>
+  <p>Trzecią częścią instrukcji <code>while</code> jest inna instrukcja. Stanowi ona treść właściwą pętli, czyli działanie lub działania, które mają zostać wykonane wielokrotnie. Gdybyśmy nie musieli drukować liczb, nasz program mógłby wyglądać tak:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">biezacaLiczba</span> = <span class="atom">0</span>;
+    <span class="keyword">while</span> (<span class="variable">biezacaLiczba</span> &lt;= <span class="atom">12</span>)
+    <span class="variable">biezacaLiczba</span> = <span class="variable">biezacaLiczba</span> + <span class="atom">2</span>;</pre>
+  <p>W tym kodzie zasadniczą treść pętli stanowi instrukcja <code>biezacaLiczba = biezacaLiczba + 2;</code>. My musimy jednak wydrukować nasze liczby, a więc musimy użyć więcej niż jednej instrukcji. Do grupowania instrukcji w bloki służą klamry (<code>{</code> i <code>}</code>). Dla świata zewnętrznego blok jest pojedynczą instrukcją. We wcześniejszym przykładzie w bloku znajdują się wywołanie funkcji <code>print</code> i instrukcja zmieniająca wartość zmiennej <code>biezacaLiczba</code>.</p>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum" id="exercise2">Ćw. 2.2</div>
+  <div class="exercise">
+    <p>Korzystając z poznanych technik napisz program obliczający i wyświetlający wynik działania 2<sup>10</sup> (2 do potęgi 10). Oczywiście nie możesz stosować prymitywnych sztuczek w stylu <code>2 * 2 *...</code></p>
+    <p>Jeśli masz problem z rozwiązaniem tego zadania, dokładnie przyjrzyj się przykładowi drukującemu liczby parzyste. Ten program musi wykonać pewne działanie określoną liczbę razy. Do jego budowy można użyć zmiennej licznikowej i pętli <code>while</code>. Zamiast drukować licznik program musi pomnożyć coś przez 2. Tym czymś powinna być inna zmienna, w której stopniowo gromadzony jest wynik.</p>
+    <p>Nie martw się, jeśli jeszcze to do Ciebie nie przemawia. Nawet gdy doskonale zrozumiesz wszystkie opisywane w tym zagadnienia, możesz mieć trudności z ich praktycznym wykorzystaniem. Umiejętność posługiwania się kodem przychodzi wraz z praktyką i dlatego przeanalizuj rozwiązanie, a potem spróbuj wykonać następne ćwiczenie.</p>
+  </div>
+  
+  <div class="toggle">[pokaż rozwiązanie]</div><div style="display: none;" class="solution"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">wynik</span> = <span class="atom">1</span>;
+      <span class="keyword">var</span> <span class="variable">licznik</span> = <span class="atom">0</span>;
+      <span class="keyword">while</span> (<span class="variable">licznik</span> &lt; <span class="atom">10</span>) {
+      <span class="variable">wynik</span> = <span class="variable">wynik</span> * <span class="atom">2</span>;
+      <span class="variable">licznik</span> = <span class="variable">licznik</span> + <span class="atom">1</span>;
+}
+      <span class="variable">show</span>(<span class="variable">wynik</span>);</pre>
+    <p>Licznik równie dobrze mógłby mieć wartość początkową <code>1</code> i wówczas test wyglądałby tak: <code>&lt;= 10</code>. Jednak są powody, które poznasz później, aby przyzwyczaić się do liczenia od zera.</p>
+    <p>Oczywiście Twoje rozwiązanie nie musi być identyczne z moim. Powinno tylko działać. Jeśli Twoje rozwiązanie różni się od mojego, postaraj się dokładnie zrozumieć także mój kod.</p>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćw. 2.3</div>
+  <div class="exercise">
+    <p>Wprowadzając drobne modyfikacje program napisany w poprzednim ćwiczeniu można wykorzystać do narysowania trójkąta. Pod pojęciem „narysować trójkąt” rozumiem oczywiście wydrukowanie tekstu w taki sposób, aby przypominał tę figurę geometryczną.</p>
+    <p>Wydrukujemy dziesięć linijek tekstu. W pierwszej będzie znajdować się tylko jeden znak #. W drugiej linijce będą dwa takie znaki itd.</p>
+    <p>Jak sprawić, aby w linii zostało wydrukowanych X znaków #? Jednym ze sposobów jest utworzenie w każdym powtórzeniu linii za pomocą wewnętrznej pętli — tzn. pętli znajdującej się w innej pętli. Jednak prościej będzie utworzyć łańcuch i w każdej iteracji dodawać do niego po jednym znaku.</p>
+  </div>
+  <div class="toggle">[pokaż rozwiązanie]</div><div style="display: none;" class="solution"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">linia</span> = <span class="string">""</span>;
+      <span class="keyword">var</span> <span class="variable">licznik</span> = <span class="atom">0</span>;
+      <span class="keyword">while</span> (<span class="variable">licznik</span> &lt; <span class="atom">10</span>) {
+      <span class="variable">linia</span> = <span class="variable">linia</span> + <span class="string">"#"</span>;
+      <span class="variable">print</span>(<span class="variable">linia</span>);
+      <span class="variable">licznik</span> = <span class="variable">licznik</span> + <span class="atom">1</span>;
+}</pre>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Zwróć uwagę na odstępy znajdujące się przed niektórymi instrukcjami. Nie są one wymagane, tzn. dla komputera nie ma różnicy czy one są, czy ich nie ma. W istocie nawet złamania wierszy w programach nie są obowiązkowe. Jeśli chcesz, cały program możesz napisać w jednym wierszu. Wcięcia w blokach kodu mają za zadanie ukazać strukturę programu programiście czytającemu kod. Ponieważ w istniejących blokach można tworzyć kolejne bloki, czasami może być trudno zorientować się, gdzie każdy blok się rozpoczyna i kończy, zwłaszcza w skomplikowanych programach. Gdy zastosowane są wcięcia, program wizualnie odzwierciedla strukturę bloków, z których jest zbudowany. Ja dla każdego nowego bloku stosuję wcięcie na głębokość dwóch spacji, ale są różne gusta.</p>
+  <p>Pole w konsoli do wprowadzania kodu programów dodaje odstępy automatycznie. Początkowo może Cię to denerwować, ale gdy napiszesz większą ilość kodu, docenisz jak dużo czasu można dzięki temu zaoszczędzić. Naciskając klawisz <kbd>Tab</kbd> można zwiększyć wcięcie wiersza, w którym znajduje się kursor.</p>
+  <p>W pewnych szczególnych przypadkach w języku JavaScript dopuszczalne jest opuszczenie średnika na końcu instrukcji. W innych sytuacjach średnik koniecznie musi być użyty albo dzieją się dziwne rzeczy. Reguły dotyczące tego, kiedy można opuścić średnik są zawiłe i dziwaczne. W tym podręczniku nie opuściłem ani jednego średnika i zachęcam Cię, abyś robił tak samo.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Wszystkie przedstawione do tej pory przykłady użycia instrukcji <code>while</code> są zbudowane wg jednej zasady. Najpierw tworzona jest zmienna reprezentująca licznik. Za jej pomocą śledzony jest postęp wykonywania programu. Instrukcja <code>while</code> sama zawiera test, który najczęściej polega na sprawdzeniu, czy licznik osiągnął określoną wartość. Następnie na końcu właściwej treści pętli następuje zwiększenie wartości licznika.</p>
+  <p>W ten sposób można napisać wiele różnych pętli. Dlatego w języku JavaScript, i wielu innych językach, dostępna jest nieco bardziej zwięzła postać pętli:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">for</span> (<span class="keyword">var</span> <span class="variable">liczba</span> = <span class="atom">0</span>; <span class="variable">liczba</span> &lt;= <span class="atom">12</span>; <span class="variable">liczba</span> = <span class="variable">liczba</span> + <span class="atom">2</span>)
+    <span class="variable">show</span>(<span class="variable">liczba</span>);</pre>
+  <p>Ten program zwróci dokładnie taki sam wynik, jak pokazany wcześniej program drukujący liczby parzyste. Jedyna różnica między tymi dwiema pętlami polega na tym, że w tym przypadku wszystkie instrukcje dotyczące „stanu” pętli znajdują się w jednym wierszu. W nawiasie znajdującym się za słowem <code>for</code> powinny znajdować się dwa średniki. Kod znajdujący się przed pierwszym średnikiem <em>inicjuje</em> pętlę i zazwyczaj zawiera definicję zmiennej. Druga część jest wyrażeniem <em>sprawdzającym</em>, czy wykonywanie pętli powinno być kontynuowane. Ostatnia część <em>aktualizuje</em> stan pętli. W większości przypadków ten rodzaj pętli jest bardziej zwięzły i prostszy od konstrukcji <code>while</code>.</p>
+</div>
+<hr>
+<div class="block">
+  <p>W nazwach niektórych zmiennych można zauważyć dziwny sposób użycia wielkich liter. Przypomnę, że nazwy zmiennych nie mogą zawierać spacji, ponieważ komputer traktowałby je jako kilka oddzielnych słów, i dlatego nazwy składające się z kilku słów trzeba zapisywać na różne inne sposoby: <code>malyfiglarnykonik</code>, <code>maly_figlarny_konik</code>, <code>MałyFiglarnyKonik</code> lub <code>malyFiglarnyKonik</code>. Pierwsza wersja jest trudna do odczytania. Podoba mi się wersja ze znakami podkreślenia, ale ich wpisywanie jest kłopotliwe. Nazwy standardowych funkcji języka JavaScript są pisane przy użyciu ostatniej metody, z której korzysta też wielu programistów. Nietrudno jest się do tego przyzwyczaić i dlatego będę postępował jak inni, czyli będą zapisywał z wielkiej litery wszystkie słowa w nazwach oprócz pierwszego.</p>
+  <p>Istnieje też kilka przypadków, jak nazwa funkcji <code>Number</code>, w których wielka jest też litera pierwszego słowa. Umownie oznacza to, że funkcja ta jest konstruktorem. Czym są konstruktory dowiesz się w <a href="/kursy/javascript/wszystko-jasne/r8-obiektowe/">rozdziale 8</a>. Na razie po prostu ignoruj ten pozorny brak konsekwencji.</p>
+  <p>Pamiętaj też, że niektóre słowa, np. <code>var</code>, <code>while</code> i <code>for</code>, mają w języku specjalne znaczenie i nie można ich używać do nazywania zmiennych. Są to tzw. słowa kluczowe. Istnieje też grupa słów zarezerwowanych do użytku przez JavaScript w przyszłości. Oficjalnie ich również nie można używać jako nazw zmiennych, chociaż niektóre przeglądarki tego nie przestrzegają. Oto lista wszystkich słów tego rodzaju:</p>
+  <pre class="preformatted">abstract boolean break byte case catch char class const continue
+debugger default delete do double else enum export extends false
+final finally float for function goto if implements import in
+instanceof int interface long native new null package private
+protected public return short static super switch synchronized
+this throw throws transient true try typeof var void volatile
+while with</pre>
+  <p>Nie męcz się, aby je wszystkie od razu zapamiętać. Wystarczy że sobie o nich przypomnisz, gdy Twój program nie będzie działał zgodnie z Twoimi oczekiwaniami. Z mojego doświadczenia wynika, że najczęściej używanymi niedozwolonymi nazwami są słowa <code>char</code> (do przechowywania pojedynczego znaku) i <code>class</code>.</p>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćw. 2.4</div>
+  <div class="exercise">
+    <p>Przepisz poprzednie przykłady użycia pętli <code>while</code> przy użyciu pętli <code>for</code>.</p>
+  </div>
+  
+  <div class="toggle">[pokaż rozwiązanie]</div><div style="display: none;" class="solution"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">wynik</span> = <span class="atom">1</span>;
+      <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variable">licznik</span> = <span class="atom">0</span>; <span class="variable">licznik</span> &lt; <span class="atom">10</span>; <span class="variable">licznik</span> = <span class="variable">licznik</span> + <span class="atom">1</span>)
+      <span class="variable">wynik</span> = <span class="variable">wynik</span> * <span class="atom">2</span>;
+      <span class="variable">show</span>(<span class="variable">wynik</span>);</pre>
+    <p>Zwróć uwagę, że nawet mimo braku znaku <code>{</code> oznaczającego początek bloku, instrukcja w pętli i tak została wcięta, aby było jasne, że należy do wiersza kodu znajdującego się nad nią.</p>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">linia</span> = <span class="string">""</span>;
+      <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variable">licznik</span> = <span class="atom">0</span>; <span class="variable">licznik</span> &lt; <span class="atom">10</span>; <span class="variable">licznik</span> = <span class="variable">licznik</span> + <span class="atom">1</span>) {
+      <span class="variable">linia</span> = <span class="variable">linia</span> + <span class="string">"#"</span>;
+      <span class="variable">print</span>(<span class="variable">linia</span>);
+}</pre>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>W programach często zmienia się wartości zmiennych na wartości będące modyfikacją ich poprzednich wartości. Na przykład <code>licznik = licznik + 1</code>. W języku JavaScript istnieje możliwość wyrażenia tego w skrócony sposób: <code>licznik += 1</code>. Technikę te można stosować także z wieloma innymi operatorami, np. <code>wynik *= 2</code> podwaja wartość zmiennej <code>wynik</code>, a <code>licznik -= 1</code> zmniejsza wartość licznika.</p>
+  <p>Konstrukcje <code>licznik += 1</code> i <code>licznik -= 1</code> można nawet zapisać jeszcze krócej: <code>licznik++</code> i <code>licznik--</code>.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Mówi się, że pętle zmieniają przepływ sterowania w programie. Zmieniają kolejność wykonywania instrukcji. W wielu przypadkach potrzebna jest też zmiana przepływu w inny sposób: poprzez pomijanie instrukcji.</p>
+  <p>Wyobraź sobie, że chcesz wyświetlić wszystkie liczby mniejsze od 20, które są podzielne zarówno przez 3, jak i 4.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">for</span> (<span class="keyword">var</span> <span class="variable">licznik</span> = <span class="atom">0</span>; <span class="variable">licznik</span> &lt; <span class="atom">20</span>; <span class="variable">licznik</span>++) {
+    <span class="keyword">if</span> (<span class="variable">licznik</span> % <span class="atom">3</span> == <span class="atom">0</span> &amp;&amp; <span class="variable">licznik</span> % <span class="atom">4</span> == <span class="atom">0</span>)
+    <span class="variable">show</span>(<span class="variable">licznik</span>);
+}</pre>
+  <p>Słowo kluczowe <code>if</code> działa bardzo podobnie do słowa <code>while</code>: Sprawdza warunek podany w nawiasie i podejmuje decyzję czy wykonać instrukcję w zależności od wartości tego warunku. Robi to jednak tylko raz, a więc instrukcja może zostać wykonana zero razy lub jeden raz.</p>
+  <p>Sztuczka z operatorem reszty z dzielenia (<code>%</code>) pozwala w łatwy sposób sprawdzić czy jedna liczba dzieli się bez reszty przez inną. Jeśli tak, to reszta z dzielenia zwrócona przez ten operator wynosi zero.</p>
+  <p>Gdybyśmy chcieli wyświetlić wszystkie liczby z przedziału do 20, a podzielne przez 4 umieścić w nawiasach, moglibyśmy napisać taki kod:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">for</span> (<span class="keyword">var</span> <span class="variable">licznik</span> = <span class="atom">0</span>; <span class="variable">licznik</span> &lt; <span class="atom">20</span>; <span class="variable">licznik</span>++) {
+    <span class="keyword">if</span> (<span class="variable">licznik</span> % <span class="atom">4</span> == <span class="atom">0</span>)
+    <span class="variable">print</span>(<span class="variable">licznik</span>);
+    <span class="keyword">if</span> (<span class="variable">licznik</span> % <span class="atom">4</span> != <span class="atom">0</span>)
+    <span class="variable">print</span>(<span class="string">"("</span> + <span class="variable">licznik</span> + <span class="string">")"</span>);
+}</pre>
+  <p>Teraz jednak program musi sprawdzić czy wartość zmiennej <code>licznik</code> jest podzielna przez <code>4</code> dwa razy. Ten sam efekt można uzyskać dodając instrukcję <code>else</code> za instrukcją <code>if</code>. Instrukcja <code>else</code>jest wykonywana tylko wtedy, gdy wartość warunku instrukcji <code>if</code> jest fałszywa.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">for</span> (<span class="keyword">var</span> <span class="variable">licznik</span> = <span class="atom">0</span>; <span class="variable">licznik</span> &lt; <span class="atom">20</span>; <span class="variable">licznik</span>++) {
+    <span class="keyword">if</span> (<span class="variable">licznik</span> % <span class="atom">4</span> == <span class="atom">0</span>)
+    <span class="variable">print</span>(<span class="variable">licznik</span>);
+    <span class="keyword">else</span>
+    <span class="variable">print</span>(<span class="string">"("</span> + <span class="variable">licznik</span> + <span class="string">")"</span>);
+}</pre>
+  <p>Ten przykład jest banalny, ale możemy go trochę skomplikować. Spróbujemy wydrukować te same liczby, ale po każdej większej od 15 dodamy dwie gwiazdki, po każdej większej od 10 i mniejszej od 15 dodamy po jednej gwiazdce, a do pozostałych nic nie będziemy dodawać.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">for</span> (<span class="keyword">var</span> <span class="variable">licznik</span> = <span class="atom">0</span>; <span class="variable">licznik</span> &lt; <span class="atom">20</span>; <span class="variable">licznik</span>++) {
+    <span class="keyword">if</span> (<span class="variable">licznik</span> &gt; <span class="atom">15</span>)
+    <span class="variable">print</span>(<span class="variable">licznik</span> + <span class="string">"**"</span>);
+    <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable">licznik</span> &gt; <span class="atom">10</span>)
+    <span class="variable">print</span>(<span class="variable">licznik</span> + <span class="string">"*"</span>);
+    <span class="keyword">else</span>
+    <span class="variable">print</span>(<span class="variable">licznik</span>);
+}</pre>
+  <p>Jak widać w powyższym kodzie, instrukcje <code>if</code> można łączyć w łańcuchy. ten program najpierw sprawdza czy wartość zmiennej <code>licznik</code> jest większa od <code>15</code>. Jeśli tak, następuje wydruk dwóch gwiazdek, a pozostałe testy są pomijane. Jeśli nie, program sprawdza czy wartość zmiennej <code>licznik</code> jest większa od <code>10</code>. Jeśli wartość zmiennej <code>licznik</code> nie jest większa od <code>10</code>, następuje wykonanie ostatniej instrukcji <code>print</code>.</p>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćw. 2.5</div>
+  <div class="exercise">
+    <p>Napisz program pytający za pomocą instrukcji <code>prompt</code>, ile wynosi 2 + 2. Jeśli zostanie udzielona odpowiedź 4, wyświetl jakąś pochwalę przy użyciu instrukcji <code>alert</code>. Jeśli zostanie wpisana liczba 3 albo 5, wyświetl napis „Prawie!”. W pozostałych przypadkach wydrukuj coś nieprzyjemnego.</p>
+  </div>
+  
+  <div class="toggle">[pokaż rozwiązanie]</div><div style="display: none;" class="solution"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">odpowiedz</span> = <span class="variable">prompt</span>(<span class="string">"Hej, Ty! Ile wynosi 2 + 2?"</span>, <span class="string">""</span>);
+      <span class="keyword">if</span> (<span class="variable">odpowiedz</span> == <span class="string">"4"</span>)
+      <span class="variable">alert</span>(<span class="string">"Jesteś genialny."</span>);
+      <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable">odpowiedz</span> == <span class="string">"3"</span> || <span class="variable">odpowiedz</span> == <span class="string">"5"</span>)
+      <span class="variable">alert</span>(<span class="string">"Prawie!"</span>);
+      <span class="keyword">else</span>
+      <span class="variable">alert</span>(<span class="string">"Żal mi Ciebie."</span>);</pre>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Jeśli nie ma potrzeby, aby wszystkie instrukcje pętli były wykonywane do samego końca, można posłużyć się słowem kluczowym <code>break</code>. Powoduje ono natychmiastowe wyjście z bieżącej pętli i kontynuowanie wykonywania programu za nią. Ten program znajduje pierwszą liczbę większą od 20 i podzielną przez 7:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">for</span> (<span class="keyword">var</span> <span class="variable">biezaca</span> = <span class="atom">20</span>; ; <span class="variable">biezaca</span>++) {
+    <span class="keyword">if</span> (<span class="variable">biezaca</span> % <span class="atom">7</span> == <span class="atom">0</span>)
+    <span class="keyword">break</span>;
+}
+    <span class="variable">print</span>(<span class="variable">biezaca</span>);</pre>
+  <p>W powyższej instrukcji <code>for</code> brakuje warunku pozwalającego zakończyć jej działanie. Z tego powodu zakończenie wykonywania tej pętli może nastąpić wyłącznie dzięki instrukcji <code>break</code>. Ten sam program można by było również zapisać tak:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">for</span> (<span class="keyword">var</span> <span class="variable">biezaca</span> = <span class="atom">20</span>; <span class="variable">biezaca</span> % <span class="atom">7</span> != <span class="atom">0</span>; <span class="variable">biezaca</span>++)
+  ;
+    <span class="variable">print</span>(<span class="variable">biezaca</span>);</pre>
+  <p>W tym przypadku treść pętli jest pusta. Za pomocą samego średnika można utworzyć pustą instrukcję. Jedynym skutkiem działania tej pętli jest zwiększenie wartości zmiennej <code>biezaca</code> do żądanego poziomu. Potrzebny był mi jednak też przykład z użyciem instrukcji <code>break</code>, a więc dobrze przyjrzyj się też poprzedniej wersji.</p>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćw. 2.6</div>
+  <div class="exercise">
+    <p>Do rozwiązania poprzedniego ćwiczenia dodaj instrukcję <code>while</code> i ewentualnie <code>break</code>, aby pytanie było wyświetlane, aż w końcu zostanie podana prawidłowa odpowiedź.</p>
+    <p>Pętlę, która nigdy nie zakończy działania sama można utworzyć pisząc <code>while (true) ...</code>. Może się to wydawać trochę głupie, że nakazujemy programowi wykonywać instrukcje dopóki <code>true</code> jest <code>true</code>, ale to naprawdę bardzo przydatna sztuczka.</p>
+  </div>
+  
+  <div class="toggle">[pokaż rozwiązanie]</div><div style="display: none;" class="solution"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">odpowiedz</span>;
+      <span class="keyword">while</span> (<span class="atom">true</span>) {
+      <span class="variable">odpowiedz</span> = <span class="variable">prompt</span>(<span class="string">"Hej, Ty! Ile wynosi 2 + 2?"</span>, <span class="string">""</span>);
+      <span class="keyword">if</span> (<span class="variable">odpowiedz</span> == <span class="string">"4"</span>) {
+      <span class="variable">alert</span>(<span class="string">"Jesteś genialny."</span>);
+      <span class="keyword">break</span>;
+  }
+      <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable">odpowiedz</span> == <span class="string">"3"</span> || <span class="variable">odpowiedz</span> == <span class="string">"5"</span>) {
+      <span class="variable">alert</span>(<span class="string">"Prawie!"</span>);
+  }
+      <span class="keyword">else</span> {
+      <span class="variable">alert</span>(<span class="string">"Żal mi Ciebie."</span>);
+  }
+}</pre>
+    <p>Ponieważ treść pierwszej instrukcji <code>if</code> zawiera teraz dwie instrukcje, dodałem klamry. Jest to kwestia gustu. Łańcuchy instrukcji <code>if</code>/<code>else</code>, w których niektóre klauzule zawierają bloki, a inne pojedyncze instrukcje jak dla mnie wyglądają dziwnie, ale może Ty będziesz miał inne zdanie na ten temat.</p>
+    <p>Oto inne rozwiązanie, bez użycia instrukcji <code>break</code> i może trochę bardziej eleganckie:</p>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">wartosc</span> = <span class="atom">null</span>;
+      <span class="keyword">while</span> (<span class="variable">wartosc</span> != <span class="string">"4"</span>) {
+      <span class="variable">wartosc</span> = <span class="variable">prompt</span>(<span class="string">"Hej, Ty! Ile wynosi 2 + 2?"</span>, <span class="string">""</span>);
+      <span class="keyword">if</span> (<span class="variable">wartosc</span> == <span class="string">"4"</span>)
+      <span class="variable">alert</span>(<span class="string">"Jesteś genialny."</span>);
+      <span class="keyword">else</span> <span class="keyword">if</span> (<span class="variable">wartosc</span> == <span class="string">"3"</span> || <span class="variable">wartosc</span> == <span class="string">"5"</span>)
+      <span class="variable">alert</span>(<span class="string">"Prawie!"</span>);
+      <span class="keyword">else</span>
+      <span class="variable">alert</span>(<span class="string">"Żal mi Ciebie."</span>);
+}</pre>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>W rozwiązaniu poprzedniego ćwiczenia znalazła się instrukcja <code>var odpowiedz;</code>. Tworzy ona zmienną o nazwie <code>odpowiedz</code>, ale nie nadaje jej żadnej wartości. Co się stanie, gdy spróbujemy użyć wartości tej zmiennej?</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">tajemniczaZmienna</span>;
+    <span class="variable">show</span>(<span class="variable">tajemniczaZmienna</span>);</pre>
+  <p>Posługując się metaforą przyssawek, można powiedzieć, że ta zmienna nie jest do niczego przyssana. Gdy spróbujesz użyć wartości pustego miejsca, otrzymasz specjalną wartość o nazwie <code>undefined</code>. Także funkcje nie zwracające żadnej sensownej wartości, takie jak np. <code>print</code> i <code>alert</code>, zwracają wartość <code>undefined</code>.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="variable">alert</span>(<span class="string">"Jestem skutkiem ubocznym."</span>));</pre>
+
+  <p>Istnieje też podobna wartość <code>null</code>, która oznacza, że „dana zmienna jest zdefiniowana, ale nie ma żadnej wartości”. Różnica znaczenia między wartościami <code>undefined</code> i <code>null</code> ma przede wszystkim znaczenie naukowe i nie jest zbyt ciekawa. W praktyce zwykle sprawdza się, czy coś „ma wartość”. W takich przypadkach można używać wyrażeń typu <code>cokolwiek == undefined</code>, ponieważ, mimo że wartości te nie są tym samym, wyrażenie <code>null == undefined</code> ma wartość <code>true</code>.</p>
+</div>
+<hr>
+<div class="block">
+  <p>To prowadzi nas do kolejnego ciekawego tematu…</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="atom">false</span> == <span class="atom">0</span>);
+    <span class="variable">show</span>(<span class="string">""</span> == <span class="atom">0</span>);
+    <span class="variable">show</span>(<span class="string">"5"</span> == <span class="atom">5</span>);</pre>
+  <p>Wszystkie te instrukcje zwracają wartość <code>true</code>. Do porównywania wartości różnych typów JavaScript stosuje skomplikowane i niejasne reguły. Nie będę nawet próbował ich dokładnie wyjaśnić, ale najprościej można powiedzieć, że zazwyczaj próbuje przekonwertować jedną z wartości na typ drugiej. Jeśli jednak z którejś strony wystąpi wartość <code>null</code> lub <code>undefined</code>, wartość <code>true</code> jest zwracana tylko wtedy, gdy z obu stron znajduje się <code>null</code> lub <code>undefined</code>.</p>
+  <p>Jak w takim razie sprawdzić, czy wybrana zmienna odnosi się do wartości <code>false</code>? Zgodnie z regułami konwersji łańcuchów i liczb na wartości logiczne <code>0</code> i pusty łańcuch są traktowane jako <code>false</code>, natomiast wszystkie pozostałe wartości oznaczają <code>true</code>. Z tego względu wartością wyrażenia <code>zmienna == false</code> jest <code>true</code>, gdy <code>zmienna</code> odwołuje się do <code>0</code> lub <code>""</code>. Jeśli <em>nie</em> chcesz, aby ta automatyczna konwersja typów była wykonywana, możesz użyć jednego z dwóch dodatkowych operatorów: <code>===</code> i <code>!==</code>. Pierwszy sprawdza czy dana wartość jest identyczna z drugą, natomiast drugi — czy dana wartość jest dokładnie różna od drugiej.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="atom">null</span> === <span class="atom">undefined</span>);
+    <span class="variable">show</span>(<span class="atom">false</span> === <span class="atom">0</span>);
+    <span class="variable">show</span>(<span class="string">""</span> === <span class="atom">0</span>);
+    <span class="variable">show</span>(<span class="string">"5"</span> === <span class="atom">5</span>);</pre>
+  <p>Wszystkie te instrukcje zwrócą wartość <code>false</code>.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Wartości używane w warunkach w instrukcjach <code>if</code>, <code>while</code> oraz <code>for</code> nie muszą być logiczne. Przed sprawdzeniem zostaną automatycznie przekonwertowane na ten typ. Oznacza to, że liczba <code>0</code>, pusty łańcuch <code>""</code>, <code>null</code>, <code>undefined</code> i oczywiście <code>false</code> zostaną potraktowane jako fałsz.</p>
+  <p>Wykorzystując fakt, że wszystkie pozostałe wartości zostaną zamienione na wartość <code>true</code> w wielu przypadkach można opuścić bezpośrednie porównywanie. Jeśli wiadomo, że zmienna może zawierać tylko albo łańcuch albo wartość <code>null</code>, można ją bardzo łatwo testować…</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">mozeNull</span> = <span class="atom">null</span>;
+    <span class="comment">// …tajemniczy kod, który może zapisać łańcuch w zmiennej mozeNull…</span>
+    <span class="keyword">if</span> (<span class="variable">mozeNull</span>)
+    <span class="variable">print</span>(<span class="string">"Zmienna mozeNull ma wartość"</span>);</pre>
+  <p>Wyjątkiem jest sytuacja, w której tajemniczy kod przypisze zmiennej <code>mozeNull</code> wartość <code>""</code>. Pusty łańcuch jest równoznaczny z fałszem, a więc w tym przypadku nic nie zostanie wydrukowane. W niektórych przypadkach może to być <em>błąd</em>. Tego subtelnego błędu można uniknąć używając porównania <code>=== null</code> lub <code>=== false</code>. To samo dotyczy wartości liczbowych, które mogą wynosić <code>0</code>.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Wiersz zawierający opis tajemniczego kodu w powyższym przykładzie może wydać Ci się trochę podejrzany. Dodatkowe objaśnienia w kodzie programów są często bardzo przydatne. Zazwyczaj stosuje się je, aby wyjaśnić ludzkim językiem, co robi dany fragment programu.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="comment">// Licznik zmiennej, którego definicja znajduje się poniżej, będzie miał</span>
+    <span class="comment">// wartość początkową 0, czyli zero.</span>
+    <span class="keyword">var</span> <span class="variable">licznik</span> = <span class="atom">0</span>;
+    <span class="comment">// Teraz rozpoczynamy pętlę, więc dobrze się trzymaj.</span>
+    <span class="keyword">while</span> (<span class="variable">licznik</span> &lt; <span class="atom">100</span> <span class="comment">/* Licznik ma wartość mniejszą od stu */</span>)
+    <span class="comment">/* W każdym powtórzeniu pętli ZWIĘKSZAMY wartość licznika
+   Dodajemy do niej jeden */</span>
+    <span class="variable">licznik</span>++;
+    <span class="comment">// Koniec.</span></pre>
+  <p>Tego rodzaju teksty nazywają się komentarzami. Oto reguły ich stosowania: ‚ciąg <code>/*</code> stanowi początek komentarza, który kończy się ciągiem <code>*/</code>. ‚Ciąg <code>//</code> również oznacza początek komentarza, ale jego koniec wyznacza koniec wiersza.</p>
+  <p>Jak widać, dzięki komentarzom można sprawić, że nawet najprostszy program będzie wyglądał jakby był duży, brzydki i niesamowicie skomplikowany.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Są jeszcze inne sytuacje, w których może dojść do automatycznej konwersji typów. Gdy do łańcucha doda się wartość niebędącą łańcuchem, wartość ta przed dołączeniem zostanie przekształcona w łańcuch. Jeśli pomnożymy liczbę przez łańcuch, JavaScript spróbuje przed wykonaniem działania zamienić ten łańcuch na liczbę.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="string">"Apollo"</span> + <span class="atom">5</span>);
+    <span class="variable">show</span>(<span class="atom">null</span> + <span class="string">"ify"</span>);
+    <span class="variable">show</span>(<span class="string">"5"</span> * <span class="atom">5</span>);
+    <span class="variable">show</span>(<span class="string">"truskawka"</span> * <span class="atom">5</span>);</pre>
+  <p>Ostatnia instrukcja spowodowała wydrukowanie napisu <code>NaN</code>, który oznacza specjalną wartość. Jest to skrót od angielskich słów „Not a Number” (nie liczba) i co ciekawe, jest to typ liczbowy. W tym przypadku dowiadujemy się, że truskawka nie jest liczbą. Wynikiem wszystkich działań arytmetycznych na wartości <code>NaN</code> jest <code>NaN</code> i dlatego właśnie w wyniku mnożenia przez <code>5</code> otrzymaliśmy <code>NaN</code>. Ponadto zapewne zaskoczy Cię fakt, że wynikiem porównania <code>NaN == NaN</code> jest <code>false</code>. Do sprawdzania czy dana wartość jest <code>NaN</code> można używać funkcji <code>isNaN</code>. <code>NaN</code> to kolejna (i już ostatnia) wartość, która w wyniku konwersji na typ logiczny zamienia się w <code>false</code>.</p>
+  <p>Te automatyczne konwersje bywają naprawdę wygodne, ale zasady ich wykonywania są dziwaczne i stanowią źródło wielu błędów. Mimo że <code>+</code> i <code>*</code> to operatory arytmetyczne, w tym przykładzie oba zachowują się całkiem inaczej. We własnych programach często używam operatora <code>+</code> do łączenia łańcuchów i „niełańcuchów”, ale operatora <code>*</code> i innych operatorów arytmetycznych lepiej na łańcuchach nie używać. Konwersja liczby na łańcuch zawsze jest możliwa i łatwa, natomiast zamiana łańcucha w liczbę może się nie udać (tak jak w ostatnim wierszu kodu w przytoczonym przykładzie). Aby jawnie przekonwertować łańcuch na liczbę, można użyć funkcji <code>Number</code> i wówczas oświadczamy, że jesteśmy świadomi ryzyka otrzymania wartości <code>NaN</code>.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="variable">Number</span>(<span class="string">"5"</span>) * <span class="atom">5</span>);</pre>
+</div>
+<hr>
+<div class="block">
+  <p>W części poświęconej operatorom logicznym <code>&amp;&amp;</code> i <code>||</code> napisałem, że operatory te tworzą wartości logiczne. Muszę przyznać, że to było uproszczenie. Jeśli zastosuje się je do wartości logicznych, to rzeczywiście zwrócą wartość logiczną. Ale można je stosować także do innych typów danych i wówczas zwracają jeden ze swoich argumentów.</p>
+  <p>Operator <code>||</code> tak naprawdę najpierw sprawdza wartość znajdującą się po jego lewej stronie. Jeśli w wyniku konwersji tej wartości na typ logiczny otrzyma <code>true</code>, zwraca tę wartość znajdującą się po jego lewej stronie. W przeciwnym przypadku zwraca wartość znajdującą się po prawej. Możesz to sam sprawdzić. Dlaczego tak jest? Jest to przydatne w praktyce. Rozważmy poniższy przykład:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">input</span> = <span class="variable">prompt</span>(<span class="string">"Jak się nazywasz?"</span>, <span class="string">"Kilgore Trout"</span>);
+    <span class="variable">print</span>(<span class="string">"No to cześć, "</span> + (<span class="variable">input</span> || <span class="string">"żabko"</span>));</pre>
+  <p>Jeśli użytkownik naciśnie przycisk <span class="oblique">Anuluj</span> albo zamknie okno dialogowe <code>prompt</code> w jakiś inny sposób bez podawania swojego nazwiska, zmienna <code>input</code> będzie miała wartość <code>null</code> lub <code>""</code>. Obie te wartości po przekonwertowaniu na typ logiczny dałyby <code>false</code>. Wyrażenie <code>input || "żabko"</code> można w tym przypadku przeczytać następująco: „wartość zmiennej <code>input</code> lub łańcuch <code>"żabko"</code>”. Jest to łatwy sposób na zdefiniowanie wartości „awaryjnej”.</p>
+  <p>Operator <code>&amp;&amp;</code> działa wg podobnych zasad, tylko odwrotnie. Gdy po jego lewej stronie znajduje się wartość dająca <code>false</code> po konwersji na typ logiczny, zwraca tę wartość. W przeciwnym przypadku zwraca wartość znajdującą się po prawej.</p>
+  <p>Kolejną ciekawą właściwością tych operatorów jest to, że wyrażenie znajdujące się po prawej stronie jest obliczane tylko wtedy, gdy jest to konieczne. W przypadku <code>true || X</code> nie ma znaczenia, jaka jest wartość <code>X</code>, ponieważ wynik zawsze będzie <code>true</code>, a więc wartość <code>X</code> nigdy nie będzie obliczana. A jeśli to wyrażenie miałoby jakieś skutki uboczne, to nigdy byśmy ich nie zaobserwowali. To samo dotyczy wyrażenia <code>false &amp;&amp; X</code>.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="atom">false</span> || <span class="variable">alert</span>(<span class="string">"Niech się dzieje!"</span>);
+    <span class="atom">true</span> || <span class="variable">alert</span>(<span class="string">"Nic się nie dzieje."</span>);</pre>
+</div>
+<h3>Przypisy</h3>
+<ol>
+  <li id="footnote1"><small>Bit to dowolny byt mogący mieć jedną z dwóch wartości, które zazwyczaj opisuje się jako <code>0</code> i <code>1</code>. W komputerze wartości te są reprezentowane przez wysoką i niską wartość ładunku elektrycznego, silny i słaby sygnał albo lśniącą lub matową powierzchnię na płycie CD.</small></li>
+
+  <li id="footnote2"><small>Jeśli spodziewałeś się tu zobaczyć wartość <code>10010000</code>, to dobrze myślisz. W JavaScripcie liczby nie są jednak przechowywane jako liczby całkowite.</small></li>
+
+  <li id="footnote3"><small>Tak naprawdę to 53, ponieważ stosowana jest sztuczka pozwalająca uzyskać jeden dodatkowy bit. Jeśli interesują Cię szczegóły, zajrzyj do standardu IEEE 754.</small></li>
+
+  <li id="footnote4"><small>Gdy wpiszesz wartości łańcuchowe w konsoli, zostaną one zwrócone z cudzysłowami i ukośnikami, dokładnie tak, jak zostały wpisane. Aby poprawnie wyświetlić specjalne znaki, można napisać <code>print("a\nb")</code> ― wkrótce wyjaśnię, dlaczego tak jest.</small></li>
+
+  <li id="footnote5"><small>Wór na bity to miejsce, w którym przechowywane są stare bity. W niektórych systemach programista musi własnoręcznie go od czasu do czasu opróżniać. Na szczęście w JavaScripcie odzyskiwanie zasobów odbywa się w pełni automatycznie.</small></li>
+
+</ol>
+

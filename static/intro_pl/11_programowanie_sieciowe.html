@@ -1,0 +1,191 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Programowanie sieciowe. Intensywny kurs</title>
+<link rel=stylesheet href=doc.css>
+<link rel=author href=http://marijnhaverbeke.nl/>
+<link rel=license href=http://creativecommons.org/licenses/by/3.0/deed.pl>
+<h1>Programowanie sieciowe. Intensywny kurs</h1>
+
+<div class="block">
+  <p>Możliwe, że czytasz ten tekst w oknie przeglądarki internetowej, co oznacza że przynajmniej trochę znasz się na internecie. Rozdział ten zawiera zwięzłe i powierzchowne informacje na temat sposobu działania internetu oraz jak to się ma do języka JavaScript. Głównym tematem jest zatem mówiąc krótko <strong>programowanie sieciowe</strong> w JavaScript. Trzy kolejne rozdziały zawierają bardziej praktyczną treść, ponieważ pokazuję w nich jak za pomocą JavaScriptu badać i modyfikować strony internetowe.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Internet to mówiąc najprościej sieć komputerów obejmująca większość świata. Dzięki tym sieciom możliwe jest przesyłanie wiadomości między komputerami. Techniczne aspekty działania sieci są bardzo ciekawe, ale niestety temat tej książki jest całkiem inny. Wystarczy pamiętać, że w uproszczeniu jeden komputer, który będziemy nazywać serwerem, czeka aż inne komputery zaczną się z nim komunikować. Gdy jakiś komputer, klient, nawiąże kontakt z serwerem, następuje wymiana jakichś danych przy użyciu specjalnego języka zwanego protokołem.</p>
+  <p>Internet służy do przesyłania wiadomości przy użyciu <em>wielu</em> różnych protokołów. Istnieją protokoły do czatowania, udostępniania plików, używane przez szkodliwe programy do kontrolowania komputerów głupków, którzy je zainstalowali itd. Nas interesuje protokół używany przez sieć ogólnoświatową (World Wide Web). Protokół ten nazywa się <strong>HTTP</strong>, co oznacza <span lang="en">Hyper Text Transfer Protocol</span> (protokół przesyłania hipertekstu), i służy do pobierania stron internetowych oraz powiązanych z nimi plików.</p>
+  <p>W komunikacji HTTP serwer jest komputerem używanym do przechowywania strony internetowej. Klientem jest komputer, np. Twój, który prosi serwer o przesłanie mu tej strony, aby mógł ją wyświetlić. Taka prośba o stronę nazywa się <strong>żądaniem HTTP</strong>.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Strony internetowe i inne pliki dostępne w internecie mają adresy URL, czyli uniwersalne lokalizatory zasobów (ang. Universal Resource Locators). Adres URL wygląda następująco:</p>
+  <pre class="preformatted">http://acc6.its.brooklyn.cuny.edu/~phalsall/texts/taote-v3.html</pre>
+  <p>Adres URL składa się z trzech części. Pierwsza część, <code>http://</code>, oznacza, że ten adres używa protokołu HTTP. Istnieją jeszcze inne protokoły, np. FTP (ang. File Transfer Protocol — protokół przesyłania plików), które również mogą być używane do tworzenia adresów URL. Druga część, <code>acc6.its.brooklyn.cuny.edu</code>, określa nazwę serwera, na którym znajduje się strona. Na końcu adresu URL, <code>/~phalsal/texts/taote-v3.html</code>, znajduje się nazwa konkretnego pliku na serwerze.</p>
+  <p>Najczęściej z sieci WWW korzysta się przy użyciu przeglądarki internetowej. Gdy użytkownik wpisze adres URL albo kliknie odnośnik, przeglądarka wysyła odpowiednie żądanie HTTP do serwera. Jeśli wszystko się uda, serwer odpowie wysyłając przeglądarce plik, a ta wyświetli go użytkownikowi.</p>
+  <p>Jeśli plikiem tym jest dokument HTML, zostanie on zaprezentowany jako strona internetowa. Krótki opis języka HTML znajduje się w <a href="/kursy/javascript/wszystko-jasne/r6-programowanie-funkcyjne">rozdziale 6</a>, w którym dowiedzieliśmy się, że w języku tym można odwoływać się do obrazów. W <a href="/kursy/javascript/wszystko-jasne/r9-modularnosc">rozdziale 9</a> dowiedziałeś się też, że strony HTML mogą zawierać elementy <code>&lt;script&gt;</code> ładujące kod JavaScript z plików. Przed wyświetleniem dokumentu HTML przeglądarka pobiera wszystkie dodatkowe zasoby z serwerów, aby dodać je do dokumentu.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Mimo że adres URL powinien wskazywać plik, możliwości serwerów sieciowych są większe niż proste znajdowanie plików i wysyłanie ich do klientów. Serwer może też przetwarzać pliki a nawet możliwe jest, że wybrany plik w ogóle nie istnieje, tylko na serwerze działa specjalny program, który otrzymując żądanie określonego adresu URL generuje na bieżąco odpowiedni dokument.</p>
+  <p>Programy przekształcające i generujące dokumenty na serwerze są wykorzystywane do tworzenia dynamicznych stron internetowych. Plik to po prostu plik i jego zawartość jest zawsze taka sama. Ale jeśli pliki są tworzone na bieżąco dla każdego żądania przez program, to u każdego użytkownika mogą wyglądać inaczej, np. ze względu na to czy użytkownik jest zalogowany lub zdefiniował jakieś ustawienia. Ponadto to bardzo ułatwia zarządzanie treścią stron internetowych — zamiast każdą nową treść wysyłać na serwer w postaci pliku, dodaje się nowy dokument do jakiegoś centralnego magazynu, a program już wie jak go znaleźć i zaprezentować.</p>
+  <p>Takie rodzaj programowania nazywa się programowaniem serwerowym. Polega na przetwarzaniu dokumentu przed jego wysłaniem do użytkownika. W większości przypadków dobrze jest też mieć program, który działa <em>po</em> wysłaniu strony, gdy użytkownik już ją ogląda. To nazywa się programowaniem po stronie klienta, ponieważ program działa na komputerze klienta. Programowanie po stronie klienta to główne zastosowanie JavaScriptu.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Jednak wykonywanie programów na kliencie ma pewną wadę, której nie da się wyeliminować. Nigdy nie wiadomo, jakie programy będą uruchomione na stronie, którą ma się zamiar odwiedzić. Gdyby program taki mógł wysyłać informacje z naszego komputera, niszczyć pliki albo infiltrować system, to surfowanie po internecie byłoby bardzo niebezpieczne.</p>
+  <p>Dlatego przeglądarki bardzo ograniczają możliwości programów JavaScript. Nie mogą one przeglądać plików użytkownika ani modyfikować niczego, co nie jest związane ze stroną internetową, z którą zostały pobrane. Takie izolowane środowisko programowe nazywa się piaskownicą (ang. sandbox). Nie jest łatwo tak określić uprawnienia programów aby mogły w miarę swobodnie działać, a jednocześnie nie miały możliwości narobienia szkód w komputerze. Co kilka miesięcy jakiś programista JavaScript znajduje kolejne luki w zabezpieczeniach pozwalające ominąć ograniczenia i wykonywać szkodliwe działania. Twórcy przeglądarek reagują na to modyfikacjami swoich programów tak, aby uniemożliwić wykonywanie odkrytej sztuczki i wszystko wraca do porządku. Dopóki ktoś znowu czegoś nie znajdzie…</p>
+</div>
+<hr>
+<div class="block">
+  <p>Jedną z pierwszych powszechnie znanych sztuczek JavaScript jest użycie metody <code>open</code> obiektu <code>window</code>. Przyjmuje ona jako argument adres URL i otwiera nowe okno wyświetlając w nim stronę znajdującą się pod tym adresem.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">perry</span> = <span class="variable">window</span>.<span class="property">open</span>(<span class="string">"http://www.pbfcomics.com"</span>);</pre>
+  <p>Jeśli włączyłeś w <a href="/kursy/javascript/wszystko-jasne/r6-programowanie-funkcyjne">rozdziale 6</a> blokowanie wyskakujących okienek, to najprawdopodobniej okno to zostanie zablokowane. Programy blokujące wyskakujące okienka istnieją nie bez powodu. Programiści sieciowi, z zwłaszcza ci, którzy chcą przyciągnąć uwagę użytkowników do płatnych reklam, nadużywają metody <code>window.open</code> tak bardzo, że większość internautów po prostu jej nienawidzi. Jest ona jednak czasami przydatna i w tej książce również kilka razy zostanie użyta. Ogólna zasada jest taka, że skrypt nie powinien otwierać nowych okien, jeśli użytkownik wyraźnie sobie tego nie zażyczy.</p>
+  <p>Warto zauważyć, że ponieważ metoda <code>open</code> (podobnie jak <code>setTimeout</code> itp.) należy do obiektu <code>window</code>, część <code>window.</code> w jej wywołaniu można opuścić. Gdy funkcja jest wywoływana „normalnie”, to zostaje wywołana jako metoda na obiekcie najwyższego poziomu, którym jest <code>window</code>. Ja jednak uważam, że nazwa <code>open</code> jest trochę za ogólna i wolę pisać <code>window.open</code>, dzięki czemu od razu wiadomo, że chodzi o otwarcie okna.</p>
+  <p>Wartością zwracaną przez metodę <code>window.open</code> jest nowe okno. Jest ono globalnym obiektem dla skryptu działającego w tym oknie i zawiera wszystkie standardowe rzeczy, takie jak konstruktor <code>Object</code> i obiekt <code>Math</code>. Gdy jednak spróbujesz je przejrzeć, większość przeglądarek prawdopodobnie na to nie zezwoli…</p>
+  <pre class="code invalid not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="variable">perry</span>.<span class="property">Math</span>);</pre>
+  <p>Jest to związane z działaniem w piaskownicy, o której była mowa wcześniej. Strony otwierane przez naszą przeglądarkę mogą zawierać informacje przeznaczone tylko dla nas, np. w serwisach, w których trzeba się zalogować, i dlatego nie byłoby dobrze gdyby każdy skrypt mógł je odczytać. Wyjątkiem od tej reguły są strony należące do tej samej domeny: jeśli skrypt działający na stronie <code>eloquentjavascript.net</code> otworzy inną stronę w tej samej domenie, to może z nią robić wszystko, co chce.</p>
+  <p>Otwarte okno można zamknąć przy użyciu metody <code>close</code>. Jeśli jeszcze sami go nie zamknęliśmy…</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">perry</span>.<span class="property">close</span>();</pre>
+  <p>Inne rodzaje poddokumentów, np. ramki (dokumenty w dokumentach), dla programów JavaScript również są oknami i mają własne środowiska JavaScript. W istocie środowisko, do którego masz dostęp w konsoli należy do małej niewidocznej ramki ukrytej gdzieś na tej stronie — dzięki temu trochę trudniej jest przez przypadek popsuć całą stronę podczas zabawy.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Każdy obiekt okna ma własność <code>document</code> zawierającą obiekt reprezentujący dokument wyświetlony w tym oknie. Obiekt ten zawiera np. własność <a name="key16"></a><code>location</code> zawierającą informacje o adresie URL dokumentu.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="variable">document</span>.<span class="property">location</span>.<span class="property">href</span>);</pre>
+  <p>Ustawiając własność <code>document.location.href</code> na inny adres URL można spowodować wczytanie przez przeglądarkę innego dokumentu. Obiekt <code>document</code> zawiera także metodę <code>write</code>. Służy ona do wstawiania do dokumentu kodu HTML, który trzeba jej przekazać w postaci łańcucha. Gdy zostanie zastosowana do w pełni załadowanego dokumentu, to zastąpi go w całości otrzymanym kodem HTML, czego zazwyczaj nie chcemy. Najczęściej skrypt wywołuje ją w czasie ładowania dokumentu i wówczas kod HTML zostaje wstawiony do dokumentu w miejscu elementu <code>script</code> odpowiedzialnego za jej dodanie. Jest to prosty sposób na dodanie dynamicznych elementów do strony. Na przykład poniżej znajduje się banalnie prosty dokument pokazujący bieżącą godzinę.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">print</span>(<span class="variable">timeWriter</span>);
+    <span class="keyword">var</span> <span class="variable">time</span> = <span class="variable">viewHTML</span>(<span class="variable">timeWriter</span>);</pre>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">time</span>.<span class="property">close</span>();</pre>
+  <p>W <a href="/kursy/javascript/wszystko-jasne/r12-dom">rozdziale 12</a> znajduje się opis bardziej klarownych i wszechstronnych sposobów modyfikowania dokumentów, ale czasami metoda <code>document.write</code> jest najprostszym i najlepszym rozwiązaniem.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Kolejną dziedziną dotyczącą stron internetowych, w której język JavaScript często znajduje zastosowanie są formularze. Kilka słów wyjaśnienia dl tych, którzy nie wiedzą do czego służą formularze.</p>
+  <p>Najprostsze żądanie HTTP to zwykła prośba do serwera o przesłanie pliku. Gdy żądany plik nie jest pasywnym plikiem lecz plikiem zwracanym przez program działający na serwerze, to czasami do żądania warto dołączyć także inne informacje niż tylko adres URL. Dlatego żądania HTTP mogą zawierać dodatkowe parametry. Oto przykład:</p>
+  <pre class="preformatted">http://www.google.com/search?q=aztec%20empire</pre>
+  <p>Po nazwie pliku (<code>/search</code>) znajduje się znak zapytania, po którym z kolei znajdują się parametry. To żądanie zawiera jeden parametr o nazwie <code>q</code> (prawdopodobnie od słowa ang. „query” czyli „zapytanie”), którego wartość to <code>aztec empire</code>. Ciąg <code>%20</code> oznacza spację. W wartościach tych nie mogą występować niektóre znaki, np. spacje, ampersand (&amp;) i znaki zapytania. Są one zastępowane specjalnymi kodami składającymi się ze znaku <code>%</code> i wartości liczbowej<a class="footref" href="#footnote1">1</a>. Znak procent w tym przypadku pełni taką samą rolę, jak ukośnik wsteczny w wyrażeniach regularnych, tylko trochę lepiej wygląda.</p>
+  <p>W języku JavaScript dostępne są funkcje <code>encodeURIComponent</code> i <code>decodeURIComponent</code> służące do dodawania tych kodów do łańcuchów i usuwania ich.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">encoded</span> = <span class="variable">encodeURIComponent</span>(<span class="string">"aztec empire"</span>);
+    <span class="variable">show</span>(<span class="variable">encoded</span>);
+    <span class="variable">show</span>(<span class="variable">decodeURIComponent</span>(<span class="variable">encoded</span>));</pre>
+  <p>Gdy żądanie zawiera więcej parametrów, rozdziela się je znakami ampersand:</p>
+  <pre class="preformatted">http://www.google.com/search?q=aztec%20empire&amp;lang=pl</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Formularz mówiąc najprościej to narzędzie ułatwiające użytkownikom przeglądarek tworzenie takich parametryzowanych adresów URL. W formularzu znajdują się pola, np. tekstowe i wyboru, które można zaznaczać oraz obiekty pozwalające wybrać jedna z kilku wartości itp. Najczęściej dostępny jest też przycisk zatwierdzania formularza oraz niewidoczny dla użytkownika adres URL wskazujący program, który ma być użyty do przetworzenia danych z tego formularza. Kliknięcie przycisku zatwierdzania lub naciśnięcie klawisza Enter powoduje dodanie informacji wprowadzonych w formularzu do adresu URL jako parametrów i wysłanie żądania pod taki adres.</p>
+  <p>Poniżej znajduje się kod HTML prostego formularza:</p>
+  <pre class="preformatted">&lt;form name="userinfo" method="get" action="info.html"&gt;
+  &lt;p&gt;Podaj nam swoje dane, abyśmy mogli Ci wysyłać
+  spam.&lt;/p&gt;
+  &lt;p&gt;Imię i nazwisko: &lt;input type="text" name="name"/&gt;&lt;/p&gt;
+  &lt;p&gt;E-Mail: &lt;input type="text" name="email"/&gt;&lt;/p&gt;
+  &lt;p&gt;Płeć: &lt;select name="sex"&gt;
+            &lt;option&gt;Mężczyzna&lt;/option&gt;
+            &lt;option&gt;Kobieta&lt;/option&gt;
+            &lt;option&gt;Inna&lt;/option&gt;
+          &lt;/select&gt;&lt;/p&gt;
+  &lt;p&gt;&lt;input name="send" type="submit" value="Wyślij!"/&gt;&lt;/p&gt;
+&lt;/form&gt;</pre>
+  <p>Posługując się nazwą formularza można uzyskać dostęp do niego z poziomu JavaScriptu, co za chwilę zostanie pokazane. Nazwy pól determinują nazwy parametrów HTTP używanych do przechowywania ich wartości. Zatwierdzenie tego formularza może spowodować utworzenie następującego adresu URL:</p>
+  <pre class="preformatted">http://planetspam.com/info.html?name=Tadek&amp;email=tadek@zork.com&amp;sex=Mężczyzna</pre>
+  <p>Formularze mają jeszcze wiele innych elementów i własności, ale my skoncentrujemy się tylko na tych kilku podstawowych, ponieważ przede wszystkim interesuje nas JavaScript.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Atrybut <code>method="get"</code> w przedstawionym formularzu oznacza, że dane wpisane w polach tego formularza mają zostać zakodowane w postaci parametrów adresu URL. Istnieje też inna metoda wysyłania parametrów o nazwie <code>post</code>. Żądanie HTTP wysłane metodą <code>post</code> oprócz adresu URL zawiera dodatkowo blok danych. Formularz wysyłany metodą <code>post</code> wstawia wartości swoich parametrów do tego bloku zamiast do adresu URL.</p>
+  <p>Metoda <code>post</code> lepiej nadaje się do przesyłania w formularzach dużych ilości danych, ponieważ wysyłanie ich metodą <code>get</code> spowodowałoby powstanie kilometrowych adresów URL. Jednak różnica między tymi dwiema metodami to nie tylko kwestia urody adresów. Metody <code>get</code> zwyczajowo używa się do wysyłania do serwera żądań dokumentów, natomiast <code>post</code> do wysyłania żądań wykonania czegoś na serwerze, co spowoduje tam jakąś zmianę. Na przykład żądanie listy ostatnio opublikowanych na forum internetowym wpisów wysłano by metodą <code>get</code>, natomiast żądanie dodania nowego wpisu — metodą <code>post</code>. Trzymanie się tej zasady ma uzasadnienie — automaty przeglądające sieć, np. wyszukiwarki internetowe, zazwyczaj wykonują tylko żądania <code>get</code>. Gdyby za pomocą żądań <code>get</code> dokonywano zmian na stronach,  te nieszkodliwe z założenia narzędzia mogłyby narobić wiele szkód.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Gdy przeglądarka wyświetla stronę zawierającą formularz, programy JavaScript mogą przeglądać i modyfikować wartości wprowadzane w polach tego formularza. To umożliwia wykonywanie różnych sztuczek, takich jak sprawdzanie wartości przed wysłaniem ich na serwer czy automatyczne wypełnianie niektórych pól.</p>
+  <p>Powyższy formularz znajduje się w pliku <code>example_getinfo.html</code>. Otwórz go.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">form</span> = <span class="variable">window</span>.<span class="property">open</span>(<span class="string">"/wp-content/ejs/example_getinfo.html"</span>);</pre>
+  <p>Gdy adres URL nie zawiera nazwy serwera, to nazywa się adresem względnym. Adresy względne są przez przeglądarki interpretowane jako odnoszące się do plików znajdujących się na tym samym serwerze, co bieżący dokument. Jeśli nie zaczynają się od ukośnika, brana jest ścieżka (lub katalog) bieżącego dokumentu i do tego dodaje się podaną ścieżkę.</p>
+  <p>Dodamy do naszego formularza mechanizm sprawdzający poprawność jego wypełnienia, który pozwoli na jego zatwierdzenie tylko, gdy pole nazwiska nie będzie puste, a pole adresu e-mail będzie wyglądać na poprawnie wypełnione. Jako że nie chcemy już aby formularz był wysyłany natychmiast po naciśnięciu przycisku Wyślij!, zmienimy jego atrybut <code>type</code> z <code>submit</code> na <code>button</code>, dzięki czemu stanie się zwykłym przyciskiem. ― W <a href="/kursy/javascript/wszystko-jasne/r13-zdarzenia-przegladarek">rozdziale 13</a> opisana jest <em>o wiele</em> lepsza metoda zrobienia tego, ale tutaj wystarczy nam takie uproszczone rozwiązanie.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Aby móc pracować z nowo otwartym oknem (jeśli je zamknąłeś, to otwórz je znowu), musimy powiązać je z konsolą:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">attach</span>(<span class="variable">form</span>);</pre>
+  <p>Gdy to zrobisz, kod w konsoli będzie uruchamiany w określonym oknie. Aby sprawdzić czy rzeczywiście działamy w tym oknie, co trzeba, możemy zajrzeć do własności <code>location</code> i <code>title</code> dokumentu.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">print</span>(<span class="variable">document</span>.<span class="property">location</span>.<span class="property">href</span>);
+    <span class="variable">print</span>(<span class="variable">document</span>.<span class="property">title</span>);</pre>
+  <p>Ponieważ otworzyliśmy nowe środowisko, wcześniej zdefiniowane zmienne, jak np. <code>form</code>, nie są już dostępne.</p>
+  <pre class="code invalid not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="variable">form</span>);</pre>
+  <p>Aby wrócić do początkowego środowiska, możemy posłużyć się funkcją <code>detach</code> (bez argumentów). Ale wcześniej musimy dodać system sprawdzający do formularza.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Z każdym elementem HTML znajdującym się w dokumencie jest powiązany obiekt JavaScript. Obiektów tych można używać do przeglądania i manipulowania prawie wszystkimi aspektami dokumentu. W tym rozdziale będziemy używać obiektów formularzy i pól formularzy w podstawowy sposób, a w <a href="/kursy/javascript/wszystko-jasne/r12-dom">rozdziale 12</a> zajmiemy się nimi bardziej szczegółowo.</p>
+  <p>Obiekt <code>document</code> ma własność o nazwie <code>forms</code> zawierający łącza do wszystkich formularzy znajdujących się w dokumencie, wg nazw. Nasz formularz ma atrybut <code>name="userinfo"</code>, a więc można go znaleźć we własności o nazwie <code>userinfo</code>.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">userForm</span> = <span class="variable">document</span>.<span class="property">forms</span>.<span class="property">userinfo</span>;
+    <span class="variable">print</span>(<span class="variable">userForm</span>.<span class="property">method</span>);
+    <span class="variable">print</span>(<span class="variable">userForm</span>.<span class="property">action</span>);</pre>
+  <p>W tym przypadku atrybuty <code>method</code> i <code>action</code>, które zostały przekazane do elementu HTML <code>form</code> również są dostępne jako własności obiektu JavaScript. Najczęściej tak jest, ale nie zawsze: niektóre atrybuty HTML w JavaScript mają inne nazwy, a niektórych nie ma w ogóle. Sposób dostania się do wszystkich własności przedstawiłem w <a href="/kursy/javascript/wszystko-jasne/r12-dom">rozdziale 12</a>.</p>
+  <p>Obiekt elementu <code>form</code> ma własność <code>elements</code> odnoszącą się do obiektu zawierającego wszystkie pola formularza wg nazw.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">nameField</span> = <span class="variable">userForm</span>.<span class="property">elements</span>.<span class="property">name</span>;
+    <span class="variable">nameField</span>.<span class="property">value</span> = <span class="string">"Kowalski"</span>;</pre>
+  <p>Obiekty pól tekstowych mają własność <code>value</code>, przy użyciu której można odczytywać i zmieniać ich zawartość. Jeśli wykonasz powyższy kod, zauważysz, że w polu nazwiska formularza pojawi się nazwisko.</p>
+</div>
+<hr>
+<div class="block"><a name="exercise1"></a>
+  <div class="exercisenum">Ćwiczenie 11.1</div>
+  <div class="exercise">
+    <p>Dzięki możliwości odczytywania wartości pól formularza możemy napisać funkcję <code>validInfo</code>, która pobiera jako argument obiekt formularza i zwraca wartość logiczną: <code>true</code> jeśli pole <code>name</code> nie jest puste, a pole <code>email</code> zawiera coś, co wygląda jak adres e-mail oraz <code>false</code> w pozostałych przypadkach. Poniżej znajduje się kod implementacji tej funkcji.</p>
+  </div>
+  <div class="toggle">[pokaż rozwiązanie]</div><div class="solution" style="display: none;"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">validInfo</span>(<span class="variabledef">form</span>) {
+      <span class="keyword">return</span> <span class="localvariable">form</span>.<span class="property">elements</span>.<span class="property">name</span>.<span class="property">value</span> != <span class="string">""</span> &amp;&amp;
+      <span class="string">/^.+@.+\.\w{2,3}$/</span>.<span class="property">test</span>(<span class="localvariable">form</span>.<span class="property">elements</span>.<span class="property">email</span>.<span class="property">value</span>);
+}
+
+      <span class="variable">show</span>(<span class="variable">validInfo</span>(<span class="variable">document</span>.<span class="property">forms</span>.<span class="property">userinfo</span>));</pre>
+    <p>Gdy zastanawiałeś się nad sprawdzaniem adresu e-mail, przyszło ci do głowy, aby użyć wyrażeń regularnych, prawda?</p>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Pozostało nam już tylko określenie czynności, jaka ma zostać wykonana, gdy ktoś kliknie przycisk Wyślij!. Na razie jego kliknięcie nic nie zmienia. Ale można to zmienić korzystając z własności <code>onclick</code>.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">userForm</span>.<span class="property">elements</span>.<span class="property">send</span>.<span class="property">onclick</span> = <span class="keyword">function</span>() {
+    <span class="variable">alert</span>(<span class="string">"Klik."</span>);
+};</pre>
+  <p>Podobnie jak w przypadku akcji przekazywanych do funkcji <code>setInterval</code> i <code>setTimeout</code> (<a href="/kursy/javascript/wszystko-jasne/r8-obiektowe">rozdział 8</a>), wartość zapisywana w <code>onclick</code> (lub podobnej) własności może być funkcją lub łańcuchem kodu JavaScript. Tym razem przekazaliśmy funkcję otwierającą okienko alertu. Kliknij przycisk.</p>
+</div>
+<hr>
+<div class="block"><a name="exercise2"></a>
+  <div class="exercisenum">Ćwiczenie 11.2</div>
+  <div class="exercise">
+    <p>Na zakończenie prac nad systemem weryfikacji własności <code>onclick</code> przycisku nadamy nową wartość ― funkcję sprawdzającą formularz i zatwierdzającą go, gdy jest poprawnie wypełniony oraz wyświetlającą ostrzeżenie, gdy zawiera błędy. Przyda się wiedza, że obiekty formularzy mają metodę <code>submit</code>, która nie przyjmuje żadnych argumentów i tylko zatwierdza formularz.</p>
+  </div>
+  <div class="toggle">[pokaż rozwiązanie]</div><div class="solution" style="display: none;"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">userForm</span>.<span class="property">elements</span>.<span class="property">send</span>.<span class="property">onclick</span> = <span class="keyword">function</span>() {
+      <span class="keyword">if</span> (<span class="variable">validInfo</span>(<span class="variable">userForm</span>))
+      <span class="variable">userForm</span>.<span class="property">submit</span>();
+      <span class="keyword">else</span>
+      <span class="variable">alert</span>(<span class="string">"Podaj nazwisko i poprawny adres e-mail!"</span>);
+};</pre>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Inna sztuczka związana z polami wejściowymi formularzy i innymi elementami, które można wybierać, np. przyciskami i łączami, jest związana z metodą <code>focus</code>. Jeśli ma się pewność, że po wejściu na stronę użytkownik zacznie wprowadzanie danych od konkretnego pola, można automatycznie umieścić w nim kursor, aby użytkownik nie musiał w nim klikać ani przechodzić do niego w żaden inny sposób.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">userForm</span>.<span class="property">elements</span>.<span class="property">name</span>.<span class="property">focus</span>();</pre>
+  <p>Ponieważ formularz znajduje się w innym oknie, w niektórych przeglądarkach może nie być oczywiste, że coś zostało wybrane. Niektóre strony automatycznie przenoszą kursor do następnego pola, gdy poprzednie wydaje się wypełnione, np. gdy użytkownik wpisze kod pocztowy. Nie należy z tym przesadzać, ponieważ taka funkcja sprawia, że formularz zachowuje się w nieoczekiwany sposób. Jeśli użytkownik jest przyzwyczajony do zmieniania pól formularza za pomocą klawisza Tab albo źle coś wpisze i zechce to poprawić, to takie magiczne przeskakiwanie kursora może go bardzo denerwować.</p>
+</div>
+<hr>
+<div class="block">
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">detach</span>();</pre>
+  <p>Przetestuj weryfikatora. Gdy wpiszesz prawidłowe dane i klikniesz przycisk, formularz powinien zostać zatwierdzony. Jeśli w tym czasie konsola będzie cały czas do niego podłączona, to się odłączy, ponieważ nastąpi ponowne wczytanie strony i utworzenie nowego środowiska JavaScript.</p>
+  <p>Jeśli jeszcze nie zamknąłeś okna formularza, to spowoduje jego zamknięcie.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">form</span>.<span class="property">close</span>();</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Opisane powyżej czynności mogą się wydawać proste, ale uwierz mi, programowania po stronie klienta to nie jest bułka z masłem. Czasami bywa niesamowicie trudne. Dlaczego? Ponieważ programy przeznaczone do działania w komputerze klienta muszą prawidłowo działać we wszystkich popularnych przeglądarkach. A każda z ich działa trochę inaczej. Co gorsza każda taka aplikacja ma własny zbiór usterek. Niech Ci się nie wydaje, że skoro program jest własnością firmy dysponującej milionowym budżetem, to na pewno nie zawiera błędów. Dlatego my, programiści, musimy skrupulatnie testować nasze programy, znajdować błędy i opracowywać poprawne rozwiązania.</p>
+  <p>Możesz sobie pomyśleć: „Po prostu zgłoszę wszelkie usterki, jakie znajdę do producenta przeglądarki, aby szybko je usunął i wszystko będzie w porządku”. Niestety czeka Cię wielkie rozczarowanie. Producenci często nie spieszą się z poprawianiem błędów, a do perfekcji umiejętność tę opanował Microsoft ze swoją przeglądarką Internet Explorer, chociaż w jej najnowszych wersjach sytuacja uległa już znacznej poprawie. Błędy są i będą.</p>
+  <p>Ale nie zrażaj się. Jeśli masz obsesję na punkcie znajdowania nowych wyzwań, to tutaj na pewno znajdziesz ich wiele. A jeśli nie lubisz marnować czasu, to wystarczy, że będziesz unikać słabiej poznanych zakamarków funkcjonowania przeglądarek, aby nie wpaść w poważne kłopoty.</p>
+</div>
+
+<ol>
+  <li id="footnote1">Wartości kodów znakowych są określone w standardzie ASCII, w którym każdej literze alfabetu łacińskiego i symbolowi przypisana jest liczba z przedziału 0-127. Standard ten jest prekursorem standardou Unicode, o którym była mowa w <a href="/kursy/javascript/wszystko-jasne/r2-podstawy">rozdziale 2</a>.</li>
+</ol>

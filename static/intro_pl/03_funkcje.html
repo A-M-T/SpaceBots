@@ -1,0 +1,281 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Funkcje</title>
+<link rel=stylesheet href=doc.css>
+<link rel=author href=http://marijnhaverbeke.nl/>
+<link rel=license href=http://creativecommons.org/licenses/by/3.0/deed.pl>
+
+<h1>Funkcje</h1>
+
+<div class="block">
+  <p>W programach często tak jest, że tę samą czynność trzeba wykonać kilka razy w różnych miejscach. Wpisywanie wszystkich instrukcji za każdym razem, gdy są potrzebne jest żmudne i łatwo przy tym popełnić jakiś błąd. Lepiej byłoby je zebrać w jednym miejscu i zawsze, gdy ich wykonanie jest potrzebne nakazywać programowi zaglądać do tego miejsca. Do tego właśnie służą <strong>funkcje</strong>: są blokami kodu, który program może wykonać zawsze, gdy jest mu to potrzebne. Aby wydrukować napis na ekranie, trzeba napisać kilka instrukcji, ale mając funkcję <code>print</code> możemy po prostu napisać <code>print("Aleph")</code>.</p>
+  <p>Jednak traktowanie funkcji tylko jako zwykłych zbiorników instrukcji jest niesprawiedliwe. W zależności od potrzeby mogą pełnić rolę czystych funkcji, <strong>algorytmów</strong>, pośrednich odwołań, <strong>abstrakcji</strong>, decyzji, modułów, kontynuacji, struktur danych itd. Każdy programista musi biegle posługiwać się funkcjami. Ten rozdział stanowi tylko wprowadzenie do funkcji. Bardziej dogłębnie temat ten jest opisany w <a href="/kursy/javascript/wszystko-jasne/r6-programowanie-funkcyjne/">rozdziale 6</a>.</p>
+</div>
+<hr>
+<div class="block">
+  <p>O czystych funkcjach uczyłeś się na lekcjach matematyki w szkole. Na przykład obliczanie cosinusa lub wartości bezwzględnej jakiejś liczby to czyste funkcje jednego argumentu. Dodawanie to czysta funkcja dwóch argumentów.</p>
+  <p>Definicja czystej funkcji głosi, że jest to taka funkcja, która dla tych samych argumentów zawsze zwraca tę sama wartość i nie ma skutków ubocznych. Funkcje te pobierają argumenty, zwracają wartości obliczone przy użyciu tych argumentów i nie mieszają nigdzie w swoim otoczeniu.</p>
+  <p>W JavaScripcie dodawanie jest operatorem, ale można by było je zrealizować jako funkcję (i chociaż wydaje się to bezsensowne, zdarzą nam się sytuacje, w których będzie to przydatne):</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">add</span>(<span class="variabledef">a</span>, <span class="variabledef">b</span>) {
+    <span class="keyword">return</span> <span class="localvariable">a</span> + <span class="localvariable">b</span>;
+}
+
+    <span class="variable">show</span>(<span class="variable">add</span>(<span class="atom">2</span>, <span class="atom">2</span>));</pre>
+  <p>Ta funkcja nazywa się <code>add</code>. Jej argumenty nazywają się <code>a</code> i <code>b</code>. Instrukcja <code>return a + b;</code> stanowi treść właściwą tej funkcji.</p>
+  <p>Do tworzenia nowych funkcji służy słowo kluczowe <code>function</code>. Jeśli za słowem tym znajduje się nazwa zmiennej, utworzona funkcja zostanie zapisana jako wartość tej zmiennej. Po nazwie znajduje się lista nazw argumentów, a za nią w końcu mamy właściwą treść funkcji. W odróżnieniu od instrukcji <code>while</code> i <code>if</code>, treść właściwa funkcji musi być objęta klamrami<a class="footref" href="#footnote1">1</a>.</p>
+  <p>Słowo kluczowe <code>return</code>, po którym znajduje się wyrażenie określa wartość zwrotną funkcji. Gdy zostaje wykonana instrukcja <code>return</code>, sterowanie jest przekazywane na zewnątrz funkcji do miejsca, w którym ta funkcja została wywołana i wartość zwrotna zostaje przekazana do kodu, który to wywołanie wykonał. Jeśli za instrukcją <code>return</code> nie ma żadnego wyrażenia, funkcja zwraca wartość <code>undefined</code>.</p>
+  <p>W treści funkcji oczywiście może znajdować się dowolna liczba instrukcji. Poniższa funkcja oblicza potęgi liczb (z dodatnimi całkowitoliczbowymi wykładnikami):</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">power</span>(<span class="variabledef">base</span>, <span class="variabledef">exponent</span>) {
+    <span class="keyword">var</span> <span class="variabledef">result</span> = <span class="atom">1</span>;
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">count</span> = <span class="atom">0</span>; <span class="localvariable">count</span> &lt; <span class="localvariable">exponent</span>; <span class="localvariable">count</span>++)
+    <span class="localvariable">result</span> *= <span class="localvariable">base</span>;
+    <span class="keyword">return</span> <span class="localvariable">result</span>;
+}
+
+    <span class="variable">show</span>(<span class="variable">power</span>(<span class="atom">2</span>, <span class="atom">10</span>));</pre>
+  <p>Jeśli rozwiązałeś <a href="/kursy/javascript/wszystko-jasne/r2-podstawy#exercise2">ćwiczenie 2.2</a>, to ta technika nie powinna być Ci obca.</p>
+  <p>Utworzenie zmiennej (<code>result</code>) i modyfikacja jej wartości to skutki uboczne. Czy nie napisałem kilka akapitów wcześniej, że czyste funkcje nie mają skutków ubocznych?</p>
+  <p>Zmienna utworzona w funkcji istnieje tylko w tej funkcji. Jest to bardzo korzystne, ponieważ gdyby było inaczej, programista musiałby dla każdej zmiennej w programie wymyślić inną nazwę. Ponieważ zmienna <code>result</code> istnieje tylko w funkcji <code>power</code>, modyfikacje jej wartości mają znaczenie tylko do momentu zwrotu przez tę funkcję wartości i z perspektywy kodu wywołującego nie ma żadnego skutku ubocznego.</p>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 3.1</div>
+  <div class="exercise">
+    <p>Napisz funkcję o nazwie <code>absolute</code> zwracającą wartość bezwzględną podanego jej argumentu. Wartość bezwzględna liczby ujemnej to jej dodatni odpowiednik, a wartość bezwzględna liczby dodatniej (i zera) to po prostu ta liczba.</p>
+  </div>
+  
+  <div class="toggle">[pokaż rozwiązanie]</div><div style="display: none;" class="solution"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">absolute</span>(<span class="variabledef">number</span>) {
+      <span class="keyword">if</span> (<span class="localvariable">number</span> &lt; <span class="atom">0</span>)
+      <span class="keyword">return</span> -<span class="localvariable">number</span>;
+      <span class="keyword">else</span>
+      <span class="keyword">return</span> <span class="localvariable">number</span>;
+}
+
+      <span class="variable">show</span>(<span class="variable">absolute</span>(-<span class="atom">144</span>));</pre>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Czyste funkcje mają dwie bardzo ciekawe właściwości. Łatwo się o nich rozmyśla i łatwo się ich używa.</p>
+  <p>Jeśli funkcja jest czysta, jej wywołanie samo w sobie można traktować jak rzecz. Jeśli nie jesteś pewien, czy ta funkcja działa poprawnie, możesz ją sprawdzić w konsoli, co jest łatwe, ponieważ działanie tej funkcji nie zależy od żadnego kontekstu<a class="footref" href="#footnote2">2</a>. Testy takie można łatwo zautomatyzować, tzn. można napisać program testujący wybraną funkcję. Funkcje nie będące czystymi mogą zwracać różne wartości zależnie od różnych czynników oraz mają skutki uboczne, które trudno przewidzieć i przetestować.</p>
+  <p>Ponieważ funkcje czyste są samowystarczalne, częściej znajdują zastosowanie i są przydatne w większej liczbie sytuacji niż funkcje nie będące czystymi. Weźmy np. taką funkcję <code>show</code>. Jej przydatność zależy od tego, czy na ekranie znajduje się specjalne miejsce do drukowania danych wyjściowych. Jeśli nie ma takiego miejsca, ta funkcja jest bezużyteczna. Łatwo można sobie wyobrazić podobną funkcję, niech będzie o nazwie <code>format</code>, która pobiera jako argument jakąś wartość i zwraca łańcuch reprezentujący tę wartość. Ta funkcja będzie przydatna w większej liczbie sytuacji niż <code>show</code>.</p>
+  <p>Oczywiście funkcja <code>format</code> rozwiązuje inny problem niż <code>show</code>, a poza tym żadna czysta funkcja jej nie zastąpi, ponieważ to działanie po prostu wymaga skutku ubocznego. W wielu przypadkach zwyczajnie potrzebna jest funkcja nie będąca czystą. Zdarza się też, że dany problem można rozwiązać przy użyciu czystej funkcji, ale jej nie czysty odpowiednik jest bardziej wygodny lub skuteczny.</p>
+  <p>Jeśli więc coś można w łatwy sposób wyrazić jako funkcję czystą, zrób to. Ale nie miej żadnych oporów przed używaniem funkcji nie czystych.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Funkcje powodujące skutki uboczne nie muszą zawierać instrukcji <code>return</code>. Jeśli nie ma instrukcji <code>return</code>, funkcja zwraca wartość <code>undefined</code>.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">yell</span>(<span class="variabledef">message</span>) {
+    <span class="variable">alert</span>(<span class="localvariable">message</span> + <span class="string">"!!"</span>);
+}
+
+    <span class="variable">yell</span>(<span class="string">"Hej"</span>);</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Nazwy argumentów funkcji w jej wnętrzu są dostępne jako zmienne. Odnoszą się do wartości, które zostały w ich miejsce przekazane w wywołaniu funkcji i tak jak zwykłe zmienne utworzone wewnątrz funkcji, poza funkcją nie istnieją. Obok głównego środowiska istnieją też mniejsze, lokalne środowiska tworzone przez wywołania funkcji. Podczas szukania zmiennej wewnątrz funkcji najpierw przeszukiwane jest środowisko lokalne i dopiero, gdy nie uda się jej tam znaleźć przeszukiwane jest główne środowisko. Dzięki temu zmienne znajdujące się wewnątrz funkcji mogą „zasłaniać” zmienne z głównego środowiska o takich samych nazwach.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">alertIsPrint</span>(<span class="variabledef">value</span>) {
+    <span class="keyword">var</span> <span class="variabledef">alert</span> = <span class="variable">print</span>;
+    <span class="localvariable">alert</span>(<span class="localvariable">value</span>);
+}
+
+    <span class="variable">alertIsPrint</span>(<span class="string">"Troglodyci"</span>);</pre>
+  <p>Zmienne znajdujące się w tym lokalnym środowisku są widoczne tylko dla kodu wewnątrz funkcji. Jeśli ta funkcja wywoła inną funkcję, ta nowo wywołana funkcja nie będzie „widzieć” zmiennych znajdujących się w zewnętrznej funkcji:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">variable</span> = <span class="string">"najwyższy poziom"</span>;
+
+    <span class="keyword">function</span> <span class="variable">printVariable</span>() {
+    <span class="variable">print</span>(<span class="string">"W funkcji printVariable zmienna variable ma wartość '"</span> +
+    <span class="variable">variable</span> + <span class="string">"'."</span>);
+}
+
+    <span class="keyword">function</span> <span class="variable">test</span>() {
+    <span class="keyword">var</span> <span class="variabledef">variable</span> = <span class="string">"lokalna"</span>;
+    <span class="variable">print</span>(<span class="string">"W funkcji test zmienna variable ma wartość '"</span> + <span class="localvariable">variable</span> + <span class="string">"'."</span>);
+    <span class="variable">printVariable</span>();
+}
+
+    <span class="variable">test</span>();</pre>
+  <p>Jeśli jednak funkcja jest zdefiniowana <em>wewnątrz</em> innej funkcji, jej lokalne środowisko bazuje na lokalnym środowisku, które je otacza, nie na środowisku głównym.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">variable</span> = <span class="string">"najwyższy poziom"</span>;
+    <span class="keyword">function</span> <span class="variable">parentFunction</span>() {
+    <span class="keyword">var</span> <span class="variabledef">variable</span> = <span class="string">"lokalna"</span>;
+    <span class="keyword">function</span> <span class="variabledef">childFunction</span>() {
+    <span class="variable">print</span>(<span class="localvariable">variable</span>);
+  }
+    <span class="localvariable">childFunction</span>();
+}
+    <span class="variable">parentFunction</span>();</pre>
+  <p>To oznacza, że o tym, które zmienne są widoczne w funkcji decyduje położenie tej funkcji w tekście programu. W funkcji widoczne są wszystkie zmienne, które zostały zdefiniowane „nad” jej definicją, czyli zarówno zdefiniowane w funkcjach ją zawierających jak i w głównym środowisku programu. Ta zasada określania dostępności zmiennych nazywa się <strong>leksykalnym określaniem zakresu</strong>.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Osoby, które wcześniej programowały już w innych językach, mogą się spodziewać, że każdy blok kodu (znajdujący się między klamrami) tworzy osobne lokalne środowisko. W JavaScripcie tak nie jest. Tylko funkcje tworzą nowe zakresy. Zwykłych bloków można używać w taki sposób, jak w tym przykładzie:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">something</span> = <span class="atom">1</span>;
+{
+    <span class="keyword">var</span> <span class="variable">something</span> = <span class="atom">2</span>;
+    <span class="variable">print</span>(<span class="string">"Wewnątrz: "</span> + <span class="variable">something</span>);
+}
+    <span class="variable">print</span>(<span class="string">"Na zewnątrz: "</span> + <span class="variable">something</span>);</pre>
+  <p>Nazwa <code>something</code> wewnątrz i na zewnątrz bloku dotyczy tej samej zmiennej. Mimo że takie bloki, jak ten pokazany w przykładzie można tworzyć, nie ma sensu tego robić. Większość zainteresowanych zgadza się, że jest to rysa na projekcie języka JavaScript i w ECMAScript Harmony zostanie dodana możliwość definiowania zmiennych przypisanych do bloków (słowo kluczowe <code>let</code>).</p>
+</div>
+<hr>
+<div class="block">
+  <p>Poniżej znajduje się przykład, który może Cię zaskoczyć:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">variable</span> = <span class="string">"najwyższy poziom"</span>;
+    <span class="keyword">function</span> <span class="variable">parentFunction</span>() {
+    <span class="keyword">var</span> <span class="variabledef">variable</span> = <span class="string">"lokalna"</span>;
+    <span class="keyword">function</span> <span class="variabledef">childFunction</span>() {
+    <span class="variable">print</span>(<span class="localvariable">variable</span>);
+  }
+    <span class="keyword">return</span> <span class="localvariable">childFunction</span>;
+}
+
+    <span class="keyword">var</span> <span class="variable">child</span> = <span class="variable">parentFunction</span>();
+    <span class="variable">child</span>();</pre>
+  <p>Funkcja <code>parentFunction</code> <em>zwraca</em> swoją wewnętrzną funkcję, a kod znajdujący się na dole wywołuje tę funkcję. Mimo że funkcja <code>parentFunction</code> zakończyła już działanie, lokalne środowisko, w którym zmienna <code>variable</code> ma wartość <code>"lokalna"</code> nadal istnieje i funkcja <code>childFunction</code> jej używa. Opisywane konstrukcja nazywa się zamknięciem (ang. closure).</p>
+</div>
+<hr>
+<div class="block">
+  <p>Oprócz tego, że bardzo łatwo można określić, w której części programu dana zmienna jest dostępna patrząc na kształt tekstu tego programu, dzięki leksykalnemu określaniu zakresu można także „syntetyzować” funkcje. Używając niektórych zmiennych z funkcji zewnętrznej, można sprawić, aby wewnętrzna funkcja wykonywała różne działania. Wyobraźmy sobie, że potrzebujemy kilku różnych, ale bardzo podobnych do siebie funkcji. Jedna z nich dodaje 2 do swojego argumentu, druga — 5 itd.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">makeAddFunction</span>(<span class="variabledef">amount</span>) {
+    <span class="keyword">function</span> <span class="variabledef">add</span>(<span class="variabledef">number</span>) {
+    <span class="keyword">return</span> <span class="localvariable">number</span> + <span class="localvariable">amount</span>;
+  }
+    <span class="keyword">return</span> <span class="localvariable">add</span>;
+}
+
+    <span class="keyword">var</span> <span class="variable">addTwo</span> = <span class="variable">makeAddFunction</span>(<span class="atom">2</span>);
+    <span class="keyword">var</span> <span class="variable">addFive</span> = <span class="variable">makeAddFunction</span>(<span class="atom">5</span>);
+    <span class="variable">show</span>(<span class="variable">addTwo</span>(<span class="atom">1</span>) + <span class="variable">addFive</span>(<span class="atom">1</span>));</pre>
+  <p>Aby zrozumieć, jak to działa, musisz przestać traktować funkcje, jako pakiety wykonujące obliczenia i wziąć pod uwagę to, że zawierają one także środowiska. Funkcje najwyższego poziomu są wykonywane w środowisku najwyższego poziomu, to jest oczywiste. Natomiast funkcja zdefiniowana w innej funkcji zachowuje dostęp do środowiska, które istniało w tej funkcji w momencie, gdy była definiowana.</p>
+  <p>W związku z tym funkcja <code>add</code> w powyższym przykładzie, która jest tworzona po wywołaniu funkcji <code>makeAddFunction</code>, zawiera środowisko, w którym zmienna <code>amount</code> ma określoną wartość. Pakuje to środowisko wraz z instrukcją <code>return number + amount</code> do wartości, która następnie zostaje zwrócona przez zewnętrzną funkcję.</p>
+  <p>Gdy zwrócona funkcja (<code>addTwo</code> lub <code>addFive</code>) zostaje wywołana, tworzone jest nowe środowisko — w którym zmienna <code>number</code> ma wartość — jako podśrodowisko zapakowanego środowiska (w którym zmienna <code>amount</code> ma wartość). Następnie te dwie wartości zostają zsumowane i zwracany jest wynik.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Zastosowane w JavaScripcie reguły określania zakresu dostępności zmiennych oprócz tego, że pozwalają na tworzenie funkcji zawierających zmienne o takich samych nazwach umożliwiają również funkcjom wywoływać <em>same siebie</em>. Funkcja wywołująca samą siebie nazywa się rekurencyjną. <strong>Rekurencja</strong> umożliwia wykonywanie różnych ciekawych działań. Spójrz na poniższą implementację funkcji <code>power</code>:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">power</span>(<span class="variabledef">base</span>, <span class="variabledef">exponent</span>) {
+    <span class="keyword">if</span> (<span class="localvariable">exponent</span> == <span class="atom">0</span>)
+    <span class="keyword">return</span> <span class="atom">1</span>;
+    <span class="keyword">else</span>
+    <span class="keyword">return</span> <span class="localvariable">base</span> * <span class="variable">power</span>(<span class="localvariable">base</span>, <span class="localvariable">exponent</span> - <span class="atom">1</span>);
+}</pre>
+  <p>Ta implementacja jest bliższa temu, jak matematycy definiują potęgowanie i dla mnie osobiście wygląda o wiele lepiej niż poprzednia wersja. Kod ten działa, jak pętla, chociaż nie użyto w nim instrukcji <code>while</code> czy <code>for</code>, ani  nie ma w nim żadnego lokalnego skutku ubocznego. Wywołując samą siebie funkcja osiąga ten sam rezultat.</p>
+  <p>Jest jednak pewien poważny problem: w większości przeglądarek ten kod zostanie wykonany około 10 razy wolniej, niż poprzednia implementacja. Jest to spowodowane tym, że w języku JavaScript wykonanie prostej pętli jest o wiele szybsze niż wielokrotne wywołanie funkcji.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Kwestia wyboru między szybkością, a elegancją rozwiązania jest bardzo ciekawa. Występuje tylko wtedy, gdy trzeba zdecydować czy zastosować rekurencję, czy nie. Jest wiele przypadków, w których eleganckie, intuicyjne i często zwięzłe rozwiązanie można wyrazić w bardziej zawiły, ale wydajniejszy sposób.</p>
+  <p>W przypadku funkcji <code>power</code> mniej eleganckie rozwiązanie również jest wystarczająco proste, aby było je łatwo zrozumieć. Dlatego nie ma sensu zastępować go wolniejszą rekurencją. Jednak zdarzają się przypadki, w których problem jest tak skomplikowany, że możliwość poświęcenia trochę wydajności na rzecz czytelności staje się kuszącą propozycją.</p>
+  <p>Podstawowa zasada, powtarzana przez wielu programistów, w tym także i mnie, jest taka, że wydajnością nie należy się przejmować dopóki nie można udowodnić, że program działa zbyt wolno. Jeśli taki dowód się pojawi, należy dowiedzieć się, co jest przyczyną spowolnienia i w znalezionych miejscach eleganckie rozwiązania zastąpić wydajnymi.</p>
+  <p>Oczywiście to nie znaczy, że należy całkowicie przestać interesować się wydajnością. W wielu przypadkach, choćby w funkcji <code>power</code>, eleganckie rozwiązanie jest tylko nieznacznie prostsze od wydajniejszego. Są też sytuacje, w których doświadczony programista od razu dostrzeże, że proste rozwiązanie nigdy nie będzie wystarczająco szybkie.</p>
+  <p>Powodem dla którego tak się rozpisuję na ten temat jest to, że zaskakująco wielu programistów wręcz fanatycznie koncentruje się na wydajności, nawet w najdrobniejszych szczegółach. W wyniku tego powstają większe, bardziej skomplikowane i często zawierające więcej błędów programy, których napisanie wymagało więcej wysiłku, niż gdyby zastosowano eleganckie rozwiązania, a zysk wydajności jest w nich i tak marginalny.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Ale mówiliśmy o rekurencji. Z rekurencją ściśle związane jest pojęcie stosu. Gdy wywoływana jest funkcja, następuje przekazanie sterowania do tej funkcji. Gdy funkcja zwróci wartość, sterowanie jest zwracane do kodu, który tę funkcje wywołał. Podczas wykonywania funkcji komputer musi „pamiętać” kontekst, w którym funkcja ta została wywołana, aby wiedzieć, w którym miejscu kontynuować wykonywanie programu po jej zakończeniu. Miejsce, w którym ten kontekst jest przechowywany nazywa się stosem.</p>
+  <p>Nazwa stos wzięła się stąd, że w wywołanej funkcji może znajdować się wywołanie innej funkcji. Każde wywołanie funkcji powoduje zapisanie kolejnego kontekstu. Można to sobie wyobrazić, jako stos kontekstów. Gdy zostaje wywołana funkcja, bieżący kontekst zostaje „położony” na wierzchu stosu. Gdy funkcja zwraca wartość, pobierany i  przywracany jest kontekst z wierzchu stosu.</p>
+  <p>W pamięci komputera musi być miejsce na zapisanie tego stosu. Gdy stos staje się za duży, komputer zgłasza błąd i wyświetla komunikat typu „brak pamięci dla stosu” czyli „za dużo rekurencji”. Trzeba o tym pamiętać pisząc <strong>funkcje rekurencyjne</strong>.</p>
+  <pre class="code invalid not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">kura</span>() {
+    <span class="keyword">return</span> <span class="variable">jajko</span>();
+}
+    <span class="keyword">function</span> <span class="variable">jajko</span>() {
+    <span class="keyword">return</span> <span class="variable">kura</span>();
+}
+    <span class="variable">print</span>(<span class="variable">kura</span>() + <span class="string">" była pierwsza."</span>);</pre>
+  <p>Oprócz bycia niezwykle ciekawym przykładem źle napisanego programu, powyższy kod stanowi też dowód na to, że funkcja nie musi wywoływać sama siebie, aby być rekurencyjna. Jeśli wywołuje inną funkcję, która (pośrednio lub bezpośrednio) wywołuje ją ponownie, to również jest to rekurencja.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Rekurencja jednak to nie tylko mniej wydajny sposób zapisu niektórych algorytmów. Niektóre problemy po prostu jest o wiele łatwiej rozwiązać przy jej użyciu. Najczęściej są to problemy wymagające przeglądania lub przetwarzania kilku „gałęzi”, z których każda może rozgałęziać się na dalsze gałęzie.</p>
+  <p>Zastanów się nad tą zagadką: jeśli zaczniemy od liczby 1 i będziemy wielokrotnie dodawać 5 albo mnożyć przez 3, to możemy otrzymać nieskończoną liczbę nowych liczb. Jak napisać funkcję pobierającą liczbę i próbującą znaleźć sekwencję działań dodawania i mnożenia, które pozwolą uzyskać tę liczbę.</p>
+  <p>Na przykład 13 można uzyskać mnożąc 1 przez 3, a następnie dwa razy dodając 5. Liczby 15 nie da się w ten sposób osiągnąć.</p>
+  <p>Oto rozwiązanie tego problemu:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">findSequence</span>(<span class="variabledef">goal</span>) {
+    <span class="keyword">function</span> <span class="variabledef">find</span>(<span class="variabledef">start</span>, <span class="variabledef">history</span>) {
+    <span class="keyword">if</span> (<span class="localvariable">start</span> == <span class="localvariable">goal</span>)
+    <span class="keyword">return</span> <span class="localvariable">history</span>;
+    <span class="keyword">else</span> <span class="keyword">if</span> (<span class="localvariable">start</span> &gt; <span class="localvariable">goal</span>)
+    <span class="keyword">return</span> <span class="atom">null</span>;
+    <span class="keyword">else</span>
+    <span class="keyword">return</span> <span class="localvariable">find</span>(<span class="localvariable">start</span> + <span class="atom">5</span>, <span class="string">"("</span> + <span class="localvariable">history</span> + <span class="string">" + 5)"</span>) ||
+    <span class="localvariable">find</span>(<span class="localvariable">start</span> * <span class="atom">3</span>, <span class="string">"("</span> + <span class="localvariable">history</span> + <span class="string">" * 3)"</span>);
+  }
+    <span class="keyword">return</span> <span class="localvariable">find</span>(<span class="atom">1</span>, <span class="string">"1"</span>);
+}
+
+    <span class="variable">print</span>(<span class="variable">findSequence</span>(<span class="atom">24</span>));</pre>
+  <p>Należy zauważyć, że funkcja ta niekoniecznie znajduje <em>najkrótszą</em> sekwencję działań, ponieważ kończy działanie, gdy znajdzie jakąkolwiek.</p>
+  <p>Wewnętrzna funkcja <code>find</code>, wywołując sama siebie na dwa różne sposoby, sprawdza zarówno możliwość dodania 5 do bieżącej liczby jak i mnożenia jej przez 3. Gdy znajdzie liczbę, zwraca łańcuch <code>history</code>, w którym przechowywane są wszystkie operatory użyte do uzyskania tej liczby. Ponadto sprawdza czy bieżąca liczba jest większa od docelowej (<code>goal</code>), ponieważ, jeśli tak, należy przestać badać tę gałąź, gdyż wiadomo, że nie znajdziemy w niej szukanej liczby.</p>
+  <p>Użycie operatora <code>||</code> w tym przykładzie można odczytać następująco: „zwróć rozwiązanie znalezione poprzez dodanie 5 do <code>start</code>, a jeśli to się nie powiedzie, zwróć rozwiązanie znalezione poprzez pomnożenie <code>start</code> przez 3”. Można to też zapisać bardziej rozwlekle:</p>
+  <pre class="preformatted">else {
+  var found = find(start + 5, "(" + history + " + 5)");
+  if (found == null)
+    found = find(start * 3, "(" + history + " * 3)");
+  return found;
+}</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Mimo że definicje funkcji znajdują się jako instrukcje między innymi instrukcjami programu, to należą do innej czasoprzestrzeni:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">print</span>(<span class="string">"Przyszłość mówi: "</span>, <span class="variable">future</span>());
+
+    <span class="keyword">function</span> <span class="variable">future</span>() {
+    <span class="keyword">return</span> <span class="string">"nadal nie będziemy mieli latających samochodów."</span>;
+}</pre>
+  <p>Komputer najpierw wyszukuje wszystkie definicje funkcji i zapisuje je, a dopiero <em>potem</em> rozpoczyna wykonywanie reszty programu. To samo dotyczy funkcji zdefiniowanych w innych funkcjach. Gdy wywołana zostaje zewnętrzna funkcja, najpierw wszystkie wewnętrzne funkcje zostają dodane do nowego środowiska.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Istnieje inny sposób na definiowanie wartości funkcji, który bardziej przypomina sposób tworzenia innych wartości. Gdy w miejscu, gdzie powinno znajdować się wyrażenie zostanie użyte słowo kluczowe <code>function</code>, traktuje się to jako wyrażenie zwracające wartość funkcji. Funkcje tworzone w ten sposób nie muszą mieć nazw, chociaż mogą.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">add</span> = <span class="keyword">function</span>(<span class="variabledef">a</span>, <span class="variabledef">b</span>) {
+    <span class="keyword">return</span> <span class="localvariable">a</span> + <span class="localvariable">b</span>;
+};
+    <span class="variable">show</span>(<span class="variable">add</span>(<span class="atom">5</span>, <span class="atom">5</span>));</pre>
+  <p>Zwróć uwagę na średnik znajdujący się za definicją funkcji <code>add</code>. Normalnych definicji funkcji nie kończy się średnikiem, ale ta instrukcja jest pod względem struktury równoważna np. z instrukcją <code>var add = 22;</code>, a więc na jej końcu musi znajdować się średnik.</p>
+  <p>Taka wartość funkcyjna nazywa się funkcją anonimową, ponieważ funkcja ta nie ma nazwy. Czasami nadawanie funkcji nazwy nie ma sensu. Tak było w przypadku przykładu <code>makeAddFunction</code>:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">makeAddFunction</span>(<span class="variabledef">amount</span>) {
+    <span class="keyword">return</span> <span class="keyword">function</span> (<span class="variabledef">number</span>) {
+    <span class="keyword">return</span> <span class="localvariable">number</span> + <span class="localvariable">amount</span>;
+  };
+}</pre>
+  <p>Ponieważ funkcja o nazwie <code>add</code> w pierwszej wersji funkcji <code>makeAddFunction</code> była użyta tylko raz, jej nazwa do niczego nie jest potrzebna i równie dobrze można było bezpośrednio zwrócić jej wartość.</p>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 3.2</div>
+  <div class="exercise">
+    <p>Napisz funkcję o nazwie <code>greaterThan</code>, która pobiera liczbę jako argument i zwraca funkcję reprezentującą test. Gdy ta zwrócona funkcja zostanie wywołana z jedną liczbą jako argumentem, powinna zwrócić wartość logiczną: <code>true</code>, jeśli podana liczba jest większa od liczby użytej do utworzenia funkcji testowej i <code>false</code> w przeciwnym przypadku.</p>
+  </div>
+  
+  <div class="toggle">[pokaż rozwiązanie]</div><div style="display: none;" class="solution"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">greaterThan</span>(<span class="variabledef">x</span>) {
+      <span class="keyword">return</span> <span class="keyword">function</span>(<span class="variabledef">y</span>) {
+      <span class="keyword">return</span> <span class="localvariable">y</span> &gt; <span class="localvariable">x</span>;
+  };
+}
+
+      <span class="keyword">var</span> <span class="variable">greaterThanTen</span> = <span class="variable">greaterThan</span>(<span class="atom">10</span>);
+      <span class="variable">show</span>(<span class="variable">greaterThanTen</span>(<span class="atom">9</span>));</pre>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Wypróbuj poniższy kod:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">alert</span>(<span class="string">"Cześć"</span>, <span class="string">"Dobry wieczór"</span>, <span class="string">"Dzień dobry"</span>, <span class="string">"Do widzenia"</span>);</pre>
+  <p>Funkcja <code>alert</code> oficjalnie przyjmuje tylko jeden argument. Jeśli jednak przekaże się jej więcej parametrów wywołania, komputer nie zgłosi żadnego błędu, tylko zignoruje wszystkie argumenty oprócz pierwszego.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>();</pre>
+  <p>Jak widać może Ci się nawet upiec, jeśli podasz za mało argumentów. Jeśli argument nie zostanie podany, wewnątrz funkcji zostaje mu przypisana wartość <code>undefined</code>.</p>
+  <p>W następnym rozdziale dowiesz się, jak napisać funkcję dostosowującą się do listy argumentów, które zostaną do niej przekazane. Jest to przydatne, ponieważ dzięki temu można napisać funkcję przyjmującą dowolną liczbę argumentów. Z możliwości tej korzysta funkcja <code>print</code>:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">print</span>(<span class="string">"R"</span>, <span class="atom">2</span>, <span class="string">"D"</span>, <span class="atom">2</span>);</pre>
+  <p>Wadą tego jest to, że można przez przypadek przekazać nieodpowiednią liczbę argumentów do funkcji, która wymaga konkretnej liczby argumentów, jak np. <code>alert</code>, i interpreter nas o tym nie poinformuje.</p>
+</div>
+
+<h3>Przypisy</h3>
+<ol>
+  <li id="footnote1"><small>Z technicznego punktu widzenia nie jest to konieczne, ale twórcy języka JavaScript zapewne pomyśleli, że taki wymóg zmusi programistów do pisania bardziej przejrzystego kodu.</small></li>
+  <li id="footnote2"><small><strong>Funkcja czysta</strong> nie może używać wartości zewnętrznych zmiennych. Wartości te mogą się zmieniać, przez co funkcja zwracałaby różne wyniki dla tych samych argumentów. W praktyce niektóre zmienne można traktować jako stałe — mające się nie zmieniać ― i za czyste uważać tylko te funkcje, które używają wyłącznie stałych. Dobrym przykładem stałych zmiennych są zmienne zawierające wartości funkcyjne.</small></li>
+</ol>

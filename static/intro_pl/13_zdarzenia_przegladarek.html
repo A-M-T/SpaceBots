@@ -1,0 +1,519 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Zdarzenia przeglądarek</title>
+<link rel=stylesheet href=doc.css>
+<link rel=author href=http://marijnhaverbeke.nl/>
+<link rel=license href=http://creativecommons.org/licenses/by/3.0/deed.pl>
+<h1>Zdarzenia przeglądarek</h1>
+
+<div class="block">
+  <p>Aby móc dodać do strony ciekawe funkcje sama możliwość przeglądania i modyfikowania dokumentu nie wystarczy. Musimy jeszcze umieć sprawdzać, co robi użytkownik i reagować na jego działania. Do tego celu będziemy używać tzw. <strong>procedur obsługi zdarzeń</strong>. Zdarzeniami są naciśnięcia klawiszy, naciśnięcia przycisków myszy, a ruch ruch myszy może być nawet traktowany jako seria zdarzeń. W <a href="/kursy/javascript/wszystko-jasne/r11-programowanie-sieciowe/">rozdziale 11</a> dodaliśmy do przycisku własność <code>onclick</code>, aby wykonać jakieś działania, gdy zostanie kliknięty. To była prosta procedura obsługi zdarzeń.</p>
+  <p>Zasada działania zdarzeń przeglądarek jest bardzo prosta. Procedury obsługi zdarzeń można rejestrować zarówno dla wybranych typów zdarzeń jak i węzłów DOM. Gdy ma miejsce jakieś zdarzenie, następuje wywołanie procedury do jego obsługi (jeśli została zdefiniowana). W przypadku niektórych zdarzeń sama wiedza, że wystąpiły nie wystarcza. Dotyczy to np. naciśnięć klawiszy, w których to przypadku zazwyczaj chce się też wiedzieć, który konkretnie klawisz został naciśnięty. Do przechowywania tych informacji każde zdarzenie tworzy obiekt zdarzenia, który jest do dyspozycji procedury obsługującej.</p>
+  <p>Należy wiedzieć, że podczas gdy w jednym czasie może dziać się wiele zdarzeń, to procedura obsługi może działać tylko jedna na raz. Jeśli w danym momencie działa jakiś inny kod JavaScript, przeglądarka czeka aż skończy zanim wywoła następną procedurę. Dotyczy to także kodu uruchamianego na inne sposoby, np. poprzez metodę <code>setTimeout</code>. W żargonie programistycznym mówi się, że JavaScript w przeglądarkach jest jednowątkowy, tzn. nie może się zdarzyć, aby działały dwa wątki na raz. W większości przypadków jest to korzystne. Gdy wiele rzeczy dzieje się na raz, można łatwo popełnić błąd i otrzymać dziwne wyniki.</p>
+  <p>Nieobsłużone zdarzenie może zostać „przepchnięte” poprzez drzewo DOM. Oznacza to, że jeśli np. użytkownik kliknie łącze w akapicie, najpierw zostaną wywołane procedury związane z tym łączem. Jeśli z łączem nie jest związana żadna procedura albo procedury je obsługujące nie powiadomią o zakończeniu obsługiwania zdarzenia, wypróbowywane są procedury akapitu będącego rodzicem tego łącza. Następnie przychodzi kolej na procedury dla <code>document.body</code>. Jeśli ostatecznie nie zostanie znaleziona żadna odpowiednia procedura JavaScript, zdarzenie jest obsługiwane przez przeglądarkę. W przypadku odnośnika oznacza to przejście pod określony adres.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Jak widać <strong>obsługa zdarzeń</strong> nie jest skomplikowana. Jedyna trudność z nimi związana polega na tym, że przeglądarki mimo iż mają mniej więcej podobną funkcjonalność, obsługują ją poprzez różne interfejsy. Jak zwykle najgorsza jest przeglądarka Internet Explorer, która nie trzyma się standardów stosowanych w pozostałych przeglądarkach. Po niej jest Opera, która nie obsługuje kilku bardzo przydatnych zdarzeń, takich jak zdarzenie <code>onunload</code> uruchamiane przy opuszczaniu strony i czasami zwraca mylne informacje dotyczące zdarzeń klawiszy.</p>
+  <p>Jeśli chodzi o <strong>zdarzenia</strong>, to zwykle wykonuje się w  związku z nimi cztery czynności.</p>
+  <ul>
+    <li>Rejestracja procedury obsługi zdarzeń.</li>
+    <li>Pobranie obiektu zdarzenia.</li>
+    <li>Pobranie informacji z tego obiektu.</li>
+    <li>Zasygnalizowanie, że zdarzenie zostało obsłużone.</li>
+  </ul>
+  <p>Żadnej z tych czynności nie wykonuje się tak samo we wszystkich najważniejszych przeglądarkach.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Naszym poligonem do ćwiczeń obsługi zdarzeń będzie dokument z przyciskiem i polem tekstowym. Pozostaw to okno otwarte (i związane) na czas studiowania całego rozdziału.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">attach</span>(<span class="variable">window</span>.<span class="property">open</span>(<span class="string">"/wp-content/ejs/example_events.html"</span>));</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Pierwszą czynność, rejestrację procedury, można wykonać ustawiając własność <code>onclick</code> elementu (albo <code>onkeypress</code> itd.). Ta metoda działa we wszystkich przeglądarkach tak samo, ale ma wadę — do elementu można przywiązać tylko jedną procedurę. Zazwyczaj jedna procedura wystarczy, ale czasami, zwłaszcza gdy program współpracuje z innymi programami (które także mogą dodawać swoje procedury), może to być uciążliwe.</p>
+  <p>W przeglądarce Internet Explorer procedurę obsługi kliknięć przycisku można zdefiniować tak:</p>
+  <pre class="code invalid not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">$</span>(<span class="string">"button"</span>).<span class="property">attachEvent</span>(<span class="string">"onclick"</span>, <span class="keyword">function</span>(){<span class="variable">print</span>(<span class="string">"Klik!"</span>);});</pre>
+  <p>Jednak w pozostałych przeglądarkach robi się to tak:</p>
+  <pre class="code invalid not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">$</span>(<span class="string">"button"</span>).<span class="property">addEventListener</span>(<span class="string">"click"</span>, <span class="keyword">function</span>(){<span class="variable">print</span>(<span class="string">"Klik!"</span>);},
+    <span class="atom">false</span>);</pre>
+  <p>Zwróć uwagę na opuszczenie fragmentu <code>on</code> w drugim przypadku. Trzeci argument metody <code>addEventListener</code>, <code>false</code>, oznacza, że zdarzenie ma „przechodzić” przez drzewo DOM w normalny sposób. Wartość <code>true</code> w tym miejscu oznaczałaby nadanie tej procedurze priorytetu wyższego niż mają procedury znajdujące się „pod” nią, ale ponieważ Internet Explorer tego nie obsługuje, jest to rzadko wykorzystywane.</p>
+</div>
+<hr>
+<div class="block"><a name="exercise1"></a>
+  <div class="exercisenum">Ćwiczenie 13.1</div>
+  <div class="exercise">
+    <p>Napisz funkcję o nazwie <code>registerEventHandler</code> opakowującą niezgodności tych dwóch modeli. Funkcja ta przyjmuje trzy argumenty: węzeł DOM, do którego ma być przywiązana procedura, nazwę typu zdarzenia, np. <code>"click"</code> albo <code>"keypress"</code> oraz funkcję obsługującą.</p>
+    <p>Aby dowiedzieć się, która metoda powinna zostać wywołana, należy poszukać tych metod ― jeżeli węzeł DOM ma metodę o nazwie <code>attachEvent</code>, to można przyjąć, że jest to odpowiednia metoda. Warto podkreślić, że jest to o wiele lepsze rozwiązanie od sprawdzania wprost, czy dana przeglądarka to Internet Explorer. Taki kod będzie działał także wówczas, gdy pojawi się nowa przeglądarka oparta na modelu Internet Explorera jak i gdy Internet Explorer nagle zacznie spełniać wymogi standardów. Oba scenariusze są mało prawdopodobne, ale przecież stosowanie inteligentnych rozwiązań nie boli.</p>
+  </div>
+  <div class="toggle">[pokaż rozwiązanie]</div><div class="solution" style="display: none;"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">registerEventHandler</span>(<span class="variabledef">node</span>, <span class="variabledef">event</span>, <span class="variabledef">handler</span>) {
+      <span class="keyword">if</span> (typeof <span class="localvariable">node</span>.<span class="property">addEventListener</span> == <span class="string">"function"</span>)
+      <span class="localvariable">node</span>.<span class="property">addEventListener</span>(<span class="localvariable">event</span>, <span class="localvariable">handler</span>, <span class="atom">false</span>);
+      <span class="keyword">else</span>
+      <span class="localvariable">node</span>.<span class="property">attachEvent</span>(<span class="string">"on"</span> + <span class="localvariable">event</span>, <span class="localvariable">handler</span>);
+}
+
+      <span class="variable">registerEventHandler</span>(<span class="variable">$</span>(<span class="string">"button"</span>), <span class="string">"click"</span>,
+      <span class="keyword">function</span>(){<span class="variable">print</span>(<span class="string">"Klik (2)"</span>);});</pre>
+    <p>Nie przestrasz się tej długiej i niezgrabnej nazwy. Później będziemy musieli dodać nowe opakowanie, aby opakować to opakowanie i będzie ono miało krótszą nazwę.</p>
+    <p>Można też test ten wykonać tylko raz i zdefiniować <code>registerEventHandler</code> do przechowywania innej funkcji w zależności od przeglądarki. Takie rozwiązanie jest lepsze pod względem wydajnościowym, ale trochę dziwne.</p>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">if</span> (typeof <span class="variable">document</span>.<span class="property">addEventListener</span> == <span class="string">"function"</span>)
+      <span class="keyword">var</span> <span class="variable">registerEventHandler</span> = <span class="keyword">function</span>(<span class="variabledef">node</span>, <span class="variabledef">event</span>, <span class="variabledef">handler</span>) {
+      <span class="localvariable">node</span>.<span class="property">addEventListener</span>(<span class="localvariable">event</span>, <span class="localvariable">handler</span>, <span class="atom">false</span>);
+  };
+      <span class="keyword">else</span>
+      <span class="keyword">var</span> <span class="variable">registerEventHandler</span> = <span class="keyword">function</span>(<span class="variabledef">node</span>, <span class="variabledef">event</span>, <span class="variabledef">handler</span>) {
+      <span class="localvariable">node</span>.<span class="property">attachEvent</span>(<span class="string">"on"</span> + <span class="localvariable">event</span>, <span class="localvariable">handler</span>);
+  };</pre>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Zdarzenia usuwa się bardzo podobnie, jak je dodaje, tylko używa się do tego metod <code>detachEvent</code> i <code>removeEventListener</code>. Zwróć uwagę, że aby usunąć procedurę obsługi zdarzenia, trzeba mieć dostęp do funkcji, którą się z nim związało.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">unregisterEventHandler</span>(<span class="variabledef">node</span>, <span class="variabledef">event</span>, <span class="variabledef">handler</span>) {
+    <span class="keyword">if</span> (typeof <span class="localvariable">node</span>.<span class="property">removeEventListener</span> == <span class="string">"function"</span>)
+    <span class="localvariable">node</span>.<span class="property">removeEventListener</span>(<span class="localvariable">event</span>, <span class="localvariable">handler</span>, <span class="atom">false</span>);
+    <span class="keyword">else</span>
+    <span class="localvariable">node</span>.<span class="property">detachEvent</span>(<span class="string">"on"</span> + <span class="localvariable">event</span>, <span class="localvariable">handler</span>);
+}</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Wyjątków zgłaszanych przez procedury obsługi zdarzeń z przyczyn technicznych nie można przechwytywać w konsoli. Dlatego są obsługiwane przez przeglądarkę, co może oznaczać, że są ukryte w jakiejś „konsoli błędów” albo powodują pojawianie się wyskakującego okienka. Jeśli procedura obsługi zdarzenia nie działa, przyczyną może być błąd powodujący jej ciche anulowanie.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Większość przeglądarek obiekty zdarzeń przekazuje procedurom jako argument. Internet Explorer zapisuje je w zmiennej najwyższego poziomu o nazwie <code>event</code>. Przeglądając kod w języku JavaScript niejednokrotnie natkniesz się na fragmenty typu <code>event || window.event</code>, który pobiera lokalną zmienną <code>event</code> lub, jeśli taka zmienna nie jest  zdefiniowana, zmienną najwyższego poziomu o takiej nazwie.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">showEvent</span>(<span class="variabledef">event</span>) {
+    <span class="variable">show</span>(<span class="localvariable">event</span> || <span class="variable">window</span>.<span class="property">event</span>);
+}
+
+    <span class="variable">registerEventHandler</span>(<span class="variable">$</span>(<span class="string">"textfield"</span>), <span class="string">"keypress"</span>, <span class="variable">showEvent</span>);</pre>
+  <p>Wpisz kilka znaków w polu, spójrz na obiekty i zamknij je:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">unregisterEventHandler</span>(<span class="variable">$</span>(<span class="string">"textfield"</span>), <span class="string">"keypress"</span>, <span class="variable">showEvent</span>);</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Gdy użytkownik kliknie myszą, wygenerowane zostaną trzy zdarzenia. Pierwsze z nich to <code>mousedown</code>, zgłaszane w momencie naciśnięcia przycisku. Drugie to <code>mouseup</code> wygenerowane w momencie zwolnienia przycisku. Trzecie zdarzenie to <code>click</code>, które wskazuje, że coś zostało kliknięte. Jeśli ten szereg zdarzeń ma miejsce dwa razy w krótkim czasie, generowane jest dodatkowo zdarzenie <code>dblclick</code> (podwójne kliknięcie). Zdarzenia <code>mousedown</code> i <code>mouseup</code> nie muszą występować od razu jedno po drugim ― czasami użytkownik nieco dłużej przytrzymuje wciśnięty przycisk myszy.</p>
+  <p>Gdy wiąże się procedurę obsługi zdarzeń np. z przyciskiem, to zazwyczaj wystarczającą informacją jest sama wiadomość, że przycisk ten został kliknięty. Z drugiej strony, jeżeli procedura zostanie powiązana z węzłem mającym dzieci, to kliknięcia tych węzłów potomnych będą propagowane do rodzica i wówczas zazwyczaj chcemy wiedzieć, który element potomny został kliknięty. Dlatego obiekty zdarzeń mają własność o nazwie <code>target</code> lub <code>srcElement</code>, w zależności od przeglądarki.</p>
+  <p>Kolejną interesującą informacją są dokładne współrzędne miejsca, w którym nastąpiło kliknięcie. Obiekty zdarzeń dotyczących myszy zawierają własności <code>clientX</code> i <code>clientY</code> określające współrzędne <code>x</code> i <code>y</code> (w pikselach) kursora na ekranie. Ponieważ jednak dokumenty można przewijać, współrzędne te niewiele nam mówią o tym, w którym miejscu dokumentu znajduje się kursor myszy. Dlatego w niektórych przeglądarkach dostępne są jeszcze własności <code>pageX</code> i <code>pageY</code>, ale niestety jedna (zgadnij która) ich nie ma. Na szczęście we własnościach <code>document.body.scrollLeft</code> i <code>document.body.scrollTop</code> można dowiedzieć się o ile pikseli dokument został przewinięty.</p>
+  <p>Poniższa procedura jest związana z całym dokumentem i przechwytuje wszystkie kliknięcia myszy, aby wyświetlić informacje o nich.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">reportClick</span>(<span class="variabledef">event</span>) {
+    <span class="localvariable">event</span> = <span class="localvariable">event</span> || <span class="variable">window</span>.<span class="property">event</span>;
+    <span class="keyword">var</span> <span class="variabledef">target</span> = <span class="localvariable">event</span>.<span class="property">target</span> || <span class="localvariable">event</span>.<span class="property">srcElement</span>;
+    <span class="keyword">var</span> <span class="variabledef">pageX</span> = <span class="localvariable">event</span>.<span class="property">pageX</span>, <span class="variabledef">pageY</span> = <span class="localvariable">event</span>.<span class="property">pageY</span>;
+    <span class="keyword">if</span> (<span class="localvariable">pageX</span> == <span class="atom">undefined</span>) {
+    <span class="localvariable">pageX</span> = <span class="localvariable">event</span>.<span class="property">clientX</span> + <span class="variable">document</span>.<span class="property">body</span>.<span class="property">scrollLeft</span>;
+    <span class="localvariable">pageY</span> = <span class="localvariable">event</span>.<span class="property">clientY</span> + <span class="variable">document</span>.<span class="property">body</span>.<span class="property">scrollTop</span>;
+  }
+
+    <span class="variable">print</span>(<span class="string">"Współrzędne miejsca, w którym kliknięto: "</span>, <span class="localvariable">pageX</span>, <span class="string">", "</span>, <span class="localvariable">pageY</span>,
+    <span class="string">". Wewnątrz elementu:"</span>);
+    <span class="variable">show</span>(<span class="localvariable">target</span>);
+}
+    <span class="variable">registerEventHandler</span>(<span class="variable">document</span>, <span class="string">"click"</span>, <span class="variable">reportClick</span>);</pre>
+  <p>Usuwamy procedurę:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">unregisterEventHandler</span>(<span class="variable">document</span>, <span class="string">"click"</span>, <span class="variable">reportClick</span>);</pre>
+  <p>Oczywiście nie w każdej procedurze obsługi zdarzeń wykonuje się tyle różnych testów. Za chwilę, gdy poznasz jeszcze kilka przypadków niezgodności między przeglądarkami, napiszemy funkcję normalizującą obiekty zdarzeń tak, aby działały jednakowo we wszystkich aplikacjach.</p>
+  <p>Czasami można też sprawdzić, który przycisk myszy został kliknięty. Służą do tego własności <code>which</code> i <code>button</code> obiektów zdarzeń. Niestety nie można na tej metodzie polegać — niektóre przeglądarki udają, że mysz ma tylko jeden przycisk, inne kliknięcia prawym przyciskiem myszy traktują jako kliknięcia lewym przyciskiem przy wciśniętym klawiszu Ctrl itd.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Oprócz kliknięć, do zdarzeń myszy zalicza się także ruch. Zdarzenie <code>mousemove</code> węzła drzewa DOM jest wyzwalane, gdy nad reprezentowanym przez niego elementem znajduje się kursor będący w ruchu. Istnieją też zdarzenia <code>mouseover</code> i <code>mouseout</code> wyzwalane w momencie, gdy kursor „wchodzi” na węzeł lub z niego „schodzi”. W przypadku zdarzeń ostatniego z wymienionych typów własność <code>target</code> (lub <code>srcElement</code>) wskazuje węzeł, dla którego dane zdarzenie zostało wyzwolone, natomiast własność <code>relatedTarget</code> (lub <code>toElement</code> albo <code>fromElement</code>) określa węzeł, z którego kursor „przyszedł” (w przypadku <code>mouseover</code>) lub na który „przeszedł” (dla <code>mouseout</code>).</p>
+  <p>Zdarzenia <code>mouseover</code> i <code>mouseout</code> mogą sprawiać problemy, gdy są zarejestrowane na elemencie mającym węzły potomne. Zdarzenia wyzwalane w węzłach potomnych są przekazywane do elementu nadrzędnego, przez co zdarzenie <code>mouseover</code> zostanie wyzwolone, gdy kursor znajdzie się nad którymkolwiek z węzłów potomnych elementu. Do wykrywania (i ignorowania) takich zdarzeń można używać własności <code>target</code> i <code>relatedTarget</code>.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Dla każdego naciśnięcia klawisza generowane są trzy zdarzenia: <code>keydown</code>, <code>keyup</code> oraz <code>keypress</code>. Ogólnie rzecz biorąc do sprawdzania, który klawisz został naciśnięty, aby np. wykonać jakieś działania w reakcji na naciśnięcia strzałek, wystarczą dwa pierwsze z tych zdarzeń. Natomiast zdarzenie <code>keypress</code> pozwala dowiedzieć się, jaki znak został wpisany za pomocą klawiatury. W zdarzeniach <code>keyup</code> i <code>keydown</code> zwykle nie ma żadnych informacji co do znaku naciśniętego klawisza, a Internet Explorer dla klawiszy specjalnych, takich jak np. strzałki, w ogóle nie generuje zdarzenia <code>keypress</code>.</p>
+  <p>Dlatego też dowiedzenie się, który klawisz został naciśnięty może być nie lada wyzwaniem. Dla zdarzeń <code>keydown</code> i <code>keyup</code> obiekt zdarzenia zawiera  własność <code>keyCode</code> zawierającą liczbę. W większości przypadków dzięki tym kodom można dowiedzieć się który klawisz został naciśnięty bez względu na przeglądarkę. Aby sprawdzić jaki kod odpowiada każdemu z klawiszy, można wykonać prosty eksperyment…</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">printKeyCode</span>(<span class="variabledef">event</span>) {
+    <span class="localvariable">event</span> = <span class="localvariable">event</span> || <span class="variable">window</span>.<span class="property">event</span>;
+    <span class="variable">print</span>(<span class="string">"Naciśnięto klawisz "</span>, <span class="localvariable">event</span>.<span class="property">keyCode</span>, <span class="string">"."</span>);
+}
+
+    <span class="variable">registerEventHandler</span>(<span class="variable">$</span>(<span class="string">"textfield"</span>), <span class="string">"keydown"</span>, <span class="variable">printKeyCode</span>);</pre>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">unregisterEventHandler</span>(<span class="variable">$</span>(<span class="string">"textfield"</span>), <span class="string">"keydown"</span>, <span class="variable">printKeyCode</span>);</pre>
+  <p>W większości przeglądarek każdemu <em>fizycznie dostępnemu</em> klawiszowi na klawiaturze odpowiada jeden kod. Jednak w Operze dla niektórych klawiszy mogą być generowane różne kody w zależności od tego, czy podczas naciskania klawisza był jednocześnie wciśnięty klawisz Shift. Co gorsza niektóre z tych kodów zwracanych dla klawiszy z naciśniętym Shiftem pokrywają się z kodami innych klawiszy, np. kombinacja Shift+9, która na większości klawiatur służy do wpisywania otwarcia nawiasu ma taki sam kod, jak strzałka w dół, przez co trudno te dwa klawisze od siebie odróżnić. Jeśli istnieje ryzyko, że spowoduje to problemy w programach, można naciśnięcia klawiszy z Shiftem zignorować.</p>
+  <p>Aby dowiedzieć się czy podczas <strong>zdarzenia klawiatury</strong> lub myszy był wciśnięty klawisz Shift, Ctrl lub Alt, można posłużyć się własnościami <code>shiftKey</code>, <code>ctrlKey</code> i <code>altKey</code> obiektu zdarzenia.</p>
+  <p>W przypadku zdarzeń <code>keypress</code> chcemy wiedzieć, który znak został wpisany. Obiekt zdarzenia ma własność <code>charCode</code>, która, jeśli mamy szczęście, powinna zawierać numer Unicode wpisanego tego znaku. Kod ten można przekonwertować na jednoznakowy łańcuch za pomocą metody <code>String.fromCharCode</code>. Niestety w niektórych przeglądarkach brak jest tej własności albo jest ona zdefiniowana jako <code>0</code>, a kod znaku jest przechowywany we własności <code>keyCode</code>.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">printCharacter</span>(<span class="variabledef">event</span>) {
+    <span class="localvariable">event</span> = <span class="localvariable">event</span> || <span class="variable">window</span>.<span class="property">event</span>;
+    <span class="keyword">var</span> <span class="variabledef">charCode</span> = <span class="localvariable">event</span>.<span class="property">charCode</span>;
+    <span class="keyword">if</span> (<span class="localvariable">charCode</span> == <span class="atom">undefined</span> || <span class="localvariable">charCode</span> === <span class="atom">0</span>)
+    <span class="localvariable">charCode</span> = <span class="localvariable">event</span>.<span class="property">keyCode</span>;
+    <span class="variable">print</span>(<span class="string">"Znak „"</span>, <span class="variable">String</span>.<span class="property">fromCharCode</span>(<span class="localvariable">charCode</span>), <span class="string">"”"</span>);
+}
+
+    <span class="variable">registerEventHandler</span>(<span class="variable">$</span>(<span class="string">"textfield"</span>), <span class="string">"keypress"</span>, <span class="variable">printCharacter</span>);</pre>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">unregisterEventHandler</span>(<span class="variable">$</span>(<span class="string">"textfield"</span>), <span class="string">"keypress"</span>, <span class="variable">printCharacter</span>);</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Procedura obsługi zdarzenia nie może zatrzymać zdarzenia, którego dotyczy. Można to zrobić na dwa różne sposoby. Można uniemożliwić przekazanie zdarzenia do węzłów nadrzędnych i zdefiniowanych dla nich procedur obsługi zdarzeń albo można wyłączyć standardową reakcję przeglądarki na określone zdarzenie. Należy zauważyć, że przeglądarki nie zawsze działają zgodnie z oczekiwaniami, tzn. wyłączenie standardowej reakcji na naciśnięcie niektórych skrótów klawiszowych w wielu przeglądarkach nie spowoduje wyłączenia normalnego efektu naciśnięcia tych klawiszy.</p>
+  <p>W większości przeglądarek propagację zdarzenia można zatrzymać za pomocą metody <code>stopPropagation</code> obiektu zdarzenia, a domyślne działanie wyłącza się przy użyciu metody <code>preventDefault</code>. W Internet Explorerze należy odpowiednio ustawić własność <code>cancelBubble</code> tego obiektu na <code>true</code>, a własność <code>returnValue</code> na <code>false</code>.</p>
+  <p>To była ostatnia niezgodność między przeglądarkami, o której chciałem napisać w tym rozdziale. W końcu możemy napisać obiecywaną funkcję normalizującą i przejść do ciekawszych zagadnień.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">normaliseEvent</span>(<span class="variabledef">event</span>) {
+    <span class="keyword">if</span> (!<span class="localvariable">event</span>.<span class="property">stopPropagation</span>) {
+    <span class="localvariable">event</span>.<span class="property">stopPropagation</span> = <span class="keyword">function</span>() {<span class="localvariable">this</span>.<span class="property">cancelBubble</span> = <span class="atom">true</span>;};
+    <span class="localvariable">event</span>.<span class="property">preventDefault</span> = <span class="keyword">function</span>() {<span class="localvariable">this</span>.<span class="property">returnValue</span> = <span class="atom">false</span>;};
+  }
+    <span class="keyword">if</span> (!<span class="localvariable">event</span>.<span class="property">stop</span>) {
+    <span class="localvariable">event</span>.<span class="property">stop</span> = <span class="keyword">function</span>() {
+    <span class="localvariable">this</span>.<span class="property">stopPropagation</span>();
+    <span class="localvariable">this</span>.<span class="property">preventDefault</span>();
+    };
+  }
+
+    <span class="keyword">if</span> (<span class="localvariable">event</span>.<span class="property">srcElement</span> &amp;&amp; !<span class="localvariable">event</span>.<span class="property">target</span>)
+    <span class="localvariable">event</span>.<span class="property">target</span> = <span class="localvariable">event</span>.<span class="property">srcElement</span>;
+    <span class="keyword">if</span> ((<span class="localvariable">event</span>.<span class="property">toElement</span> || <span class="localvariable">event</span>.<span class="property">fromElement</span>) &amp;&amp; !<span class="localvariable">event</span>.<span class="property">relatedTarget</span>)
+    <span class="localvariable">event</span>.<span class="property">relatedTarget</span> = <span class="localvariable">event</span>.<span class="property">toElement</span> || <span class="localvariable">event</span>.<span class="property">fromElement</span>;
+    <span class="keyword">if</span> (<span class="localvariable">event</span>.<span class="property">clientX</span> != <span class="atom">undefined</span> &amp;&amp; <span class="localvariable">event</span>.<span class="property">pageX</span> == <span class="atom">undefined</span>) {
+    <span class="localvariable">event</span>.<span class="property">pageX</span> = <span class="localvariable">event</span>.<span class="property">clientX</span> + <span class="variable">document</span>.<span class="property">body</span>.<span class="property">scrollLeft</span>;
+    <span class="localvariable">event</span>.<span class="property">pageY</span> = <span class="localvariable">event</span>.<span class="property">clientY</span> + <span class="variable">document</span>.<span class="property">body</span>.<span class="property">scrollTop</span>;
+  }
+    <span class="keyword">if</span> (<span class="localvariable">event</span>.<span class="property">type</span> == <span class="string">"keypress"</span>) {
+    <span class="keyword">if</span> (<span class="localvariable">event</span>.<span class="property">charCode</span> === <span class="atom">0</span> || <span class="localvariable">event</span>.<span class="property">charCode</span> == <span class="atom">undefined</span>)
+    <span class="localvariable">event</span>.<span class="property">character</span> = <span class="variable">String</span>.<span class="property">fromCharCode</span>(<span class="localvariable">event</span>.<span class="property">keyCode</span>);
+    <span class="keyword">else</span>
+    <span class="localvariable">event</span>.<span class="property">character</span> = <span class="variable">String</span>.<span class="property">fromCharCode</span>(<span class="localvariable">event</span>.<span class="property">charCode</span>);
+  }
+
+    <span class="keyword">return</span> <span class="localvariable">event</span>;
+}</pre>
+  <p>Została dodana metoda <code>stop</code>, która anuluje zarówno propagację jak i domyślną akcję zdarzenia. Niektóre przeglądarki już ją mają i wówczas pozostawiamy ją bez zmian.</p>
+  <p>Następnie piszemy wygodne opakowania dla metod <code>registerEventHandler</code> i <code>unregisterEventHandler</code>:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">addHandler</span>(<span class="variabledef">node</span>, <span class="variabledef">type</span>, <span class="variabledef">handler</span>) {
+    <span class="keyword">function</span> <span class="variabledef">wrapHandler</span>(<span class="variabledef">event</span>) {
+    <span class="localvariable">handler</span>(<span class="variable">normaliseEvent</span>(<span class="localvariable">event</span> || <span class="variable">window</span>.<span class="property">event</span>));
+  }
+    <span class="variable">registerEventHandler</span>(<span class="localvariable">node</span>, <span class="localvariable">type</span>, <span class="localvariable">wrapHandler</span>);
+    <span class="keyword">return</span> {<span class="property">node</span>: <span class="localvariable">node</span>, <span class="property">type</span>: <span class="localvariable">type</span>, <span class="property">handler</span>: <span class="localvariable">wrapHandler</span>};
+}
+
+    <span class="keyword">function</span> <span class="variable">removeHandler</span>(<span class="variabledef">object</span>) {
+    <span class="variable">unregisterEventHandler</span>(<span class="localvariable">object</span>.<span class="property">node</span>, <span class="localvariable">object</span>.<span class="property">type</span>, <span class="localvariable">object</span>.<span class="property">handler</span>);
+}
+
+    <span class="keyword">var</span> <span class="variable">blockQ</span> = <span class="variable">addHandler</span>(<span class="variable">$</span>(<span class="string">"textfield"</span>), <span class="string">"keypress"</span>, <span class="keyword">function</span>(<span class="variabledef">event</span>) {
+    <span class="keyword">if</span> (<span class="localvariable">event</span>.<span class="property">character</span>.<span class="property">toLowerCase</span>() == <span class="string">"q"</span>)
+    <span class="localvariable">event</span>.<span class="property">stop</span>();
+});</pre>
+  <p>Nowa funkcja <code>addHandler</code> opakowuje podaną jej procedurę w nowej funkcji, dzięki czemu może normalizować obiekty. Zwraca obiekt, który można przekazać do <code>removeHandler</code>, gdy chcemy usunąć wybraną procedurę. Wpisz w polu tekstowym <code>q</code>.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">removeHandler</span>(<span class="variable">blockQ</span>);</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Mając do dyspozycji funkcję <code>addHandler</code> i funkcję <code>dom</code> z poprzedniego rozdziału możemy wykonywać bardziej zaawansowane działania na dokumentach. W ramach ćwiczenia zaimplementujemy grę o nazwie <strong>Sokoban</strong>. Jest to klasyk, ale niewykluczone, że wcześniej o niej nie słyszałeś. Reguły są następujące: jest siatka zbudowana ze ścian, pusta przestrzeń oraz jedno lub więcej wyjść. Na siatce znajduje się pewna liczba krat lub kamieni i ludzik, którym steruje gracz. Ludzik ten może poruszać się w poziomie i pionie po pustych kwadratach i może przesuwać kamienie na puste miejsca. Celem gry jest przesunięcie określonej liczby kamieni do wyjść.</p>
+  <p>Podobnie jak w przypadku terrarium w <a href="/kursy/javascript/wszystko-jasne/r8-obiektowe/">rozdziale 8</a>, poziom Sokobana można przedstawić w postaci tekstowej. Zmienna <code>sokobanLevels</code> w oknie <code>example_events.html</code> zawiera tablicę obiektów reprezentujących poziomy. Każdy poziom ma własność <code>field</code> zawierającą tekstową reprezentację poziomu oraz własność <code>boulders</code> określającą, ilu kamieni trzeba się pozbyć, aby przejść ten poziom.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="variable">sokobanLevels</span>.<span class="property">length</span>);
+    <span class="variable">show</span>(<span class="variable">sokobanLevels</span>[<span class="atom">1</span>].<span class="property">boulders</span>);
+    <span class="variable">forEach</span>(<span class="variable">sokobanLevels</span>[<span class="atom">1</span>].<span class="property">field</span>, <span class="variable">print</span>);</pre>
+  <p>Na każdym poziomie znaki <code>#</code> reprezentują ściany, spacje są pustymi kwadratami, znaki <code>0</code> są kamieniami, znak <code>@</code> oznacza pierwotną lokalizację gracza, a <code>*</code> — wyjście.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Jednak w czasie gry nie chcemy patrzeć na tę tekstową reprezentację. Zamiast tego w dokumencie umieścimy tabelę. Napisałem niewielki arkusz stylów (o nazwie <a href="/wp-content/ejs/sokoban.css">sokoban.css</a>, jeśli chcesz do niego zajrzeć), za pomocą którego komórkom tabeli zdefiniowałem stałe wymiary, i dodałem go do dokumentu. Każda komórka w tej tabeli zawiera obraz tła reprezentujący typ kwadratu (pusty, ściana lub wyjście). Lokalizacje gracza i kamieni są pokazywane poprzez dodawanie obrazów do komórek tabeli, które mogą być przesuwane zgodnie z potrzebą.</p>
+  <p>Tabeli tej można by było użyć jako głównej reprezentacji danych ― aby dowiedzieć się, czy wybrana komórka zawiera ścianę, wystarczy sprawdzić czy komórka ta ma obraz tła, a żeby dowiedzieć się, gdzie jest gracz, wystarczy znaleźć węzeł obrazu z odpowiednim atrybutem <code>src</code>. W niektórych przypadkach byłoby to praktyczne rozwiązanie, ale w tym programie zdecydowałem się użyć osobnej struktury danych, dzięki czemu wszystko będzie o wiele prostsze.</p>
+  <p>Struktura o której mowa jest dwuwymiarową siatką obiektów reprezentującą kwadraty planszy gry. Każdy z tych obiektów musi zawierać informację o typie swojego tła oraz czy w jego komórce znajduje się kamień lub gracz. Ponadto powinien zawierać referencję do komórki używanej do jego wyświetlenia w dokumencie, aby ułatwić wstawianie i usuwanie obrazów z tej komórki.</p>
+  <p>To daje nam dwa rodzaje obiektów — jeden do przechowywania siatki planszy gry, a drugi do reprezentowania poszczególnych komórek tej siatki. Jeśli w grze dodatkowo ma być możliwość przechodzenia do kolejnych poziomów i resetowania planszy, gdy się narobi na niej bałaganu, potrzebny będzie jeszcze obiekt kontrolera tworzący lub usuwający obiekty pól w odpowiednim momencie. Dla wygody wykorzystamy technikę prototypową opisaną na końcu <a href="/kursy/javascript/wszystko-jasne/r8-obiektowe/">rozdziału 8</a>, w której typy obiektów będą prototypami, a do tworzenia nowych obiektów będzie używana metoda <code>create</code>, nie operator <code>new</code>.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Zaczniemy od obiektów reprezentujących kwadraty na planszy gry. Ich zadaniem będzie ustawianie tła komórek i dodawanie do nich odpowiednich obrazów. W katalogu <code>wp-content/ejs/sokoban/</code> znajduje się zestaw obrazów, z innej starej gry, które zostaną użyte w tej grze. Prototyp <code>Square</code> może wyglądać tak, jak poniżej.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">Square</span> = {
+    <span class="property">construct</span>: <span class="keyword">function</span>(<span class="variabledef">character</span>, <span class="variabledef">tableCell</span>) {
+    <span class="localvariable">this</span>.<span class="property">background</span> = <span class="string">"empty"</span>;
+    <span class="keyword">if</span> (<span class="localvariable">character</span> == <span class="string">"#"</span>)
+    <span class="localvariable">this</span>.<span class="property">background</span> = <span class="string">"wall"</span>;
+    <span class="keyword">else</span> <span class="keyword">if</span> (<span class="localvariable">character</span> == <span class="string">"*"</span>)
+    <span class="localvariable">this</span>.<span class="property">background</span> = <span class="string">"exit"</span>;
+
+    <span class="localvariable">this</span>.<span class="property">tableCell</span> = <span class="localvariable">tableCell</span>;
+    <span class="localvariable">this</span>.<span class="property">tableCell</span>.<span class="property">className</span> = <span class="localvariable">this</span>.<span class="property">background</span>;
+
+    <span class="localvariable">this</span>.<span class="property">content</span> = <span class="atom">null</span>;
+    <span class="keyword">if</span> (<span class="localvariable">character</span> == <span class="string">"0"</span>)
+    <span class="localvariable">this</span>.<span class="property">content</span> = <span class="string">"boulder"</span>;
+    <span class="keyword">else</span> <span class="keyword">if</span> (<span class="localvariable">character</span> == <span class="string">"@"</span>)
+    <span class="localvariable">this</span>.<span class="property">content</span> = <span class="string">"player"</span>;
+
+    <span class="keyword">if</span> (<span class="localvariable">this</span>.<span class="property">content</span> != <span class="atom">null</span>) {
+    <span class="keyword">var</span> <span class="variabledef">image</span> = <span class="variable">dom</span>(<span class="string">"IMG"</span>, {<span class="property">src</span>: <span class="string">"/wp-content/ejs/sokoban/"</span> +
+    <span class="localvariable">this</span>.<span class="property">content</span> + <span class="string">".gif"</span>});
+    <span class="localvariable">this</span>.<span class="property">tableCell</span>.<span class="property">appendChild</span>(<span class="localvariable">image</span>);
+    }
+  },
+
+    <span class="property">hasPlayer</span>: <span class="keyword">function</span>() {
+    <span class="keyword">return</span> <span class="localvariable">this</span>.<span class="property">content</span> == <span class="string">"player"</span>;
+  },
+    <span class="property">hasBoulder</span>: <span class="keyword">function</span>() {
+    <span class="keyword">return</span> <span class="localvariable">this</span>.<span class="property">content</span> == <span class="string">"boulder"</span>;
+  },
+    <span class="property">isEmpty</span>: <span class="keyword">function</span>() {
+    <span class="keyword">return</span> <span class="localvariable">this</span>.<span class="property">content</span> == <span class="atom">null</span> &amp;&amp; <span class="localvariable">this</span>.<span class="property">background</span> == <span class="string">"empty"</span>;
+  },
+    <span class="property">isExit</span>: <span class="keyword">function</span>() {
+    <span class="keyword">return</span> <span class="localvariable">this</span>.<span class="property">background</span> == <span class="string">"exit"</span>;
+  }
+};
+
+    <span class="keyword">var</span> <span class="variable">testSquare</span> = <span class="variable">Square</span>.<span class="property">create</span>(<span class="string">"@"</span>, <span class="variable">dom</span>(<span class="string">"TD"</span>));
+    <span class="variable">show</span>(<span class="variable">testSquare</span>.<span class="property">hasPlayer</span>());</pre>
+  <p>Argument <code>character</code> konstruktora będzie służył do przekształcania znaków z makiet plansz poziomów na rzeczywiste obiekty <code>Square</code>. Do ustawiania tła komórek używane są klasy CSS (zdefiniowane w pliku <a href="wp-content/ejs/sokoban.css" class="broken_link" rel="nofollow">sokoban.css</a>), które są przypisane do własności <code>className</code> elementów <code>td</code>.</p>
+  <p>Metody takie jak <code>hasPlayer</code> i <code>isEmpty</code> pozwalają „odizolować” kod wykorzystujący obiekty tego typu od wewnętrznych szczegółów tych obiektów. Nie są w tym przypadku niezbędne, ale dzięki nim reszta kodu będzie lepiej wyglądać.</p>
+</div>
+<hr>
+<div class="block"><a name="exercise2"></a>
+  <div class="exercisenum">Ćwiczenie 13.2</div>
+  <div class="exercise">
+    <p>Dodaj metody <code>moveContent</code> i <code>clearContent</code> do prototypu <code>Square</code>. Pierwsza pobiera jako argument inny obiekt <code>Square</code> i przenosi treść kwadratu <code>this</code> do tego argumentu aktualizując własności <code>content</code> i przenosząc węzeł obrazu związany z tą treścią. Metoda ta będzie używana do przesuwania kamieni i graczy po siatce. Można w niej przyjąć założenie, że kwadrat nie jest aktualnie pusty. Metoda <code>clearContent</code> usuwa zawartość kwadratu nigdzie jej nie przenosząc. Zwróć uwagę, że własność <code>content</code> pustych kwadratów zawiera wartość <code>null</code>.</p>
+    <p>W rozdziale tym dostępna jest też funkcja <code>removeElement</code> zdefiniowana w <a href="/kursy/javascript/wszystko-jasne/r12-dom/">rozdziale 12</a>, dzięki której można wygodnie usuwać węzły. Można przyjąć założenie, że obrazy są jedynymi potomkami komórek tabeli, dzięki czemu dostęp do nich można uzyskiwać np. za pomocą instrukcji <code>this.tableCell.lastChild</code>.</p>
+  </div>
+  <div class="toggle">[pokaż rozwiązanie]</div><div class="solution" style="display: none;"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">Square</span>.<span class="property">moveContent</span> = <span class="keyword">function</span>(<span class="variabledef">target</span>) {
+      <span class="localvariable">target</span>.<span class="property">content</span> = <span class="localvariable">this</span>.<span class="property">content</span>;
+      <span class="localvariable">this</span>.<span class="property">content</span> = <span class="atom">null</span>;
+      <span class="localvariable">target</span>.<span class="property">tableCell</span>.<span class="property">appendChild</span>(<span class="localvariable">this</span>.<span class="property">tableCell</span>.<span class="property">lastChild</span>);
+};
+      <span class="variable">Square</span>.<span class="property">clearContent</span> = <span class="keyword">function</span>() {
+      <span class="localvariable">this</span>.<span class="property">content</span> = <span class="atom">null</span>;
+      <span class="variable">removeElement</span>(<span class="localvariable">this</span>.<span class="property">tableCell</span>.<span class="property">lastChild</span>);
+};</pre>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Następny typ obiektowy będzie miał nazwę <code>SokobanField</code>. Jego konstruktorowi będzie się przekazywać obiekt z tablicy <code>sokobanLevels</code>, a jego zadaniem będzie budowanie tabeli z węzłów drzewa DOM i tworzenie siatki obiektów <code>Square</code>. W obiekcie tym realizowana też będzie operacja przesuwania gracza i kamieni. Będzie się to odbywać poprzez metodę <code>move</code> przyjmującą jako argument kierunek, w którym ma zostać wykonany ruch.</p>
+  <p>Do identyfikacji poszczególnych kwadratów i określania kierunków użyjemy typu obiektowego <code>Point</code> z <a href="/kursy/javascript/wszystko-jasne/r8-obiektowe/">rozdziału 8</a>, który jak może pamiętasz ma metodę <code>add</code>.</p>
+  <p>Baza prototypu pola wygląda tak:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">SokobanField</span> = {
+    <span class="property">construct</span>: <span class="keyword">function</span>(<span class="variabledef">level</span>) {
+    <span class="keyword">var</span> <span class="variabledef">tbody</span> = <span class="variable">dom</span>(<span class="string">"TBODY"</span>);
+    <span class="localvariable">this</span>.<span class="property">squares</span> = [];
+    <span class="localvariable">this</span>.<span class="property">bouldersToGo</span> = <span class="localvariable">level</span>.<span class="property">boulders</span>;
+
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">y</span> = <span class="atom">0</span>; <span class="localvariable">y</span> &lt; <span class="localvariable">level</span>.<span class="property">field</span>.<span class="property">length</span>; <span class="localvariable">y</span>++) {
+    <span class="keyword">var</span> <span class="variabledef">line</span> = <span class="localvariable">level</span>.<span class="property">field</span>[<span class="localvariable">y</span>];
+    <span class="keyword">var</span> <span class="variabledef">tableRow</span> = <span class="variable">dom</span>(<span class="string">"TR"</span>);
+    <span class="keyword">var</span> <span class="variabledef">squareRow</span> = [];
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">x</span> = <span class="atom">0</span>; <span class="localvariable">x</span> &lt; <span class="localvariable">line</span>.<span class="property">length</span>; <span class="localvariable">x</span>++) {
+    <span class="keyword">var</span> <span class="variabledef">tableCell</span> = <span class="variable">dom</span>(<span class="string">"TD"</span>);
+    <span class="localvariable">tableRow</span>.<span class="property">appendChild</span>(<span class="localvariable">tableCell</span>);
+    <span class="keyword">var</span> <span class="variabledef">square</span> = <span class="variable">Square</span>.<span class="property">create</span>(<span class="localvariable">line</span>.<span class="property">charAt</span>(<span class="localvariable">x</span>), <span class="localvariable">tableCell</span>);
+    <span class="localvariable">squareRow</span>.<span class="property">push</span>(<span class="localvariable">square</span>);
+    <span class="keyword">if</span> (<span class="localvariable">square</span>.<span class="property">hasPlayer</span>())
+    <span class="localvariable">this</span>.<span class="property">playerPos</span> = <span class="keyword">new</span> <span class="variable">Point</span>(<span class="localvariable">x</span>, <span class="localvariable">y</span>);
+      }
+    <span class="localvariable">tbody</span>.<span class="property">appendChild</span>(<span class="localvariable">tableRow</span>);
+    <span class="localvariable">this</span>.<span class="property">squares</span>.<span class="property">push</span>(<span class="localvariable">squareRow</span>);
+    }
+
+    <span class="localvariable">this</span>.<span class="property">table</span> = <span class="variable">dom</span>(<span class="string">"TABLE"</span>, {<span class="string">"class"</span>: <span class="string">"sokoban"</span>}, <span class="localvariable">tbody</span>);
+    <span class="localvariable">this</span>.<span class="property">score</span> = <span class="variable">dom</span>(<span class="string">"DIV"</span>, <span class="atom">null</span>, <span class="string">"..."</span>);
+    <span class="localvariable">this</span>.<span class="property">updateScore</span>();
+  },
+
+    <span class="property">getSquare</span>: <span class="keyword">function</span>(<span class="variabledef">position</span>) {
+    <span class="keyword">return</span> <span class="localvariable">this</span>.<span class="property">squares</span>[<span class="localvariable">position</span>.<span class="property">y</span>][<span class="localvariable">position</span>.<span class="property">x</span>];
+  },
+    <span class="property">updateScore</span>: <span class="keyword">function</span>() {
+    <span class="localvariable">this</span>.<span class="property">score</span>.<span class="property">firstChild</span>.<span class="property">nodeValue</span> = <span class="string">"Pozostało "</span> + <span class="localvariable">this</span>.<span class="property">bouldersToGo</span> + 
+    <span class="string">" kamieni."</span>;
+  },
+    <span class="property">won</span>: <span class="keyword">function</span>() {
+    <span class="keyword">return</span> <span class="localvariable">this</span>.<span class="property">bouldersToGo</span> &lt;= <span class="atom">0</span>;
+  }
+};
+
+    <span class="keyword">var</span> <span class="variable">testField</span> = <span class="variable">SokobanField</span>.<span class="property">create</span>(<span class="variable">sokobanLevels</span>[<span class="atom">0</span>]);
+    <span class="variable">show</span>(<span class="variable">testField</span>.<span class="property">getSquare</span>(<span class="keyword">new</span> <span class="variable">Point</span>(<span class="atom">10</span>, <span class="atom">2</span>)).<span class="property">content</span>);</pre>
+  <p>Konstruktor przegląda wiersze i znaki w poziomie oraz zapisuje obiekty <code>Square</code> we własności <code>squares</code>. Gdy napotka kwadrat zawierający gracza, zapisuje tę pozycję jako własność <code>playerPos</code>, dzięki czemu później możemy łatwo odnaleźć położenie gracza. Metoda <code>getSquare</code> służy do znajdowania obiektu <code>Square</code> odpowiadającego określonej pozycji <code>x,y</code> na planszy. Należy zauważyć, że pod uwagę nie są brane krawędzie planszy — aby uniknąć pisania nudnego kodu przyjąłem założenie, że plansza jest prawidłowo otoczona ścianami, które uniemożliwiają wyjście poza nią.</p>
+  <p>Słowo <code>class</code> w wywołaniu <code>dom</code> tworzącym węzeł <code>table</code> jest umieszczone w cudzysłowie oznaczającym, że jest to łańcuch. Było to konieczne, ponieważ słowo <code>class</code> w języku JavaScript jest zarezerwowane i nie można go używać jako nazwy zmiennej ani własności.</p>
+  <p>Liczba kamieni, jaką należy usunąć, aby przejść poziom (może być niższa od liczby wszystkich kamieni w poziomie) jest zapisana we własności <code>bouldersToGo</code>. Gdy jakiś kamień trafia do wyjścia, odejmujemy od niej 1 i sprawdzamy, czy to już koniec gry. Aby gracz wiedział, jak mu idzie musimy jakoś wyświetlać tę informację. Do tego celu został użyty element <code>div</code> z tekstem. Węzły <code>div</code> są kontenerami bez konkretnego domyślnego formatowania. Tekst wyniku można aktualizować za pomocą metody <code>updateScore</code>. Metoda <code>won</code> będzie używana przez obiekt kontrolera do określania końca gry, aby gracz mógł przejść do następnego poziomu.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Jeśli chcemy, aby plansza gry i wynik były widoczne, musimy je jakoś dodać do dokumentu. Do tego posłuży nam metoda <code>place</code>. Napiszemy też metodę <code>remove</code> do usuwania planszy, gdy z nią skończymy.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">SokobanField</span>.<span class="property">place</span> = <span class="keyword">function</span>(<span class="variabledef">where</span>) {
+    <span class="localvariable">where</span>.<span class="property">appendChild</span>(<span class="localvariable">this</span>.<span class="property">score</span>);
+    <span class="localvariable">where</span>.<span class="property">appendChild</span>(<span class="localvariable">this</span>.<span class="property">table</span>);
+};
+    <span class="variable">SokobanField</span>.<span class="property">remove</span> = <span class="keyword">function</span>() {
+    <span class="variable">removeElement</span>(<span class="localvariable">this</span>.<span class="property">score</span>);
+    <span class="variable">removeElement</span>(<span class="localvariable">this</span>.<span class="property">table</span>);
+};
+
+    <span class="variable">testField</span>.<span class="property">place</span>(<span class="variable">document</span>.<span class="property">body</span>);</pre>
+  <p>Jeśli wszystko dobrze poszło, powinieneś teraz widzieć planszę gry Sokoban.</p>
+</div>
+<hr>
+<div class="block"><a name="exercise3"></a>
+  <div class="exercisenum">Ćwiczenie 13.3</div>
+  <div class="exercise">
+    <p>Na razie jednak na planszy tej niewiele się dzieje. Dodamy metodę o nazwie <code>move</code>. Metoda ta przyjmuje jako argument obiekt <code>Point</code> określający ruch (np. <code>-1,0</code>, aby przejść w lewo) i jej zadaniem jest przesuwanie elementów gry po planszy.</p>
+    <p>Poprawny sposób implementacji jest następujący: własności <code>playerPos</code> można użyć do sprawdzenia, gdzie gracz chce się ruszyć. Jeśli w tym miejscu znajduje się kamień, sprawdzamy kwadrat za tym kamieniem. Jeśli na nim znajduje się wyjście, usuwamy kamień i aktualizujemy wynik. Jeśli jest tam puste miejsce, przesuwamy na nie kamień. Następnie próbujemy przesunąć gracza. Jeśli kwadrat, na który gracz próbuje się przemieścić nie jest pusty, ignorujemy próbę ruchu.</p>
+  </div>
+  <div class="toggle">[pokaż rozwiązanie]</div><div class="solution" style="display: none;"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">SokobanField</span>.<span class="property">move</span> = <span class="keyword">function</span>(<span class="variabledef">direction</span>) {
+      <span class="keyword">var</span> <span class="variabledef">playerSquare</span> = <span class="localvariable">this</span>.<span class="property">getSquare</span>(<span class="localvariable">this</span>.<span class="property">playerPos</span>);
+      <span class="keyword">var</span> <span class="variabledef">targetPos</span> = <span class="localvariable">this</span>.<span class="property">playerPos</span>.<span class="property">add</span>(<span class="localvariable">direction</span>);
+      <span class="keyword">var</span> <span class="variabledef">targetSquare</span> = <span class="localvariable">this</span>.<span class="property">getSquare</span>(<span class="localvariable">targetPos</span>);
+
+      <span class="comment">// Możliwość przesunięcia kamienia</span>
+      <span class="keyword">if</span> (<span class="localvariable">targetSquare</span>.<span class="property">hasBoulder</span>()) {
+      <span class="keyword">var</span> <span class="variabledef">pushTarget</span> = <span class="localvariable">this</span>.<span class="property">getSquare</span>(<span class="localvariable">targetPos</span>.<span class="property">add</span>(<span class="localvariable">direction</span>));
+      <span class="keyword">if</span> (<span class="localvariable">pushTarget</span>.<span class="property">isEmpty</span>()) {
+      <span class="localvariable">targetSquare</span>.<span class="property">moveContent</span>(<span class="localvariable">pushTarget</span>);
+    }
+      <span class="keyword">else</span> <span class="keyword">if</span> (<span class="localvariable">pushTarget</span>.<span class="property">isExit</span>()) {
+      <span class="localvariable">targetSquare</span>.<span class="property">moveContent</span>(<span class="localvariable">pushTarget</span>);
+      <span class="localvariable">pushTarget</span>.<span class="property">clearContent</span>();
+      <span class="localvariable">this</span>.<span class="property">bouldersToGo</span>--;
+      <span class="localvariable">this</span>.<span class="property">updateScore</span>();
+    }
+  }
+      <span class="comment">// Przesuwanie gracza</span>
+      <span class="keyword">if</span> (<span class="localvariable">targetSquare</span>.<span class="property">isEmpty</span>()) {
+      <span class="localvariable">playerSquare</span>.<span class="property">moveContent</span>(<span class="localvariable">targetSquare</span>);
+      <span class="localvariable">this</span>.<span class="property">playerPos</span> = <span class="localvariable">targetPos</span>;
+  }
+};</pre>
+    <p>Dzięki temu, że najpierw obsługiwany jest ruch kamieni, kod ruchu może działać w taki sam sposób zarówno gdy gracz przesuwa się normalnie, jak i gdy popycha kamień. Zwróć uwagę na sposób zlokalizowania kwadratu za kamieniem poprzez dodanie <code>direction</code> dwa razy do <code>playerPos</code>. Przetestuj ten kod przesuwając się w lewo o dwa kwadraty:</p>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">testField</span>.<span class="property">move</span>(<span class="keyword">new</span> <span class="variable">Point</span>(-<span class="atom">1</span>, <span class="atom">0</span>));
+      <span class="variable">testField</span>.<span class="property">move</span>(<span class="keyword">new</span> <span class="variable">Point</span>(-<span class="atom">1</span>, <span class="atom">0</span>));</pre>
+    <p>Jeśli to zadziałało, to przesunęliśmy kamień w miejsce, z którego nie da się go już ruszyć, a więc lepiej to pole usunąć.</p>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">testField</span>.<span class="property">remove</span>();</pre>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Cała logika gry jest już gotowa i pozostało tylko ją „ożywić” za pomocą kontrolera. Kontrolerem będzie typ obiektowy o nazwie <code>SokobanGame</code>. Do jego zadań będzie należeć:</p>
+  <ul>
+    <li>przygotowanie miejsca na planszę gry,</li>
+    <li>tworzenie i usuwanie obiektów <code>SokobanField</code>,</li>
+    <li>przechwytywanie zdarzeń klawiszy i wywoływanie metody <code>move</code> na bieżącym polu z odpowiednim argumentem,</li>
+    <li>pamiętanie numeru bieżącego poziomu i przechodzenie do kolejnego poziomu po wygraniu aktualnego,</li>
+    <li>dodawanie przycisków do resetowania bieżącego poziomu i całej gry (powrót do poziomu 0).</li>
+  </ul>
+  <p>Zaczniemy od niedokończonego prototypu.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">SokobanGame</span> = {
+    <span class="property">construct</span>: <span class="keyword">function</span>(<span class="variabledef">place</span>) {
+    <span class="localvariable">this</span>.<span class="property">level</span> = <span class="atom">null</span>;
+    <span class="localvariable">this</span>.<span class="property">field</span> = <span class="atom">null</span>;
+
+    <span class="keyword">var</span> <span class="variabledef">newGame</span> = <span class="variable">dom</span>(<span class="string">"BUTTON"</span>, <span class="atom">null</span>, <span class="string">"Nowa gra"</span>);
+    <span class="variable">addHandler</span>(<span class="localvariable">newGame</span>, <span class="string">"click"</span>, <span class="variable">method</span>(<span class="localvariable">this</span>, <span class="string">"newGame"</span>));
+    <span class="keyword">var</span> <span class="variabledef">reset</span> = <span class="variable">dom</span>(<span class="string">"BUTTON"</span>, <span class="atom">null</span>, <span class="string">"Resetuj poziom"</span>);
+    <span class="variable">addHandler</span>(<span class="localvariable">reset</span>, <span class="string">"click"</span>, <span class="variable">method</span>(<span class="localvariable">this</span>, <span class="string">"reset"</span>));
+    <span class="localvariable">this</span>.<span class="property">container</span> = <span class="variable">dom</span>(<span class="string">"DIV"</span>, <span class="atom">null</span>,
+    <span class="variable">dom</span>(<span class="string">"H1"</span>, <span class="atom">null</span>, <span class="string">"Sokoban"</span>),
+    <span class="variable">dom</span>(<span class="string">"DIV"</span>, <span class="atom">null</span>, <span class="localvariable">newGame</span>, <span class="string">" "</span>, <span class="localvariable">reset</span>));
+    <span class="localvariable">place</span>.<span class="property">appendChild</span>(<span class="localvariable">this</span>.<span class="property">container</span>);
+
+    <span class="variable">addHandler</span>(<span class="variable">document</span>, <span class="string">"keydown"</span>, <span class="variable">method</span>(<span class="localvariable">this</span>, <span class="string">"keyDown"</span>));
+    <span class="localvariable">this</span>.<span class="property">newGame</span>();
+  },
+
+    <span class="property">newGame</span>: <span class="keyword">function</span>() {
+    <span class="localvariable">this</span>.<span class="property">level</span> = <span class="atom">0</span>;
+    <span class="localvariable">this</span>.<span class="property">reset</span>();
+  },
+    <span class="property">reset</span>: <span class="keyword">function</span>() {
+    <span class="keyword">if</span> (<span class="localvariable">this</span>.<span class="property">field</span>)
+    <span class="localvariable">this</span>.<span class="property">field</span>.<span class="property">remove</span>();
+    <span class="localvariable">this</span>.<span class="property">field</span> = <span class="variable">SokobanField</span>.<span class="property">create</span>(<span class="variable">sokobanLevels</span>[<span class="localvariable">this</span>.<span class="property">level</span>]);
+    <span class="localvariable">this</span>.<span class="property">field</span>.<span class="property">place</span>(<span class="localvariable">this</span>.<span class="property">container</span>);
+  },
+
+    <span class="property">keyDown</span>: <span class="keyword">function</span>(<span class="variabledef">event</span>) {
+    <span class="comment">// To trzeba jeszcze napisać</span>
+  }
+};</pre>
+  <p>Konstruktor ten tworzy element <code>div</code> na planszę, dwa przyciski oraz tytuł. Zwróć uwagę na sposób użycia <code>method</code> do powiązania metod obiektu <code>this</code> ze zdarzeniami.</p>
+  <p>Grę Sokoban możemy dodać do dokumentu w następujący sposób:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">sokoban</span> = <span class="variable">SokobanGame</span>.<span class="property">create</span>(<span class="variable">document</span>.<span class="property">body</span>);</pre>
+</div>
+<hr>
+<div class="block"><a name="exercise4"></a>
+  <div class="exercisenum">Ćwiczenie 13.4</div>
+  <div class="exercise">
+    <p>Pozostało jeszcze tylko dodać procedurę obsługi zdarzeń klawiszowych. Zastąpimy metodę <code>keyDown</code> prototypu metodą wykrywającą naciśnięcia klawiszy strzałek i przesuwającą gracza w odpowiednim kierunku. Przyda się nam do tego poniższy obiekt <code>Dictionary</code>:</p>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">arrowKeyCodes</span> = <span class="keyword">new</span> <span class="variable">Dictionary</span>({
+      <span class="atom">37</span>: <span class="keyword">new</span> <span class="variable">Point</span>(-<span class="atom">1</span>, <span class="atom">0</span>), <span class="comment">// w lewo</span>
+      <span class="atom">38</span>: <span class="keyword">new</span> <span class="variable">Point</span>(<span class="atom">0</span>, -<span class="atom">1</span>), <span class="comment">// do góry</span>
+      <span class="atom">39</span>: <span class="keyword">new</span> <span class="variable">Point</span>(<span class="atom">1</span>, <span class="atom">0</span>),  <span class="comment">// w prawo</span>
+      <span class="atom">40</span>: <span class="keyword">new</span> <span class="variable">Point</span>(<span class="atom">0</span>, <span class="atom">1</span>)   <span class="comment">// w dół</span>
+});</pre>
+    <p>Po obsłużeniu zdarzenia naciśnięcia klawisza strzałki sprawdzamy <code>this.field.won()</code>, aby dowiedzieć się czy nie był to ruch zwycięski. Jeśli gracz wygrał, wyświetlamy wiadomość przy użyciu <code>alert</code> i przechodzimy do następnego poziomu. Jeśli nie ma kolejnego poziomu (sprawdź <code>sokobanLevels.length</code>), uruchamiamy grę od nowa.</p>
+    <p>Zdarzenia naciśnięć klawiszy po obsłużeniu powinno się wyłączyć, ponieważ jeśli tego nie zrobimy, naciśnięcie strzałek w górę i w dół będzie powodować denerwujące przewijanie okna.</p>
+  </div>
+  <div class="toggle">[pokaż rozwiązanie]</div><div class="solution" style="display: none;"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">SokobanGame</span>.<span class="property">keyDown</span> = <span class="keyword">function</span>(<span class="variabledef">event</span>) {
+      <span class="keyword">if</span> (<span class="variable">arrowKeyCodes</span>.<span class="property">contains</span>(<span class="localvariable">event</span>.<span class="property">keyCode</span>)) {
+      <span class="localvariable">event</span>.<span class="property">stop</span>();
+      <span class="localvariable">this</span>.<span class="property">field</span>.<span class="property">move</span>(<span class="variable">arrowKeyCodes</span>.<span class="property">lookup</span>(<span class="localvariable">event</span>.<span class="property">keyCode</span>));
+      <span class="keyword">if</span> (<span class="localvariable">this</span>.<span class="property">field</span>.<span class="property">won</span>()) {
+      <span class="keyword">if</span> (<span class="localvariable">this</span>.<span class="property">level</span> &lt; <span class="variable">sokobanLevels</span>.<span class="property">length</span> - <span class="atom">1</span>) {
+      <span class="variable">alert</span>(<span class="string">"Doskonale! Przechodzisz do następnego poziomu."</span>);
+      <span class="localvariable">this</span>.<span class="property">level</span>++;
+      <span class="localvariable">this</span>.<span class="property">reset</span>();
+      }
+      <span class="keyword">else</span> {
+      <span class="variable">alert</span>(<span class="string">"Wygrałeś! Koniec gry."</span>);
+      <span class="localvariable">this</span>.<span class="property">newGame</span>();
+      }
+    }
+  }
+};</pre>
+    <p>Należy zaznaczyć, że taki sposób przechwytywania zdarzeń klawiszy ― poprzez dodanie procedury do <code>document</code> i zatrzymywanie tych zdarzeń, które nas interesują — nie jest dobrym pomysłem, jeśli w dokumencie znajdują się inne elementy. Spróbuj na przykład przesunąć kursor w polu tekstowym znajdującym się na górze dokumentu. ― Nie uda Ci się to, ponieważ przesuniesz tylko ludzika w grze Sokoban. Gdyby gra miała być używana na prawdziwej stronie internetowej, najlepiej byłoby ją umieścić w ramce lub osobnym oknie, aby przejmowała tylko zdarzenia dotyczące niej.</p>
+  </div>
+</div>
+<hr>
+<div class="block"><a name="exercise5"></a>
+  <div class="exercisenum">Ćwiczenie 13.5</div>
+  <div class="exercise">
+    <p>Kamienie wypchnięte do wyjścia nagle znikają. Zmodyfikuj metodę <code>Square.clearContent</code> tak, aby przy usuwaniu kamieni była wyświetlana animacja spadającego kamienia. Niech kamień najpierw robi się mniejszy, a dopiero potem znika całkowicie. Możesz użyć własności <code>style.width = "50%"</code> i podobnego ustawienia <code>style.height</code>, aby zmniejszyć obraz o połowę.</p>
+  </div>
+  <div class="toggle">[pokaż rozwiązanie]</div><div class="solution" style="display: none;"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <p>Czas animacji można kontrolować za pomocą metody <code>setInterval</code>. Pamiętaj,że metoda ta powinna się wyłączyć po wykonaniu swojego zadania. Jeśli tego nie zrobisz, będzie marnowała zasoby komputera dopóki strona nie zostanie zamknięta.</p>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">Square</span>.<span class="property">clearContent</span> = <span class="keyword">function</span>() {
+      <span class="variable">self</span>.<span class="property">content</span> = <span class="atom">null</span>;
+      <span class="keyword">var</span> <span class="variabledef">image</span> = <span class="localvariable">this</span>.<span class="property">tableCell</span>.<span class="property">lastChild</span>;
+      <span class="keyword">var</span> <span class="variabledef">size</span> = <span class="atom">100</span>;
+
+      <span class="keyword">var</span> <span class="variabledef">animate</span> = <span class="variable">setInterval</span>(<span class="keyword">function</span>() {
+      <span class="localvariable">size</span> -= <span class="atom">10</span>;
+      <span class="localvariable">image</span>.<span class="property">style</span>.<span class="property">width</span> = <span class="localvariable">size</span> + <span class="string">"%"</span>;
+      <span class="localvariable">image</span>.<span class="property">style</span>.<span class="property">height</span> = <span class="localvariable">size</span> + <span class="string">"%"</span>;
+
+      <span class="keyword">if</span> (<span class="localvariable">size</span> &lt; <span class="atom">60</span>) {
+      <span class="variable">clearInterval</span>(<span class="localvariable">animate</span>);
+      <span class="variable">removeElement</span>(<span class="localvariable">image</span>);
+    }
+  }, <span class="atom">70</span>);
+};</pre>
+    <p>Teraz, jeśli masz kilka godzin możesz spróbować przejść wszystkie poziomy.</p>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Inne przydatne rodzaje zdarzeń to <code>focus</code> i <code>blur</code> wyzwalane na elementach, które można aktywować (ang. focus), a więc np. polach wejściowych formularzy. Zdarzenie <code>focus</code> ma miejsce, gdy element jest aktywowany, np. kliknięciem. Natomiast <code>blur</code> to termin JavaScript określający „dezaktywację” i zdarzenie to jest wyzwalane, gdy element przestaje być aktywny.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">addHandler</span>(<span class="variable">$</span>(<span class="string">"textfield"</span>), <span class="string">"focus"</span>, <span class="keyword">function</span>(<span class="variabledef">event</span>) {
+    <span class="localvariable">event</span>.<span class="property">target</span>.<span class="property">style</span>.<span class="property">backgroundColor</span> = <span class="string">"yellow"</span>;
+});
+    <span class="variable">addHandler</span>(<span class="variable">$</span>(<span class="string">"textfield"</span>), <span class="string">"blur"</span>, <span class="keyword">function</span>(<span class="variabledef">event</span>) {
+    <span class="localvariable">event</span>.<span class="property">target</span>.<span class="property">style</span>.<span class="property">backgroundColor</span> = <span class="string">""</span>;
+});</pre>
+  <p>Kolejnym zdarzeniem związanym z polami wejściowymi formularzy jest <code>change</code>. Jest ono wyzwalane w momencie zmiany treści pola wejściowego, z tym że w przypadku niektórych pól, np. tekstowych, wyzwolenie tego zdarzenia następuje dopiero, gdy element przestaje być aktywny.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">addHandler</span>(<span class="variable">$</span>(<span class="string">"textfield"</span>), <span class="string">"change"</span>, <span class="keyword">function</span>(<span class="variabledef">event</span>) {
+    <span class="variable">print</span>(<span class="string">"Treść pola wejściowego zmieniła się na „"</span>,
+    <span class="localvariable">event</span>.<span class="property">target</span>.<span class="property">value</span>, <span class="string">"”."</span>);
+});</pre>
+  <p>Możesz wpisać co tylko chcesz, a zdarzenie i tak zostanie wyzwolone, gdy klikniesz gdzieś poza polem, naciśniesz klawisz Tab albo zrobisz jeszcze coś innego, co będzie miało podobny skutek.</p>
+  <p>Formularze mają też zdarzenie <code>submit</code> wyzwalane w momencie zatwierdzenia formularza. Można je wykorzystać, aby uniemożliwić zatwierdzenie formularza. Dzięki temu można <em>o wiele</em> lepiej przeprowadzić weryfikację danych formularza, o czym była mowa w poprzednim rozdziale. Wystarczy zarejestrować procedurę obsługi zdarzeń <code>submit</code>, która zatrzymuje to zdarzenie, gdy formularz jest błędnie wypełniony. Gdy użytkownik będzie miał wyłączoną obsługę JavaScriptu, formularz nadal będzie działał, tylko bez natychmiastowej weryfikacji danych.</p>
+  <p>Obiekty okien mają zdarzenie <code>load</code> wyzwalane po całkowitym załadowaniu dokumentu. Można je wykorzystać do zainicjowania jakichś działań, które muszą poczekać aż cały dokument będzie dostępny. Na przykład skrypty działające na tej stronie przeglądają cały bieżący rozdział, aby ukryć rozwiązania ćwiczeń. Nie da się tego zrobić, jeśli ćwiczenia nie są wczytane. Istnieje też zdarzenie <code>unload</code> wyzwalane, gdy użytkownik opuszcza dokument, ale jego obsługa w niektórych przeglądarkach jest nieprawidłowa.</p>
+  <p>W większości przypadków kwestię rozmieszczenia elementów w dokumencie najlepiej jest pozostawić do rozwiązania przeglądarce, ale niektóre efekty da się uzyskać tylko poprzez ustawianie wymiarów niektórych węzłów dokumentu za pomocą JavaScriptu. Gdy będziesz to robić, pamiętaj żeby dodatkowo nasłuchiwać zdarzeń <code>resize</code> okna i obliczać wymiary elementów przy każdej zmianie rozmiaru okna.</p>
+</div>

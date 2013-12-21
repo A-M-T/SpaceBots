@@ -1,0 +1,179 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Kopiec binarny</title>
+<link rel=stylesheet href=doc.css>
+<link rel=author href=http://marijnhaverbeke.nl/>
+<link rel=license href=http://creativecommons.org/licenses/by/3.0/deed.pl>
+<h1>Kopiec binarny</h1>
+
+<div class="block">
+  <p>W <a href="/kursy/javascript/wszystko-jasne/r7-wyszukiwanie/">rozdziale 7</a> struktura danych o nazwie <strong>kopiec binarny</strong> została użyta do przechowywania zbioru obiektów w taki sposób, aby można było szybko znaleźć najmniejszy element tego zbioru. Zgodnie z obietnicą w tym dodatku szczegółowo objaśniam zasadę działania tej struktury danych.</p>
+  <p>Przypomnę problem, który mieliśmy do rozwiązania. Algorytm A* tworzył duże ilości małych obiektów i zapisywał je na „liście otwartej”. Ciągle usuwał najmniejsze elementy z tej listy. Najprostszym rozwiązaniem byłoby zapisanie wszystkich obiektów w tablicy i szukanie najmniejszego, gdyby był potrzebny. Jeśli jednak nie mamy <em>bardzo dużo</em> czasu, ta metoda się nie nada. Aby znaleźć najmniejszy element w nieposortowanej tablicy, trzeba przejrzeć całą tę tablicę i sprawdzić każdy element z osobna.</p>
+  <p>Innym rozwiązaniem mogłoby być posortowanie tablicy. Tablice w języku JavaScript mają wspaniałą metodę o nazwie <code>sort</code>, za pomocą której łatwo się je sortuje. Niestety sortowanie tablicy za każdym razem, gdy dodawany jest do niej element jest bardziej wymagające niż szukanie najmniejszego elementu w nieposortowanej tablicy. Można oczywiście stosować różne sztuczki, jak choćby nie sortowanie całej tablicy tylko wstawianie nowych wartości od razu w odpowiednim miejscu. To jest już bliższe sposobowi działania kopca binarnego, ale wstawienie wartości w środku tablicy wymaga przesunięcia wszystkich elementów, które znajdują się za miejscem wstawienia, co wymaga zbyt dużo pracy.</p>
+  <p>Innym sposobem jest rezygnacja z użycia tablicy i zapisywanie wartości w zbiorze niepołączonych ze sobą obiektów. Prostą realizacją tego pomysłu jest zapisanie w każdym obiekcie jednej wartości i dwóch (lub mniej) łączy do innych obiektów. Jest jeden obiekt główny, w którym zapisana jest najmniejsza wartość dająca dostęp do wszystkich innych obiektów. Łącza zawsze wskazują obiekty zawierające większe wartości, dzięki czemu cała struktura wygląda tak:</p>
+  <img src="tree.png" alt="Kopiec binarny" width="300" height="253">
+  <p>Struktury tego rodzaju nazywa się drzewami ze względu na to, jak się rozgałęziają. Teraz gdy potrzebny jest najmniejszy element, wystarczy pobrać pierwszy element i przeorganizować strukturę tak, aby jeden z potomków tego elementu — o najmniejszej wartości — stał się pierwszy. Wstawiając nowe elementy, „przechodzi się” w dół drzewa, aż znajdzie się element mniejszy od nowego i wstawia się go tam. To wymaga o wiele mniej szukania niż w posortowanej tabeli, ale wadą tego rozwiązania jest utworzenie dużej liczby obiektów, co również ujemnie wpływa na wydajność.</p>
+</div>
+<hr>
+<div class="block">
+  <p>W kopcu binarnym wykorzystuje się posortowaną tablicę, ale jest ona tylko częściowo posortowana, podobnie jak w powyższym drzewie. Zamiast z obiektów, drzewo jest zbudowane z pozycji w tablicy, co usiłowałem pokazać na poniższym rysunku:</p>
+  <img src="heap.png" alt="Rysunek drzewa binarnego" title="Drzewo binarne" width="250" height="210">
+  <p>Element tablicy <code>1</code> jest korzeniem drzewa, elementy <code>2</code> i <code>3</code> są jego dziećmi i ogólnie rzecz biorąc element <code>X</code> ma dzieci <code>X * 2</code> oraz <code>X * 2 + 1</code>. Rozumiesz teraz, dlaczego strukturę tę nazwano kopcem? Zwróć uwagę, że indeksowanie w tej tablicy rozpoczyna się od <code>1</code>, podczas gdy w języku JavaScript indeksy tablicy zaczynają się od <code>0</code>. W kopcu najmniejszy element zawsze znajduje się na pozycji <code>1</code>, a da każdego elementu w tablicy na pozycji <code>X</code>, element na pozycji <code>X / 2</code> (zaokrąglamy w dół) jest mniejszy.</p>
+  <p>Zatem znalezienie najmniejszego elementu wymaga tylko pobrania elementu znajdującego się na pozycji <code>1</code>. Kiedy jednak element ten zostanie pobrany, kopiec musi pozbyć się wszelkich dziur powstałych w tablicy. W tym celu pobiera ostatni element tablicy i przenosi go na początek, a następnie porównuje go z elementami potomnymi na pozycjach <code>2</code> i <code>3</code>. Jest spore prawdopodobieństwo, że będzie większy, a więc zostanie zamieniony miejscami z jednym z nich i proces porównywania z dziećmi jest powtarzany dla nowej pozycji i tak w kółko, aż element trafi na pozycję, na której jego dzieci będą od niego większe lub nie będzie miał dzieci.</p>
+  <pre class="preformatted">[2, 3, 5, 4, 8, 7, 6]
+Zabierz 2, przenieś 6 na początek.
+[6, 3, 5, 4, 8, 7]
+6 jest większe od pierwszego dziecka 3, a więc następuje zamiana.
+[3, 6, 5, 4, 8, 7]
+Teraz 6 ma dzieci 4 i 8 (pozycje 4 i 5). Jest większy od
+4, a więc ponownie następuje zamiana.
+[3, 4, 5, 6, 8, 7]
+6 jest na pozycji 4 i nie ma dzieci. Kopiec jest uporządkowany
+.</pre>
+  <p>Analogicznie, gdy do kopca zostaje dodany nowy element, jest on umieszczany na końcu tablicy i „przepychany” w górę poprzez zamienianie miejscami z rodzicami, aż uda się znaleźć rodzica mniejszego od niego.</p>
+  <pre class="preformatted">[3, 4, 5, 6, 8, 7]
+Element 2 zostaje dodany z powrotem, na końcu.
+[3, 4, 5, 6, 8, 7, 2]
+2 znajduje się na pozycji 7, a jej rodzic znajduje się na pozycji 3 i jest to 5. 5 jest większa
+od 2, a więc następuje zamiana.
+[3, 4, 2, 6, 8, 7, 5]
+Rodzicem pozycji 3 jest pozycja 1. Znowu zamieniamy.
+[2, 4, 3, 6, 8, 7, 5]
+Elementu nie da się przesłać dalej, a więc kończymy.</pre>
+  <p>Zwróć uwagę, że aby dodać element nie trzeba go porównywać z każdym elementem tablicy. W istocie z uwagi na fakt, że skoki między rodzicami i dziećmi są większe im większa jest tablica, zaleta ta jest szczególnie duża, gdy elementów jest dużo<a class="footref" href="#footnote1">1</a>.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Poniżej znajduje się kod implementacji kopca binarnego. Dwie rzeczy na które warto zwrócić uwagę to to, że zamiast bezpośrednio porównywać elementy wstawiane do kopca najpierw wywoływana jest na nich funkcja <code>scoreFunction</code>, co sprawia, że można przechowywać obiekty, których nie można bezpośrednio porównywać.</p>
+  <p>Dodatkowo, jako że w JavaScripcie tablice zaczynają się od <code>0</code>, a w obliczeniach rodzic-dziecko używany jest system zaczynający liczenie od <code>1</code>, w kodzie znajduje się kilka dziwnie wyglądających obliczeń mających na celu zniwelowanie tych różnic.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">BinaryHeap</span>(<span class="variabledef">scoreFunction</span>){
+    <span class="localvariable">this</span>.<span class="property">content</span> = [];
+    <span class="localvariable">this</span>.<span class="property">scoreFunction</span> = <span class="localvariable">scoreFunction</span>;
+}
+
+    <span class="variable">BinaryHeap</span>.<span class="property">prototype</span> = {
+    <span class="property">push</span>: <span class="keyword">function</span>(<span class="variabledef">element</span>) {
+    <span class="comment">// Dodanie nowego elementu na końcu tablicy.</span>
+    <span class="localvariable">this</span>.<span class="property">content</span>.<span class="property">push</span>(<span class="localvariable">element</span>);
+    <span class="comment">// Pozwalamy mu „przechodzić” w górę.</span>
+    <span class="localvariable">this</span>.<span class="property">bubbleUp</span>(<span class="localvariable">this</span>.<span class="property">content</span>.<span class="property">length</span> - <span class="atom">1</span>);
+  },
+
+    <span class="property">pop</span>: <span class="keyword">function</span>() {
+    <span class="comment">// Zapisanie pierwszego elementu, aby móc go potem zwrócić.</span>
+    <span class="keyword">var</span> <span class="variabledef">result</span> = <span class="localvariable">this</span>.<span class="property">content</span>[<span class="atom">0</span>];
+    <span class="comment">// Pobranie elementu z końca tablicy.</span>
+    <span class="keyword">var</span> <span class="variabledef">end</span> = <span class="localvariable">this</span>.<span class="property">content</span>.<span class="property">pop</span>();
+    <span class="comment">// Jeśli pozostały jeszcze jakieś elementy, umieszczamy ostatni element na</span>
+    <span class="comment">// początku i pozwalamy mu „przesiąknąć” w dół.</span>
+    <span class="keyword">if</span> (<span class="localvariable">this</span>.<span class="property">content</span>.<span class="property">length</span> &gt; <span class="atom">0</span>) {
+    <span class="localvariable">this</span>.<span class="property">content</span>[<span class="atom">0</span>] = <span class="localvariable">end</span>;
+    <span class="localvariable">this</span>.<span class="property">sinkDown</span>(<span class="atom">0</span>);
+    }
+    <span class="keyword">return</span> <span class="localvariable">result</span>;
+  },
+
+    <span class="property">remove</span>: <span class="keyword">function</span>(<span class="variabledef">node</span>) {
+    <span class="keyword">var</span> <span class="variabledef">len</span> = <span class="localvariable">this</span>.<span class="property">content</span>.<span class="property">length</span>;
+    <span class="comment">// Aby usunąć wartość, trzeba przeszukać tablicę, aby ją</span>
+    <span class="comment">// znaleźć.</span>
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">i</span> = <span class="atom">0</span>; <span class="localvariable">i</span> &lt; <span class="localvariable">len</span>; <span class="localvariable">i</span>++) {
+    <span class="keyword">if</span> (<span class="localvariable">this</span>.<span class="property">content</span>[<span class="localvariable">i</span>] == <span class="localvariable">node</span>) {
+    <span class="comment">// Gdy wartość zostanie znaleziona, powtarzany jest proces z „pop”, aby</span>
+    <span class="comment">// zapełnić lukę.</span>
+    <span class="keyword">var</span> <span class="variabledef">end</span> = <span class="localvariable">this</span>.<span class="property">content</span>.<span class="property">pop</span>();
+    <span class="keyword">if</span> (<span class="localvariable">i</span> != <span class="localvariable">len</span> - <span class="atom">1</span>) {
+    <span class="localvariable">this</span>.<span class="property">content</span>[<span class="localvariable">i</span>] = <span class="localvariable">end</span>;
+    <span class="keyword">if</span> (<span class="localvariable">this</span>.<span class="property">scoreFunction</span>(<span class="localvariable">end</span>) &lt; <span class="localvariable">this</span>.<span class="property">scoreFunction</span>(<span class="localvariable">node</span>))
+    <span class="localvariable">this</span>.<span class="property">bubbleUp</span>(<span class="localvariable">i</span>);
+    <span class="keyword">else</span>
+    <span class="localvariable">this</span>.<span class="property">sinkDown</span>(<span class="localvariable">i</span>);
+        }
+    <span class="keyword">return</span>;
+      }
+    }
+    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="variable">Error</span>(<span class="string">"Nie znaleziono węzła."</span>);
+  },
+
+    <span class="property">size</span>: <span class="keyword">function</span>() {
+    <span class="keyword">return</span> <span class="localvariable">this</span>.<span class="property">content</span>.<span class="property">length</span>;
+  },
+
+    <span class="property">bubbleUp</span>: <span class="keyword">function</span>(<span class="variabledef">n</span>) {
+    <span class="comment">// Pobranie elementu, który ma zostać przeniesiony.</span>
+    <span class="keyword">var</span> <span class="variabledef">element</span> = <span class="localvariable">this</span>.<span class="property">content</span>[<span class="localvariable">n</span>];
+    <span class="comment">// Jeśli pozycja 0, element nie może „iść” dalej.</span>
+    <span class="keyword">while</span> (<span class="localvariable">n</span> &gt; <span class="atom">0</span>) {
+    <span class="comment">// Obliczenie indeksu elementu nadrzędnego i pobranie go.</span>
+    <span class="keyword">var</span> <span class="variabledef">parentN</span> = <span class="variable">Math</span>.<span class="property">floor</span>((<span class="localvariable">n</span> + <span class="atom">1</span>) / <span class="atom">2</span>) - <span class="atom">1</span>,
+    <span class="variabledef">parent</span> = <span class="localvariable">this</span>.<span class="property">content</span>[<span class="localvariable">parentN</span>];
+    <span class="comment">// Jeśli rodzic jest większy, elementy należy zamienić miejscami.</span>
+    <span class="keyword">if</span> (<span class="localvariable">this</span>.<span class="property">scoreFunction</span>(<span class="localvariable">element</span>) &lt; <span class="localvariable">this</span>.<span class="property">scoreFunction</span>(<span class="localvariable">parent</span>)) {
+    <span class="localvariable">this</span>.<span class="property">content</span>[<span class="localvariable">parentN</span>] = <span class="localvariable">element</span>;
+    <span class="localvariable">this</span>.<span class="property">content</span>[<span class="localvariable">n</span>] = <span class="localvariable">parent</span>;
+    <span class="comment">// Aktualizacja „n„, aby kontynuować od nowej pozycji.</span>
+    <span class="localvariable">n</span> = <span class="localvariable">parentN</span>;
+      }
+    <span class="comment">// Znaleziono rodzica, który jest mniejszy, a więc nie trzeba iść dalej.</span>
+    <span class="keyword">else</span> {
+    <span class="keyword">break</span>;
+      }
+    }
+  },
+
+    <span class="property">sinkDown</span>: <span class="keyword">function</span>(<span class="variabledef">n</span>) {
+    <span class="comment">// Wyszukanie elementu docelowego i jego wartości.</span>
+    <span class="keyword">var</span> <span class="variabledef">length</span> = <span class="localvariable">this</span>.<span class="property">content</span>.<span class="property">length</span>,
+    <span class="variabledef">element</span> = <span class="localvariable">this</span>.<span class="property">content</span>[<span class="localvariable">n</span>],
+    <span class="variabledef">elemScore</span> = <span class="localvariable">this</span>.<span class="property">scoreFunction</span>(<span class="localvariable">element</span>);
+
+    <span class="keyword">while</span>(<span class="atom">true</span>) {
+    <span class="comment">// Obliczenie indeksów elementów potomnych.</span>
+    <span class="keyword">var</span> <span class="variabledef">child2N</span> = (<span class="localvariable">n</span> + <span class="atom">1</span>) * <span class="atom">2</span>, <span class="variabledef">child1N</span> = <span class="localvariable">child2N</span> - <span class="atom">1</span>;
+    <span class="comment">// To służy do zapisania nowej pozycji elementu,</span>
+    <span class="comment">// jeśli taka jest.</span>
+    <span class="keyword">var</span> <span class="variabledef">swap</span> = <span class="atom">null</span>;
+    <span class="comment">// Jeśli pierwsze dziecko istnieje (znajduje się w tablicy)...</span>
+    <span class="keyword">if</span> (<span class="localvariable">child1N</span> &lt; <span class="localvariable">length</span>) {
+    <span class="comment">// Wyszukanie go o obliczenie jego wartości.</span>
+    <span class="keyword">var</span> <span class="variabledef">child1</span> = <span class="localvariable">this</span>.<span class="property">content</span>[<span class="localvariable">child1N</span>],
+    <span class="variabledef">child1Score</span> = <span class="localvariable">this</span>.<span class="property">scoreFunction</span>(<span class="localvariable">child1</span>);
+    <span class="comment">// Jeśli wartość ta jest mniejsza od naszego elementu, musimy dokonać zamiany.</span>
+    <span class="keyword">if</span> (<span class="localvariable">child1Score</span> &lt; <span class="localvariable">elemScore</span>)
+    <span class="localvariable">swap</span> = <span class="localvariable">child1N</span>;
+      }
+    <span class="comment">// Wykonanie tych samych testów dla drugiego dziecka.</span>
+    <span class="keyword">if</span> (<span class="localvariable">child2N</span> &lt; <span class="localvariable">length</span>) {
+    <span class="keyword">var</span> <span class="variabledef">child2</span> = <span class="localvariable">this</span>.<span class="property">content</span>[<span class="localvariable">child2N</span>],
+    <span class="variabledef">child2Score</span> = <span class="localvariable">this</span>.<span class="property">scoreFunction</span>(<span class="localvariable">child2</span>);
+    <span class="keyword">if</span> (<span class="localvariable">child2Score</span> &lt; (<span class="localvariable">swap</span> == <span class="atom">null</span> ? <span class="localvariable">elemScore</span> : <span class="localvariable">child1Score</span>))
+    <span class="localvariable">swap</span> = <span class="localvariable">child2N</span>;
+      }
+
+    <span class="comment">// Jeśli element trzeba przenieść, zamieniamy go i kontynuujemy.</span>
+    <span class="keyword">if</span> (<span class="localvariable">swap</span> != <span class="atom">null</span>) {
+    <span class="localvariable">this</span>.<span class="property">content</span>[<span class="localvariable">n</span>] = <span class="localvariable">this</span>.<span class="property">content</span>[<span class="localvariable">swap</span>];
+    <span class="localvariable">this</span>.<span class="property">content</span>[<span class="localvariable">swap</span>] = <span class="localvariable">element</span>;
+    <span class="localvariable">n</span> = <span class="localvariable">swap</span>;
+      }
+    <span class="comment">// W przeciwnym razie zakończyliśmy pracę.</span>
+    <span class="keyword">else</span> {
+    <span class="keyword">break</span>;
+      }
+    }
+  }
+};</pre>
+  <p>I prosty test…</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">heap</span> = <span class="keyword">new</span> <span class="variable">BinaryHeap</span>(<span class="keyword">function</span>(<span class="variabledef">x</span>){<span class="keyword">return</span> <span class="localvariable">x</span>;});
+    <span class="variable">forEach</span>([<span class="atom">10</span>, <span class="atom">3</span>, <span class="atom">4</span>, <span class="atom">8</span>, <span class="atom">2</span>, <span class="atom">9</span>, <span class="atom">7</span>, <span class="atom">1</span>, <span class="atom">2</span>, <span class="atom">6</span>, <span class="atom">5</span>],
+    <span class="variable">method</span>(<span class="variable">heap</span>, <span class="string">"push"</span>));
+
+    <span class="variable">heap</span>.<span class="property">remove</span>(<span class="atom">2</span>);
+    <span class="keyword">while</span> (<span class="variable">heap</span>.<span class="property">size</span>() &gt; <span class="atom">0</span>)
+    <span class="variable">print</span>(<span class="variable">heap</span>.<span class="property">pop</span>());
+  </pre>
+</div>
+<h3>Przypisy</h3>
+<ol>
+  <li id="footnote1">Liczbę potrzebnych operacji porównywania — w najgorszym przypadku — można wyznaczyć jako logarytm (o podstawie 2) z liczby elementów kopca.</li>
+</ol>

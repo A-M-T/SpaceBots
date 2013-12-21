@@ -1,0 +1,135 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Wprowadzenie do języka JavaScript</title>
+<link rel=stylesheet href=doc.css>
+<link rel=author href=http://marijnhaverbeke.nl/>
+<link rel=license href=http://creativecommons.org/licenses/by/3.0/deed.pl>
+<h1>Wprowadzenie do języka JavaScript</h1>
+
+<div class="block">
+  <p>Większość pierwszych komputerów była wyposażona w jeden język programowania, najczęściej jakąś wersję Basic-a. Współpraca z komputerem wymagała posługiwania się tym językiem, przez co każdy użytkownik komputera, czy tego chciał czy nie, musiał się go nauczyć. Obecnie komputery można spotkać wszędzie, a typowy użytkownik potrafi tylko klikać myszą w odpowiednich miejscach. Większości osób to wystarcza. Jednak dla wielu z nas, osób lubiących poszperać w urządzeniach, usunięcie języka programowania z codziennego użytkowania komputera jest niekorzystne.</p>
+  <p>Na szczęście dzięki postępowi, jaki dokonał się w sieci WWW, każdy komputer ma pewne środowisko programistyczne. Jest to przeglądarka internetowa obsługująca <strong>JavaScript</strong>. Ze względu na aktualnie przyjęte zwyczaje polegające na ukrywaniu przed użytkownikiem kwestii technicznych, środowisko to jest dobrze ukryte, ale można się do niego dostać poprzez okno przeglądarki i wykorzystać do nauki programowania.</p>
+  <p>Taki był też cel napisania tej książki.</p>
+</div>
+<hr>
+<div class="block">
+  <blockquote>Nie oświecę tych, którzy nie chcą się uczyć, ani nie rozbudzę pasji w tych, którzy nie są skłonni samodzielnie szukać rozwiązań. Jeśli podam im jeden róg kwadratu, a oni nie podadzą mi pozostałych trzech, to nie ma sensu powtarzać wszystkiego od nowa <br>
+    <br>
+    ― Konfucjusz</blockquote>
+  <p>Oprócz bycia wprowadzeniem do JavaScriptu, książka ta ma aspiracje służyć jako wstępny kurs zasad programowania w ogóle. Okazuje się, że programowanie jest trudne. Podstawowe zasady programowania są wprawdzie jasne i proste. Ale programy zbudowane wg tych zasad są zazwyczaj na tyle skomplikowane, że rządzą się swoimi prawami. Z tego powodu programowanie rzadko kiedy jest łatwe i przewidywalne. Jak powiedział uznawany za ojca tej dziedziny Donald Knuth, programowanie to <em>sztuka</em>.</p>
+  <p>Aby maksymalnie wykorzystać treść tej książki, nie można poprzestać tylko na jej biernym przeczytaniu. Staraj się być cały czas skoncentrowany, rozwiązuj zadania i do kolejnych partii materiału przechodź wyłącznie wtedy, gdy masz poczucie, że dobrze rozumiesz kwestie omówione do tej pory.</p>
+</div>
+<hr>
+<div class="block">
+  <blockquote>Programista komputerowy tworzy odrębne wszechświaty, za które ponosi wyłączną odpowiedzialność. W postaci programów można tworzyć wszechświaty o praktycznie nieskończonym stopniu złożoności.<br>
+    <br>
+    ― Joseph Weizenbaum, <em>Computer Power and Human Reason</em></blockquote>
+  <p>Program komputerowy jest wieloma rzeczami na raz. Jest to tekst napisany przez programistę, jest to siła sterująca działaniem komputera, jest to porcja danych w pamięci komputera, mimo że steruje działaniami wykonywanymi na tej samej pamięci. Analogie, w których próbuje się porównywać programy do obiektów świata realnego są zazwyczaj nietrafione, ale jedna, porównująca komputer do maszyny, trochę pasuje. Tryby zegarka na rękę są do siebie dopasowane z wielką precyzją i jeśli zegarmistrz dobrze się spisze, taki zegarek będzie dokładnie pokazywał godzinę. Podobnie elementy programu muszą być do siebie precyzyjnie dopasowane i jeśli programista zna się na swojej pracy, to jego program będzie działał bezawaryjnie.</p>
+  <p>Komputer jest maszyną stanowiącą środowisko pracy tych niematerialnych maszyn. Komputery same w sobie potrafią wykonywać tylko absurdalnie proste działania. Jedyny powód, dla którego są przydatne jest taki, że to co robią wykonują nieprawdopodobnie szybko. Jeśli sprytnie wykorzysta się tę zdolność komputerów do wykonywania prostych czynności i odpowiednio się je zmiesza, to można uzyskać bardzo skomplikowane efekty.</p>
+  <p>Dla niektórych pisanie programów komputerowych to niezwykła zabawa. Program to budowla wzniesiona z myśli. Jego utworzenie nic nie kosztuje, nic on nie waży i szybko rośnie pod wprawnymi palcami programisty. Jeśli damy się ponieść, program może nam się rozrosnąć i stać się skomplikowany do tego stopnia, że nawet ten, kto go napisał będzie miał problem ze zrozumieniem jak działa. Jest to jeden z największych problemów dotyczących programowania. Dlatego właśnie tak wiele używanych obecnie programów często ulega awariom.</p>
+  <p>Program gdy działa jest piękny. Sztuka programowania to umiejętność radzenia sobie ze złożonością problemów. Dobry program jest zwięzły i maksymalnie prosty w swojej złożoności.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Wielu programistów uważa obecnie, że z tą złożonością najlepiej jest radzić sobie używając do pisania programu tylko kilku dobrze poznanych technik. Sformułowano ścisłe reguły określające, jak powinny wyglądać programy, a ci którzy ośmielą się je złamać zostaną przez zawistnych okrzyknięci <em>złymi</em> programistami.</p>
+  <p>Co za barbarzyństwo wobec bogactwa technik programistycznych! W imię redukowania go do prostego i przewidywalnego rzemiosła wszystkie dziwne i piękne programy zostały skazane na banicję. Różnorodność technik programistycznych jest oszałamiająca i wciąż wiele pozostaje do odkrycia. Oczywiście trzeba uważać na rozmaite pułapki, przez które niedoświadczony programista może popełnić wiele strasznych błędów, ale to oznacza tylko tyle, że należy postępować ostrożnie i cały czas mieć oczy szeroko otwarte. Podczas nauki ciągle będziesz odkrywać coraz to nowsze obszary do zbadania i kolejne wyzwania, z którymi można się zmierzyć. Programista niechcący się kształcić jest skazany na stagnację, utratę radości z programowania oraz wypalenie zawodowe (i w efekcie zostanie menedżerem).</p>
+  <p>Jeśli o mnie chodzi, najważniejszym kryterium oceny programu jest to, czy jest poprawny. Oczywiście wydajność, przejrzystość i rozmiar również mają znaczenie, ale znalezienie kompromisu między tymi trzema czynnikami jest indywidualną kwestią dla każdego programisty. Podstawowe zasady są przydatne, ale nie należy bać się ich łamać.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Na początku ery komputerów w ogóle nie było języków programowania. Kod programów wyglądał mniej więcej tak:</p>
+  <pre>00110001 00000000 00000000
+00110001 00000001 00000001
+00110011 00000001 00000010
+01010001 00001011 00000010
+00100010 00000010 00001000
+01000011 00000001 00000000
+01000001 00000001 00000001
+00010000 00000010 00000000
+01100010 00000000 00000000</pre>
+  <p>Ten program sumuje liczby od 1 do 10, a następnie drukuje wynik (1 + 2 + … + 10 = 55). Można go uruchomić na bardzo prostym komputerze. Programowanie pierwszych komputerów polegało na przełączaniu wielkich tablic przełączników lub robieniu dziur w kartonie, który następnie wprowadzało się do komputera. Nietrudno sobie wyobrazić, jak żmudna i zagrożona możliwością popełnienia błędu była to praca. Napisanie nawet prostego programu wymagało dużej inteligencji i dyscypliny, a napisanie skomplikowanego programu graniczyło z niemożliwością.</p>
+  <p>Oczywiście programista wprowadzając do komputera te tajemniczo wyglądające wzory bitów (tak nazywają się przedstawione powyżej zera i jedynki) czuł się jak jakiś potężny czarownik. To na pewno dawało ogromne poczucie satysfakcji z wykonywanej pracy.</p>
+  <p>Każdy wiersz programu zawiera jedną instrukcję. Po polsku można by było go napisać tak:</p>
+  <ol>
+    <li>Zapisz liczbę 0 w komórce pamięci o numerze 0</li>
+    <li>Zapisz liczbę 1 w komórce pamięci o numerze 1</li>
+    <li>Zapisz wartość komórki pamięci nr 1 w komórce pamięci nr 2</li>
+    <li>Zmniejsz wartość znajdującą się w komórce pamięci 2 o 11</li>
+    <li>Jeśli wartość znajdująca się w komórce pamięci nr 2 to 0, przejdź do instrukcji 9</li>
+    <li>Zwiększ wartość znajdującą się w komórce pamięci 0 o wartość znajdującą się w komórce pamięci nr 1</li>
+    <li>Zwiększ wartość znajdującą się w komórce pamięci nr 1 o 1</li>
+    <li>Przejdź do instrukcji 3</li>
+    <li>Wyślij na wyjście wartość komórki pamięci nr 0</li>
+  </ol>
+  <p>Podczas gdy ten tekst jest o wiele łatwiejszy do zrozumienia niż gmatwanina bitów, to jednak również niezbyt dobrze się go czyta. Sytuację można trochę poprawić, gdyby zamiast numerów instrukcji i komórek pamięci używać różnych nazw:</p>
+  <pre> Ustaw 'suma' na 0
+ Ustaw 'liczba' na 1
+[pętla]
+ Ustaw 'porównaj' na 'liczba'
+ Odejmij 11 od 'porównaj'
+ Jeśli 'porównaj' wynosi zero, przejdź do [koniec]
+ Dodaj 'liczba' do 'suma'
+ Dodaj 1 do 'liczba'
+ Przejdź do [pętla]
+[koniec]
+ Zwróć 'suma'</pre>
+  <p>Teraz łatwo jest dostrzec, w jaki sposób działa program. Widzisz to? W dwóch pierwszych wierszach zostały przypisane początkowe wartości dwóm komórkom pamięci: <code>suma</code> będzie służyła do akumulowania wyniku programu, a <code>liczba</code> pozwoli nam śledzić, którą liczbą w danym momencie się zajmujemy. Najdziwniejsze pewnie są wiersze zawierające słowo <code>porównaj</code>. Program „chce” sprawdzić czy <code>liczba</code> jest równa 11, aby dowiedzieć się, czy ma już zakończyć działanie. Maszyna jest tak prymitywna, że może tylko sprawdzać, czy dana liczba jest zerem i na podstawie wyniku tego testu może podjąć decyzję (dokonać przeskoku). Dlatego komórka pamięci oznaczona jako <code>porównaj</code> jest używana do wykonania działania <code>liczba - 11</code>, od którego wyniku zależy dalsze działanie programu. Następne dwa wiersze dodają wartość <code>liczba</code> do wyniku i zwiększają <code>liczba</code> o jeden za każdym razem, gdy program obliczy, że nie jest to jeszcze 11.</p>
+  <p>Poniżej znajduje się ten sam program wyrażony w języku JavaScript:</p>
+  
+  <pre class="code not-run"><span class="keyword">var</span> <span class="variable">total</span> = <span class="atom">0</span>, <span class="variable">count</span> = <span class="atom">1</span>;
+<span class="keyword">while</span> (<span class="variable">count</span> &lt;= <span class="atom">10</span>) {
+  <span class="variable">total</span> += <span class="variable">count</span>;
+  <span class="variable">count</span> += <span class="atom">1</span>;
+}
+<span class="variable">print</span>(<span class="variable">total</span>);</pre>
+  
+  <p>W kodzie tym widzimy kilka dalszych ulepszeń. Do najważniejszych można zaliczyć to, że niepotrzebne stały się instrukcje skoku w tę i z powrotem. Dba za nas o to magiczne słowo <code>while</code>. Powoduje ono wykonywanie kodu znajdującego się pod nim tak długo, jak długo spełniony jest jego warunek: <code>count &lt;= 10</code>, który oznacza „<code>count</code> ma wartość mniejszą lub równą <code>10</code>”. Nie trzeba już tworzyć tymczasowej wartości i porównywać jej z zerem. To był mały głupi szczegół, ale właśnie jedną z zalet języków programowania jest to, że przejmują od nas konieczność pamiętania o tych błahostkach.</p>
+  <p>W końcu poniżej możesz zobaczyć, jak ten program mógłby wyglądać, gdyby można było używać wygodnych operatorów <code>range</code> i <code>sum</code>, które odpowiednio tworzyłyby zbiór liczb z określonego przedziału i obliczały sumę liczb w takim zbiorze:</p>
+  <pre class="code not-run"><span class="variable">print</span>(<span class="variable">sum</span>(<span class="variable">range</span>(<span class="atom">1</span>, <span class="atom">10</span>)));</pre>
+  <p>Morał z tej opowieści jest taki, że każdy program można zapisać na wiele sposobów, przy użyciu dużej i małej liczby wierszy kodu jak również czytelnie i nieczytelnie. Pierwsza wersja była kompletnie nieczytelna, natomiast ostatnia wygląda prawie jak zdania po angielsku. <code>print</code> the <code>sum</code> of the <code>range</code> of numbers from <code>1</code> to <code>10</code>. (w dalszych rozdziałach dowiesz się, jak tworzyć konstrukcje podobne do opisywanych tu operatorów <code>sum</code> i <code>range</code>.)</p>
+  <p>Dobry język programowania to taki, który pomaga programiście w pracy, umożliwiając mu wyrażanie myśli w bardziej abstrakcyjny sposób. Ukrywa nieistotne szczegóły, udostępnia wygodne w użyciu składniki (takie, jak konstrukcja <code>while</code>) oraz zwykle umożliwia programiście dodawanie własnych składników (takich, jak np. operacje <code>sum</code> i <code>range</code>).</p>
+</div>
+<hr>
+<div class="block">
+  <p>Aktualnie język JavaScript jest najczęściej używany zarówno w sposób inteligentny jak i straszny do robienia różnych rzeczy ze stronami internetowymi. <a href="http://steve-yegge.blogspot.com/2007/02/next-big-language.html">Niektórzy</a> twierdzą, że kolejna wersja języka JavaScript odegra ważną rolę także w innych dziedzinach. Nie jestem przekonany, czy tak będzie, ale jeśli interesujesz się programowaniem, to JavaScript bez wątpienia jest jednym z języków, które warto znać. Nawet jeśli nie będziesz zbyt często programował stron internetowych, wymagające gimnastyki umysłu przykłady, które pokażę Ci w tej książce zapadną Ci w pamięć, będą Ci się przypominać i wywrą wpływ na Twoje przyszłe programowanie w innych językach.</p>
+  <p>Zapewne spotkasz też ludzi mówiących <em>straszne</em> rzeczy o JavaScripcie. Wiele z tego, co mówią jest prawdą. Gdy po raz pierwszy poproszono mnie o napisanie czegoś w języku JavaScript, szybko znienawidziłem ten język. Prawie wszystko, co napisałem przechodziło bez błędów przez interpreter, ale działało kompletnie inaczej, niż chciałem. To oczywiście miało związek z tym, że nie miałem pojęcia, co robię, ale istnieje też realny problem: JavaScript jest absurdalnie liberalnym językiem. Zamierzeniem twórcy tego języka było sprawienie, aby był on jak najłatwiejszy w użyciu dla początkujących programistów. Jednak w rzeczywistości to tylko utrudnia znajdowanie problemów w programach, ponieważ system ich nie pokazuje.</p>
+  <p>Jednak elastyczność języka jest również jego zaletą. Można w nim korzystać z wielu technik, których nie można by było zastosować w bardziej sztywnych językach. Gdy nauczyłem się zasad JavaScriptu i trochę z nim popracowałem, na powrót go <em>polubiłem</em>.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Mimo swojej nazwy, język JavaScript ma niewiele wspólnego z językiem Java. Zbieżność ta jest wynikiem marketingowych zabiegów i nie powstała w wyniku racjonalnego wyboru. W 1995 r., gdy firma Netscape opublikowała JavaScript, języka Java był intensywnie promowany i zdobywał ogromną popularność. Ktoś widocznie doszedł do wniosku, że może uda się zgarnąć także dla siebie kawałek tego marketingowego tortu. W ten sposób powstała ta nazwa.</p>
+  <p>Krewnym JavaScriptu jest coś, co nazywa się <strong>ECMAScript</strong>. Gdy obsługę JavaScriptu (lub czegoś podobnego) wprowadzono także w innych przeglądarkach niż Netscape, sporządzono dokument zawierający opis, jak dokładnie ten język powinien działać. Język, który w nim opisano został nazwany ECMAScript, po nazwie organizacji standaryzacyjnej, która zajęła się napisaniem tego standardu.</p>
+  <p>Standard ECMAScript opisuje język programowania ogólnego przeznaczenia i nie ma w nim ani słowa o jego integracji z jakąkolwiek przeglądarką internetową. W związku z tym JavaScript to ECMAScript plus dodatkowe narzędzia do manipulowania stronami internetowymi i oknami przeglądarki.</p>
+  <p>Język opisany w dokumencie standaryzacyjnym ECMAScript jest używany także w kilku innych technologiach. Do najważniejszych zalicza się Flash, w którym używany jest język ActionScript oparty na ECMAScript (chociaż nie jest on ściśle zgodny ze standardem). Flash to technologia umożliwiająca wstawianie na strony internetowe komponentów, które dużo się ruszają i robią mnóstwo hałasu. Zatem znajomość JavaScriptu nie zaszkodzi, jeśli kiedyś zechcesz utworzyć animację Flash.</p>
+  <p>JavaScript wciąż ewoluuje. Od czasu napisania tej książki ukazał się ECMAScript 5, który jest zgodny z wersją opisywaną w tej publikacji, ale zawiera już część funkcji, które my będziemy pisać samodzielnie. W najnowszych przeglądarkach obsługiwana jest ta najnowsza wersja JavaScriptu. W 2011 r. rozpoczęto prace nad standaryzowaniem „ECMAScript harmony”, bardziej radykalnego rozszerzenia języka. Nie obawiaj się, że któraś z tych nowych wersji sprawi, że informacje zawarte w tej książce staną się przestarzałe. Będą to rozszerzenia istniejącego języka, a więc prawie wszystko, co jest tu napisane będzie nadal aktualne.</p>
+</div>
+<hr>
+<div class="block">
+  <p>W większości rozdziałów w tej książce znajduje się dużo kodu źródłowego<a class="footref" href="#footnote1">1</a>. Z doświadczenia wiem, że pisanie kodu w trakcie czytania jest bardzo ważnym czynnikiem pomagającym w nauce. Postaraj się nie tylko przejrzeć wszystkie przykłady, ale dokładnie je przestudiować i zrozumieć. Początkowo mogą wydawać Ci się trudne i niejasne, ale szybko zaczniesz wszystko rozumieć. To samo dotyczy ćwiczeń. Nie zakładaj, że je rozumiesz dopóki nie napiszesz rozwiązania, które będzie działać.</p>
+  <p>Dzięki temu, że kod źródłowy każdej strony internetowej można bez problemu podejrzeć, zawsze możesz zobaczyć, jak wyglądają programy JavaScript napisane przez innych. W ten sposób można sporo się nauczyć. Ponieważ większość programistów stron internetowych nie jest „profesjonalnymi programistami” albo uważa programowanie w języku JavaScript za mało interesujące zajęcie, mało który z nich solidnie nauczył się posługiwać tym językiem, przez co można znaleźć mnóstwo <em>bardzo</em> niskiej jakości kodu. Jeśli będziesz zgłębiać tajniki programowania korzystając z brzydkich i niepoprawnych przykładów kodu, sam zaczniesz pisać taki sam kod. Dlatego uważaj, od kogo uczysz się programować.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Aby ułatwić Ci wypróbowanie programów, została dodana specjalna konsola, w której możesz przetestować zarówno przykładowe jak i własne programy. Jeśli używasz nowoczesnej przeglądarki (Internet Explorer od wersji 6, Firefox od wersji 1.5, Opera od wersji 9, Safari od wersji 3 lub Chrome), to na dole okna na każdej ze stron znajdziesz zielonkawy pasek. Aby otworzyć konsolę, należy kliknąć strzałkę znajdującą się po prawej stronie tego paska. (Podkreślam, że nie jest tu mowa o wbudowanej konsoli przeglądarki.)</p>
+  <p>Konsola ta zawiera trzy ważne elementy. Pierwszym z nich jest okno wyjściowe, w którym przedstawiane są wyniki działania programów i ewentualnie powiadomienia o błędach. Pod nim znajduje się pole tekstowe, w którym można wpisać kod JavaScript. Wpisz tam jakąś liczbę i naciśnij klawisz Enter, aby wykonać ten program. Jeśli kod wprowadzony w tym polu spowoduje wytworzenie jakiegoś sensownego wyniku, zostanie on wyświetlony w oknie wyjściowym. Teraz wpisz słowo <code>Źle!</code> i znowu naciśnij klawisz Enter. W oknie wyjściowym zostanie wyświetlone powiadomienie o błędzie. Za pomocą strzałek do góry i w dół można przechodzić do poprzednich i następnych poleceń.</p>
+  <p>Jeśli masz dłuższy fragment kodu, który zajmuje kilka wierszy i który chciałbyś przechować przez jakiś czas, to możesz użyć pola znajdującego się po prawej stronie. Do uruchamiania programów wpisanych w tym polu służy przycisk Wykonaj. Jednocześnie może być otwartych kilka programów. Aby otworzyć nowy pusty bufor, kliknij przycisk Nowy. Gdy otwartych jest kilka buforów, można je wybierać z menu rozwijanego znajdującego się obok przycisku Wykonaj. Przycisk Zamknij, jak się zapewne spodziewasz zamyka bufor.</p>
+  <p>W prawym górnym rogu każdego przykładowego programu znajduje się niewielki przycisk ze strzałką, który służy do uruchomienia tego programu. Przedstawiony wcześniej przykład wyglądał tak:</p>
+  <pre class="code not-run"><span class="keyword">var</span> <span class="variable">total</span> = <span class="atom">0</span>, <span class="variable">count</span> = <span class="atom">1</span>;
+<span class="keyword">while</span> (<span class="variable">count</span> &lt;= <span class="atom">10</span>) {
+  <span class="variable">total</span> += <span class="variable">count</span>;
+  <span class="variable">count</span> += <span class="atom">1</span>;
+}
+<span class="variable">print</span>(<span class="variable">total</span>);</pre>
+  <p>Aby go wykonać, kliknij strzałkę. Przed strzałką znajduje się jeszcze inny przycisk, który służy do ładowania programu do konsoli. Po załadowaniu programu możesz go do woli modyfikować, aby zobaczyć, co się stanie. W najgorszym przypadku utworzysz nieskończoną pętlę. Nieskończona pętla to taka konstrukcja, w której warunek instrukcji <code>while</code> nigdy nie zostaje spełniony. Pętla taka powstałaby na przykład, gdyby do zmiennej count zamiast <code>1</code> dodano <code>0</code>. Jeśli to zrobisz, program będzie działać w nieskończoność.</p>
+  <p>Na szczęście przeglądarki interesują się tym, co robią działające w nich programy. Gdy któryś z nich działa podejrzanie długo, pytają czy użytkownik chce to zakończyć.</p>
+</div>
+<hr>
+<div class="block">
+  <p>W dalszych rozdziałach będziemy budować programy składające się z wielu bloków kodu. Aby program działał, często będzie trzeba uruchomić je wszystkie. Zapewne zauważyłeś, że gdy blok kodu jest uruchomiony, strzałka służąca do jego uruchomienia zmienia kolor na fioletowy. Czytając tekst wypróbowuj wszystkie bloki kodu, jakie napotkasz, a szczególną uwagę zwróć na te, w których definiowane jest coś nowego (w następnym rozdziale dowiesz się, o co dokładnie z tym definiowaniem chodzi).</p>
+  <p>Oczywiście nie zawsze można przeczytać cały rozdział od deski do deski za jednym podejściem. Gdy wrócisz do rozpoczętego rozdziału, będziesz chciał zacząć studiowanie od środka, ale jeżeli nie wykonasz wszystkich fragmentów kodu od samego początku rozdziału, niektóre rzeczy mogą nie zadziałać. Jeśli klikając strzałkę uruchamiającą program przytrzymasz wciśnięty klawisz Shift, spowodujesz wykonanie najpierw wszystkich bloków kodu znajdujących się przed tym blokiem w rozdziale. Jeśli zatem będziesz zaczynać czytanie rozdziału od środka, podczas uruchamiania pierwszego napotkanego fragmentu kodu wciśnij i przytrzymaj klawisz Shift, aby wszystko zadziałało zgodnie z oczekiwaniami.</p>
+</div>
+<hr>
+
+<ol>
+  <li id="footnote1"><small>Kod jest esencją każdego programu. Każdy fragment aplikacji, niezależnie jak długi, można nazwać używając tego słowa.</small></li>
+</ol>

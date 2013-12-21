@@ -1,0 +1,288 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Model DOM</title>
+<link rel=stylesheet href=doc.css>
+<link rel=author href=http://marijnhaverbeke.nl/>
+<link rel=license href=http://creativecommons.org/licenses/by/3.0/deed.pl>
+<h1>Model DOM</h1>
+
+<div class="block">
+  <p>W <a href="/kursy/javascript/wszystko-jasne/r11-programowanie-sieciowe/">rozdziale 11</a> używaliśmy obiektów JavaScript odnoszących się do elementów <code>form</code> i <code>input</code> dokumentu HTML. Obiekty te należą do struktury o nazwie <strong>DOM</strong> (ang. <span lang="en">Document-Object Model</span> — obiektowy model dokumentu). W modelu tym reprezentację ma każdy element znajdujący się w dokumencie. Można go tam znaleźć i coś z nim zrobić.</p>
+  <p>Dokumenty HTML mają strukturę hierarchiczną. Każdy element (lub znacznik) z wyjątkiem głównego elementu <code>&lt;html&gt;</code> znajduje się w innym elemencie, który jest jego rodzicem. Element mający rodzica również może zawierać elementy potomne. Można to sobie wyobrazić, jako drzewo rodzinne.</p>
+  <img src="html.png" alt="Drzewo dokumentu HTML" width="550" height="236">
+  <p>Obiektowy model dokumentu opiera się właśnie na takiej reprezentacji dokumentu. Zwróć uwagę, że przedstawione drzewo zawiera dwa rodzaje elementów: węzły reprezentowane przez niebieskie pola i fragmenty zwykłego tekstu. Wkrótce się dowiesz, że urywki tekstu zachowują się trochę inaczej niż inne elementy. Na przykład nie mogą mieć dzieci.</p>
+  <p>Otwórz plik <code>example_alchemy.html</code> zawierający dokument przedstawiony na  rysunku i powiąż go z konsolą.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">attach</span>(<span class="variable">window</span>.<span class="property">open</span>(<span class="string">"/wp-content/ejs/example_alchemy.html"</span>));</pre>
+  <p>Dostęp do obiektu stanowiącego korzeń drzewa dokumentu, węzła <code>html</code>, można uzyskać poprzez własność <code>documentElement</code> obiektu <code>document</code>. Najczęściej jednak potrzebny jest dostęp do części <code>body</code> dokumentu dostępnej jako <code>document.body</code>.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Łącza między tymi węzłami są dostępne jako własności obiektów węzłów. Każdy obiekt DOM ma własność <code>parentNode</code>, która odnosi się do obiektu, w którym ten obiekt się znajduje (jeżeli w ogóle ma rodzica). Ci rodzice również mają łącza wskazujące na ich dzieci, ale ponieważ dzieci może być wiele, są one przechowywane w pseudotablicy o nazwie <code>childNodes</code>.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="variable">document</span>.<span class="property">body</span>);
+<span class="variable">show</span>(<span class="variable">document</span>.<span class="property">body</span>.<span class="property">parentNode</span>);
+<span class="variable">show</span>(<span class="variable">document</span>.<span class="property">body</span>.<span class="property">childNodes</span>.<span class="property">length</span>);</pre>
+  <p>Dla wygody dostępne są też łącza o nazwach <code>firstChild</code> i <code>lastChild</code> wskazujące pierwszy i ostatni element dziecko w węźle lub <code>null</code> jeśli element nie zawiera żadnego elementu.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="variable">document</span>.<span class="property">documentElement</span>.<span class="property">firstChild</span>);
+<span class="variable">show</span>(<span class="variable">document</span>.<span class="property">documentElement</span>.<span class="property">lastChild</span>);</pre>
+  <p>Ostatnie dwie własności to <code>nextSibling</code> i <code>previousSibling</code> wskazujące węzły znajdujące się „obok” określonego węzła ― są to węzły mające tego samego rodzica i znajdujące się przed lub za określonym elementem. Jeśli nie ma takiego elementu, własności zawierają wartość <code>null</code>.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="variable">document</span>.<span class="property">body</span>.<span class="property">previousSibling</span>);
+<span class="variable">show</span>(<span class="variable">document</span>.<span class="property">body</span>.<span class="property">nextSibling</span>);</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Aby dowiedzieć się, czy wybrany węzeł reprezentuje tylko tekst czy węzeł HTML, można sprawdzić jego własność <code>nodeType</code>. Wartość <code>1</code> oznacza zwykły węzeł, a <code>3</code> węzeł tekstowy. Istnieją też inne rodzaje obiektów mające własność <code>nodeType</code>, np. obiekt <code>document</code>, którego wartość to <code>9</code>, ale najczęściej używa się jej do odróżniania węzłów tekstowych od innych.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">isTextNode</span>(<span class="variabledef">node</span>) {
+  <span class="keyword">return</span> <span class="localvariable">node</span>.<span class="property">nodeType</span> == <span class="atom">3</span>;
+}
+
+<span class="variable">show</span>(<span class="variable">isTextNode</span>(<span class="variable">document</span>.<span class="property">body</span>));
+<span class="variable">show</span>(<span class="variable">isTextNode</span>(<span class="variable">document</span>.<span class="property">body</span>.<span class="property">firstChild</span>.<span class="property">firstChild</span>));</pre>
+  <p>Zwykłe węzły mają własność o nazwie <code>nodeName</code> określającą typ reprezentowanego przez nie elementu HTML. Natomiast węzły tekstowe mają własność <code>nodeValue</code> zawierającą ich treść.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="variable">document</span>.<span class="property">body</span>.<span class="property">firstChild</span>.<span class="property">nodeName</span>);
+<span class="variable">show</span>(<span class="variable">document</span>.<span class="property">body</span>.<span class="property">firstChild</span>.<span class="property">firstChild</span>.<span class="property">nodeValue</span>);</pre>
+  <p>Nazwy węzłów są zawsze pisane wielkimi literami i trzeba to brać pod uwagę w wyrażeniach porównawczych.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">isImage</span>(<span class="variabledef">node</span>) {
+  <span class="keyword">return</span> !<span class="variable">isTextNode</span>(<span class="localvariable">node</span>) &amp;&amp; <span class="localvariable">node</span>.<span class="property">nodeName</span> == <span class="string">"IMG"</span>;
+}
+
+<span class="variable">show</span>(<span class="variable">isImage</span>(<span class="variable">document</span>.<span class="property">body</span>.<span class="property">lastChild</span>));</pre>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 12.1</div>
+  <div class="exercise">
+    <p>Napisz funkcję o nazwie <code>asHTML</code> pobierającą węzeł DOM i zwracającą łańcuch reprezentujący tekst HTML tego węzła i jego dzieci. Możesz zignorować atrybuty, tzn. wystarczy wyświetlić węzły w formie <code>&lt;nazwawezla&gt;</code>. Możesz używać funkcji <code>escapeHTML</code> z <a href="/kursy/javascript/wszystko-jasne/r10-wyrazenia-regularne/">rozdziału 10</a>, aby odpowiednio dostosować treść węzłów tekstowych.</p>
+    <p>Podpowiedź: Rekurencja!</p>
+  </div>
+  <div class="toggle">[pokaż rozwiązanie]</div><div class="solution" style="display: none;"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">asHTML</span>(<span class="variabledef">node</span>) {
+  <span class="keyword">if</span> (<span class="variable">isTextNode</span>(<span class="localvariable">node</span>))
+    <span class="keyword">return</span> <span class="variable">escapeHTML</span>(<span class="localvariable">node</span>.<span class="property">nodeValue</span>);
+  <span class="keyword">else</span> <span class="keyword">if</span> (<span class="localvariable">node</span>.<span class="property">childNodes</span>.<span class="property">length</span> == <span class="atom">0</span>)
+    <span class="keyword">return</span> <span class="string">"&lt;"</span> + <span class="localvariable">node</span>.<span class="property">nodeName</span> + <span class="string">"/&gt;"</span>;
+  <span class="keyword">else</span>
+    <span class="keyword">return</span> <span class="string">"&lt;"</span> + <span class="localvariable">node</span>.<span class="property">nodeName</span> + <span class="string">"&gt;"</span> +
+           <span class="variable">map</span>(<span class="variable">asHTML</span>, <span class="localvariable">node</span>.<span class="property">childNodes</span>).<span class="property">join</span>(<span class="string">""</span>) +
+           <span class="string">"&lt;/"</span> + <span class="localvariable">node</span>.<span class="property">nodeName</span> + <span class="string">"&gt;"</span>;
+}
+
+<span class="variable">print</span>(<span class="variable">asHTML</span>(<span class="variable">document</span>.<span class="property">body</span>));</pre>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>W istocie węzły mają coś podobnego do funkcji <code>asHTML</code>. Przy użyciu własności <code>innerHTML</code> można pobierać tekst HTML <em>z wnętrza</em> węzła, bez znaczników samego węzła. Dodatkowo niektóre przeglądarki udostępniają też własność <code>outerHTML</code>, która zawiera również sam węzeł.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">print</span>(<span class="variable">document</span>.<span class="property">body</span>.<span class="property">innerHTML</span>);</pre>
+  <p>Niektóre z tych własności można też modyfikować. Zmiana własności <code>innerHTML</code> zwykłego węzła albo <code>nodeValue</code> węzła tekstowego spowoduje zmianę ich treści. Należy podkreślić, że w pierwszym przypadku podany łańcuch jest interpretowany jako HTML, podczas gdy w drugim — jako zwykły tekst.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">document</span>.<span class="property">body</span>.<span class="property">firstChild</span>.<span class="property">firstChild</span>.<span class="property">nodeValue</span> =
+  <span class="string">"Rozdział 1: Głęboka prawda ukryta w butelce"</span>;</pre>
+  <p>Albo…</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">document</span>.<span class="property">body</span>.<span class="property">firstChild</span>.<span class="property">innerHTML</span> =
+  <span class="string">"Znasz już element blink? &lt;blink&gt;Cudowny!&lt;/blink&gt;"</span>;</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Do tej pory dostęp do węzłów uzyskiwaliśmy przemierzając szeregi własności <code>firstChild</code> i <code>lastChild</code>. Tak też można, ale wymaga to dużo pisania i łatwo spowodować błąd. Jeśli na początku dokumentu wprowadzimy nowy węzeł, to <code>document.body.firstChild</code> nie będzie już odwoływać się do elementu <code>h1</code> i kod, w którym przyjęto takie założenie przestanie poprawnie działać. Co więcej, niektóre przeglądarki dodają węzły tekstowe dla spacji i znaków nowego wiersza znajdujących się między elementami, a inne tego nie robią. Przez to <strong>drzewo DOM</strong> w każdej przeglądarce może być trochę inne.</p>
+  <p>Alternatywnym rozwiązaniem jest przypisanie każdemu elementowi, do którego chce się uzyskać dostęp atrybutu <code>id</code>. Na przykładowej stronie obraz ma identyfikator <code>picture</code>, przy użyciu którego możemy znaleźć ten element.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">picture</span> = <span class="variable">document</span>.<span class="property">getElementById</span>(<span class="string">"picture"</span>);
+<span class="variable">show</span>(<span class="variable">picture</span>.<span class="property">src</span>);
+<span class="variable">picture</span>.<span class="property">src</span> = <span class="string">"/wp-content/uploads/ostrich.png"</span>;</pre>
+  <p>Wpisując nazwę <code>getElementById</code> nie wpisz przez pomyłkę na końcu wielkiej litery. Ponadto, jeśli musisz ją często wpisywać, grozi Ci zespół cieśni kanału nadgarstka. Ponieważ nazwa <code>document.getElementById</code> jest o wiele za długa, jak na bardzo często używaną operację, programiści JavaScript maksymalnie ją skrócili do postaci <code>$</code>. Jak wiadomo znak <code>$</code> jest w języku JavaScript literą, a więc może być używany jako nazwa zmiennej.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">$</span>(<span class="variabledef">id</span>) {
+  <span class="keyword">return</span> <span class="variable">document</span>.<span class="property">getElementById</span>(<span class="localvariable">id</span>);
+}
+<span class="variable">show</span>(<span class="variable">$</span>(<span class="string">"picture"</span>));</pre>
+  <p>Węzły DOM mają też metodę <code>getElementsByTagName</code> (kolejna fajna, krótka nazwa), która pobiera nazwę elementu i zwraca wszystkie węzły tego typu, jakie znajdują się w węźle, na rzecz którego została wywołana.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="variable">document</span>.<span class="property">body</span>.<span class="property">getElementsByTagName</span>(<span class="string">"BLINK"</span>)[<span class="atom">0</span>]);</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Kolejną czynnością, jaką można wykonywać na drzewie DOM jest tworzenie nowych węzłów. Dzięki temu można w dowolnym momencie dodawać elementy do dokumentu, co pozwala uzyskać różne ciekawe efekty. Niestety interfejs jest niesamowicie niezgrabny. Można go jednak trochę poprawić używając paru funkcji pomocniczych.</p>
+  <p>Obiekt <code>document</code> ma metody <code>createElement</code> i <code>createTextNode</code>. Pierwsza służy do tworzenia zwykłych węzłów, a druga zgodnie z nazwą do tworzenia węzłów tekstowych.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">secondHeader</span> = <span class="variable">document</span>.<span class="property">createElement</span>(<span class="string">"H1"</span>);
+<span class="keyword">var</span> <span class="variable">secondTitle</span> = <span class="variable">document</span>.<span class="property">createTextNode</span>(<span class="string">"Rozdział 2: Poważna magia"</span>);</pre>
+  <p>Następnie wstawimy tytuł do elementu <code>h1</code> i dodamy element do dokumentu. Najprostszym sposobem na zrobienie tego jest użycie metody <code>appendChild</code>, którą można wywołać na każdym nietekstowym węźle.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">secondHeader</span>.<span class="property">appendChild</span>(<span class="variable">secondTitle</span>);
+<span class="variable">document</span>.<span class="property">body</span>.<span class="property">appendChild</span>(<span class="variable">secondHeader</span>);</pre>
+  <p>Nowym węzłom często przypisuje się jakieś atrybuty. Na przykład element <code>img</code> (obraz) jest bezużyteczny, jeśli nie ma atrybutu <code>src</code> wskazującego grafikę, która ma zostać wyświetlona. Większość atrybutów można traktować jako własności węzłów DOM, ale istnieją też metody <code>setAttribute</code> i <code>getAttribute</code>, które umożliwiają dostęp do atrybutów w bardziej ogólny sposób:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">newImage</span> = <span class="variable">document</span>.<span class="property">createElement</span>(<span class="string">"IMG"</span>);
+<span class="variable">newImage</span>.<span class="property">setAttribute</span>(<span class="string">"src"</span>, <span class="string">"/wp-content/uploads/Hiva-Oa.png"</span>);
+<span class="variable">document</span>.<span class="property">body</span>.<span class="property">appendChild</span>(<span class="variable">newImage</span>);
+<span class="variable">show</span>(<span class="variable">newImage</span>.<span class="property">getAttribute</span>(<span class="string">"src"</span>));</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Jednak gdy trzeba utworzyć większą liczbę węzłów, wielokrotne wywoływanie metody <code>document.createElement</code> lub <code>document.createTextNode</code>, a następnie dodawanie atrybutów i węzłów potomnych po jednym na raz jest bardzo żmudne. Na szczęście napisanie funkcji, która wszystko za nas zrobi nie jest trudne. Zanim to zrobimy, musimy zająć się jeszcze jednym drobiazgiem ― metoda <code>setAttribute</code> poprawnie działa w większości przeglądarek internetowych, ale w Internet Explorerze może sprawiać problemy. Nazwy niektórych atrybutów HTML mają w języku JavaScript specjalne znaczenie, przez co odpowiadające im nazwy własności obiektów są nieco zmodyfikowane. Atrybut <code>class</code> ma nazwę <code>className</code>, <code>for</code> — <code>htmlFor</code>, a <code>checked</code> — <code>defaultChecked</code>. W Internet Explorerze metody <code>setAttribute</code> i <code>getAttribute</code> również działają z tymi zmienionymi nazwami, zamiast używać oryginalnych nazw z HTML-a, co może być mylące. Ponadto w przeglądarce tej atrybutu <code>style</code>, który razem z atrybutem <code>class</code> zostanie opisany w dalszej części tego rozdziału, nie można ustawiać przy użyciu metody <code>setAttribute</code>.</p>
+  <p>Obejście tego może wyglądać tak:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">setNodeAttribute</span>(<span class="variabledef">node</span>, <span class="variabledef">attribute</span>, <span class="variabledef">value</span>) {
+  <span class="keyword">if</span> (<span class="localvariable">attribute</span> == <span class="string">"class"</span>)
+    <span class="localvariable">node</span>.<span class="property">className</span> = <span class="localvariable">value</span>;
+  <span class="keyword">else</span> <span class="keyword">if</span> (<span class="localvariable">attribute</span> == <span class="string">"checked"</span>)
+    <span class="localvariable">node</span>.<span class="property">defaultChecked</span> = <span class="localvariable">value</span>;
+  <span class="keyword">else</span> <span class="keyword">if</span> (<span class="localvariable">attribute</span> == <span class="string">"for"</span>)
+    <span class="localvariable">node</span>.<span class="property">htmlFor</span> = <span class="localvariable">value</span>;
+  <span class="keyword">else</span> <span class="keyword">if</span> (<span class="localvariable">attribute</span> == <span class="string">"style"</span>)
+    <span class="localvariable">node</span>.<span class="property">style</span>.<span class="property">cssText</span> = <span class="localvariable">value</span>;
+  <span class="keyword">else</span>
+    <span class="localvariable">node</span>.<span class="property">setAttribute</span>(<span class="localvariable">attribute</span>, <span class="localvariable">value</span>);
+}</pre>
+  <p>W każdym przypadku, w którym Internet Explorer odbiega od reszty przeglądarek robimy coś, co działa we wszystkich przypadkach. Nie przejmuj się szczegółami — jest to brzydka sztuczka, której wolelibyśmy nie stosować, ale zmuszają nas do tego niepokorne przeglądarki. Teraz możemy napisać prostą funkcję do tworzenia elementów DOM.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">dom</span>(<span class="variabledef">name</span>, <span class="variabledef">attributes</span>) {
+  <span class="keyword">var</span> <span class="variabledef">node</span> = <span class="variable">document</span>.<span class="property">createElement</span>(<span class="localvariable">name</span>);
+  <span class="keyword">if</span> (<span class="localvariable">attributes</span>) {
+    <span class="variable">forEachIn</span>(<span class="localvariable">attributes</span>, <span class="keyword">function</span>(<span class="variabledef">name</span>, <span class="variabledef">value</span>) {
+
+      <span class="variable">setNodeAttribute</span>(<span class="localvariable">node</span>, <span class="localvariable">name</span>, <span class="localvariable">value</span>);
+    });
+  }
+  <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">i</span> = <span class="atom">2</span>; <span class="localvariable">i</span> &lt; <span class="localvariable">arguments</span>.<span class="property">length</span>; <span class="localvariable">i</span>++) {
+    <span class="keyword">var</span> <span class="variabledef">child</span> = <span class="localvariable">arguments</span>[<span class="localvariable">i</span>];
+    <span class="keyword">if</span> (typeof <span class="localvariable">child</span> == <span class="string">"string"</span>)
+      <span class="localvariable">child</span> = <span class="variable">document</span>.<span class="property">createTextNode</span>(<span class="localvariable">child</span>);
+    <span class="localvariable">node</span>.<span class="property">appendChild</span>(<span class="localvariable">child</span>);
+  }
+  <span class="keyword">return</span> <span class="localvariable">node</span>;
+}
+
+<span class="keyword">var</span> <span class="variable">newParagraph</span> = 
+  <span class="variable">dom</span>(<span class="string">"P"</span>, <span class="atom">null</span>, <span class="string">"Akapit zawierający "</span>,
+      <span class="variable">dom</span>(<span class="string">"A"</span>, {<span class="property">href</span>: <span class="string">"http://en.wikipedia.org/wiki/Alchemy"</span>},
+          <span class="string">"łącze"</span>),
+      <span class="string">" wewnątrz."</span>);
+<span class="variable">document</span>.<span class="property">body</span>.<span class="property">appendChild</span>(<span class="variable">newParagraph</span>);</pre>
+  <p>Funkcja <code>dom</code> tworzy węzeł DOM. Jej pierwszy argument określa nazwę elementu reprezentowanego przez tworzony węzeł, a drugi argument jest obiektem zawierającym atrybuty tego węzła lub wartość <code>null</code>, jeśli nie ma atrybutów. Dalej może znajdować się dowolna liczba argumentów, które zostaną dodane do węzła jako dzieci. Jeśli wśród nich znajdą się łańcuchy, to zostaną najpierw umieszczone w węźle tekstowym.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Metoda <code>appendChild</code> nie jest jedynym sposobem na wstawianie węzłów do innych węzłów. Jeśli nowy węzeł nie może znajdować się na końcu swojego rodzica, można użyć metody <code>insertBefore</code>, aby dodać węzeł przed innym węzłem dzieckiem. Nowy węzeł podaje się jako pierwszy argument, a istniejący — jako drugi.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">link</span> = <span class="variable">newParagraph</span>.<span class="property">childNodes</span>[<span class="atom">1</span>];
+<span class="variable">newParagraph</span>.<span class="property">insertBefore</span>(<span class="variable">dom</span>(<span class="string">"STRONG"</span>, <span class="atom">null</span>, <span class="string">"great "</span>), <span class="variable">link</span>);</pre>
+  <p>Jeśli wstawi się gdzieś węzeł mający już rodzica (<code>parentNode</code>), węzeł ten automatycznie zostanie usunięty z dotychczasowego miejsca ― żaden węzeł nie może występować w drzewie dokumentu więcej niż raz.</p>
+  <p>Gdy trzeba zastąpić węzeł innym, należy użyć metody <code>replaceChild</code>, która jako pierwszy argument przyjmuje nowy węzeł, a jako drugi — stary.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">newParagraph</span>.<span class="property">replaceChild</span>(<span class="variable">document</span>.<span class="property">createTextNode</span>(<span class="string">"luźne "</span>),
+                          <span class="variable">newParagraph</span>.<span class="property">childNodes</span>[<span class="atom">1</span>]);</pre>
+  <p>W końcu za pomocą metody <code>removeChild</code> usuwa się węzły potomne. Zwróć uwagę, że wywołuje się ją na <em>rodzicu</em> węzła, który ma zostać usunięty i przekazuje się jej element potomny jako argument.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">newParagraph</span>.<span class="property">removeChild</span>(<span class="variable">newParagraph</span>.<span class="property">childNodes</span>[<span class="atom">1</span>]);</pre>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 12.2</div>
+  <div class="exercise">
+    <p>Napisz wygodną funkcję <code>removeElement</code> usuwającą przekazany jej w argumencie węzeł DOM z węzła nadrzędnego.</p>
+  </div>
+  <div class="toggle">[pokaż rozwiązanie]</div><div class="solution" style="display: none;"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">removeElement</span>(<span class="variabledef">node</span>) {
+  <span class="keyword">if</span> (<span class="localvariable">node</span>.<span class="property">parentNode</span>)
+    <span class="localvariable">node</span>.<span class="property">parentNode</span>.<span class="property">removeChild</span>(<span class="localvariable">node</span>);
+}
+
+<span class="variable">removeElement</span>(<span class="variable">newParagraph</span>);</pre>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Podczas tworzenia nowych węzłów i przenoszenia istniejących należy pamiętać o następującej zasadzie: węzłów nie można wstawiać do dokumentu innego niż ten, w którym zostały utworzone. Oznacza to, że jeśli są dodatkowe ramki lub otwarte okna, nie można pobrać części dokumentu z jednego z tych obiektów i przenieść go do innego oraz węzły utworzone przy użyciu metod jednego obiektu <code>document</code> muszą pozostać w tym dokumencie. Niektóre przeglądarki, a konkretnie Firefox, nie przestrzegają tej zasady, przez co kod ją łamiący w Firefoksie zadziała.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Przykładem użycia funkcji <code>dom</code> w jakimś pożytecznym celu jest program pobierający obiekty JavaScript i tworzący z nich tabelę. W języku HTML tabele tworzy się przy użyciu elementów, których nazwy zaczynają się od litery „t”, np.:</p>
+  <pre class="preformatted">&lt;table&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt; &lt;th&gt;Drzewo &lt;/th&gt; &lt;th&gt;Kwiaty&lt;/th&gt; &lt;/tr&gt;
+    &lt;tr&gt; &lt;td&gt;Jabłoń&lt;/td&gt; &lt;td&gt;Białe  &lt;/td&gt; &lt;/tr&gt;
+    &lt;tr&gt; &lt;td&gt;Koral&lt;/td&gt; &lt;td&gt;Czerwone    &lt;/td&gt; &lt;/tr&gt;
+    &lt;tr&gt; &lt;td&gt;Sosna &lt;/td&gt; &lt;td&gt;Brak   &lt;/td&gt; &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;</pre>
+  <p>Elementy <code>tr</code> reprezentują wiersze tabeli. Elementy <code>th</code> i <code>td</code> to komórki, przy czym <code>td</code> to zwykłe komórki, a <code>th</code> to komórki nagłówka, których zawartość lekko się wyróżnia. Element <code>tbody</code> (ang. table body — treść tabeli) nie jest wymagany w samym języku HTML, ale musi być użyty, gdy tabelę tworzy się z węzłów DOM, ponieważ Internet Explorer nie wyświetla tabel utworzonych bez tego elementu.</p>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 12.3</div>
+  <div class="exercise">
+    <p>Funkcja <code>makeTable</code> przyjmuje jako argumenty dwie tablice. Pierwsza zawiera obiekty JavaScript, które mają być wstawione do tabeli, a druga — łańcuchy określające nazwy kolumn tej tabeli i własności obiektów, które mają zostać pokazane w tych kolumnach. Na przykład poniższe wywołanie tworzy wcześniej pokazaną tabelę:</p>
+    <pre class="code invalid not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">makeTable</span>([{<span class="property">Drzewo</span>: <span class="string">"Jabłoń"</span>, <span class="property">Kwiaty</span>: <span class="string">"Białe"</span>},
+           {<span class="property">Drzewo</span>: <span class="string">"Koral"</span>, <span class="property">Kwiaty</span>: <span class="string">"Czerwone"</span>},
+           {<span class="property">Drzewo</span>: <span class="string">"Sosna"</span>,  <span class="property">Kwiaty</span>: <span class="string">"Brak"</span>}],
+          [<span class="string">"Drzewo"</span>, <span class="string">"Kwiaty"</span>]);</pre>
+    <p>Napisz tę funkcję.</p>
+  </div>
+  <div class="toggle">[pokaż rozwiązanie]</div><div class="solution" style="display: none;"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">makeTable</span>(<span class="variabledef">data</span>, <span class="variabledef">columns</span>) {
+  <span class="keyword">var</span> <span class="variabledef">headRow</span> = <span class="variable">dom</span>(<span class="string">"TR"</span>);
+  <span class="variable">forEach</span>(<span class="localvariable">columns</span>, <span class="keyword">function</span>(<span class="variabledef">name</span>) {
+    <span class="localvariable">headRow</span>.<span class="property">appendChild</span>(<span class="variable">dom</span>(<span class="string">"TH"</span>, <span class="atom">null</span>, <span class="localvariable">name</span>));
+  });
+
+  <span class="keyword">var</span> <span class="variabledef">body</span> = <span class="variable">dom</span>(<span class="string">"TBODY"</span>, <span class="atom">null</span>, <span class="localvariable">headRow</span>);
+  <span class="variable">forEach</span>(<span class="localvariable">data</span>, <span class="keyword">function</span>(<span class="variabledef">object</span>) {
+    <span class="keyword">var</span> <span class="variabledef">row</span> = <span class="variable">dom</span>(<span class="string">"TR"</span>);
+    <span class="variable">forEach</span>(<span class="localvariable">columns</span>, <span class="keyword">function</span>(<span class="variabledef">name</span>) {
+      <span class="localvariable">row</span>.<span class="property">appendChild</span>(<span class="variable">dom</span>(<span class="string">"TD"</span>, <span class="atom">null</span>, <span class="variable">String</span>(<span class="localvariable">object</span>[<span class="localvariable">name</span>])));
+    });
+    <span class="localvariable">body</span>.<span class="property">appendChild</span>(<span class="localvariable">row</span>);
+  });
+
+  <span class="keyword">return</span> <span class="variable">dom</span>(<span class="string">"TABLE"</span>, <span class="atom">null</span>, <span class="localvariable">body</span>);
+}
+
+<span class="keyword">var</span> <span class="variable">table</span> = <span class="variable">makeTable</span>(<span class="variable">document</span>.<span class="property">body</span>.<span class="property">childNodes</span>,
+                      [<span class="string">"nodeType"</span>, <span class="string">"tagName"</span>]);
+<span class="variable">document</span>.<span class="property">body</span>.<span class="property">appendChild</span>(<span class="variable">table</span>);</pre>
+    <p>Nie zapomnij przekonwertować wartości z obiektów na łańcuchy przed ich dodaniem do tabeli ― nasza funkcja <code>dom</code> rozpoznaje tylko łańcuchy i węzły DOM.</p>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Z tematem języka HTML i obiektowego modelu dokumentu ściśle powiązane są kaskadowe arkusze stylów. Jest to obszerna dziedzina, której nie sposób wyczerpująco opisać w tej publikacji, ale dzięki znajomości arkuszy stylów w języku JavaScript można robić wiele ciekawych rzeczy. Dlatego poniżej znajduje się opis podstawowych zagadnień.</p>
+  <p>Kiedyś jedynym sposobem na zmienianie wyglądu elementów HTML było przypisywanie im dodatkowych atrybutów albo umieszczanie ich w innych elementach, np. <code>center</code> aby wyśrodkować treść albo <code>font</code> aby zmienić właściwości czcionki. Gdy chciały się, aby wszystkie akapity albo tabele w dokumencie wyglądały w określony sposób, <em>każdemu elementowi tego typu</em> trzeba było dodać kilka atrybutów. To powodowało, że dokumenty były pełne niepotrzebnych znaczników oraz strasznie trudno się je pisało i modyfikowało.</p>
+  <p>Oczywiście ludzie to pomysłowe stworzenia i szybko wymyślili rozwiązanie tego problemu. Arkusze stylów to narzędzie do pisania instrukcji w rodzaju „w tym dokumencie wszystkie akapity mają być drukowane czcionką Comic Sans i mieć różowy kolor, a wszystkie tabele mają mieć grube zielone obramowanie”. Instrukcje te wpisuje się w jednym miejscu na początku dokumentu lub w osobnym pliku i mają one zastosowanie do całego dokumentu. Poniżej znajduje się przykładowy arkusz stylów, który wypośrodkowuje treść nagłówków i nadaje im rozmiar 22 punktów oraz definiuje opisane wcześniej ustawienia czcionki i koloru pisma dla wszystkich akapitów należących do klasy brzydal.</p>
+  <pre class="preformatted">&lt;style type="text/css"&gt;
+  h1 {
+    font-size: 22pt;
+    text-align: center;
+  }
+
+  p.ugly {
+    font-family: Comic Sans MS;
+    color: purple;
+  }
+&lt;/style&gt;</pre>
+  <p>Z arkuszami stylów związane jest pojęcie klas. Jeśli na stronie znajdują się różne rodzaje akapitów, np. brzydkie i ładne, to nie należy definiować jednego stylu dla wszystkich elementów <code>p</code>, tylko użyć klas, aby je rozróżnić. Powyższy arkusz stylów zostanie zastosowany tylko do takich akapitów:</p>
+  <pre class="preformatted">&lt;p class="brzydal"&gt;Lustereczko, lustereczko...&lt;/p&gt;</pre>
+  <p>To właśnie tych klas dotyczy własność <code>className</code>, o której krótko nadmieniłem przy opisie funkcji <code>setNodeAttribute</code>. Za pomocą atrybutu <code>style</code> można dodać arkusz stylów bezpośrednio do elementu. Na przykład poniższa instrukcja definiuje czteropikselowe jednolite obramowanie dla elementu obrazu.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">setNodeAttribute</span>(<span class="variable">$</span>(<span class="string">"picture"</span>), <span class="string">"style"</span>,
+                 <span class="string">"border-width: 4px; border-style: solid;"</span>);</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Technologia kaskadowych arkuszy stylów jest o wiele bardziej skomplikowana. Niektóre style są dziedziczone przez węzły potomne po rodzicach i reagują ze sobą nawzajem na wiele różnych sposobów, ale z punktu widzenia programisty posługującego się drzewem DOM, najważniejsze jest, aby wiedzieć, że każdy węzeł DOM ma własność <code>style</code>, za pomocą której można manipulować jego stylem oraz że jest kilka rodzajów stylów, przy użyciu których można zmusić węzły do robienia niezwykłych rzeczy.</p>
+  <p>Własność <code>style</code> odnosi się do obiektu zawierającego własności dla wszystkich elementów tego stylu. Możemy np. ustawić zielony kolor obramowania obrazu.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">$</span>(<span class="string">"picture"</span>).<span class="property">style</span>.<span class="property">borderColor</span> = <span class="string">"green"</span>;
+<span class="variable">show</span>(<span class="variable">$</span>(<span class="string">"picture"</span>).<span class="property">style</span>.<span class="property">borderColor</span>);</pre>
+  <p>Zwróć uwagę, że w arkuszach stylów słowa są oddzielane łącznikiem, np. <code>border-color</code>, natomiast w JavaScripcie każde nowe słowo od drugiego rozpoczyna się wielką literą, np. <code>borderColor</code>.</p>
+  <p>Bardzo praktycznym stylem jest <code>display: none</code>. Za jego pomocą można czasowo ukryć wybrany węzeł: gdy własność <code>style.display</code> jest ustawiona na <code>none</code>, element nie jest wyświetlany w przeglądarce, mimo że istnieje. Później <code>display</code> można ustawić na pusty łańcuch, aby spowodować pojawienie się elementu.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">$</span>(<span class="string">"picture"</span>).<span class="property">style</span>.<span class="property">display</span> = <span class="string">"none"</span>;</pre>
+  <p>A teraz odzyskujemy nasz obrazek:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">$</span>(<span class="string">"picture"</span>).<span class="property">style</span>.<span class="property">display</span> = <span class="string">""</span>;</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Kolejnym rodzajem stylów, które można wykorzystać na wiele ciekawych sposobów są style pozycjonujące. W prostym dokumencie HTML wszystkie elementy są rozmieszczane na ekranie przez przeglądarkę internetową ― każdy element jest ustawiany obok lub pod elementem znajdującym się przed nim w kodzie źródłowym i węzły z zasady nie nakładają się nawzajem.</p>
+  <p>Jeśli jednak węzłowi ustawi się styl <code>position</code> na <code>absolute</code>, to zostaje on wyjęty z tzw. układu normalnego (ang. normal flow). Nie zajmuje więcej miejsca w dokumencie, tylko jakby pływa nad nim. Jego położenie można ustawiać za pomocą własności <code>left</code> i <code>top</code>. Można to wykorzystać na wiele sposobów, od zmuszenia węzła do podążania za kursorem po tworzenie okien zasłaniających resztę strony.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">$</span>(<span class="string">"picture"</span>).<span class="property">style</span>.<span class="property">position</span> = <span class="string">"absolute"</span>;
+<span class="keyword">var</span> <span class="variable">angle</span> = <span class="atom">0</span>;
+<span class="keyword">var</span> <span class="variable">spin</span> = <span class="variable">setInterval</span>(<span class="keyword">function</span>() {
+  <span class="variable">angle</span> += <span class="atom">0.1</span>;
+  <span class="variable">$</span>(<span class="string">"picture"</span>).<span class="property">style</span>.<span class="property">left</span> = (<span class="atom">100</span> + <span class="atom">100</span> * <span class="variable">Math</span>.<span class="property">cos</span>(<span class="variable">angle</span>)) + <span class="string">"px"</span>;
+  <span class="variable">$</span>(<span class="string">"picture"</span>).<span class="property">style</span>.<span class="property">top</span> = (<span class="atom">100</span> + <span class="atom">100</span> * <span class="variable">Math</span>.<span class="property">sin</span>(<span class="variable">angle</span>)) + <span class="string">"px"</span>;
+}, <span class="atom">100</span>);</pre>
+  <p>Jeśli nie znasz się na trygonometrii, to musisz mi uwierzyć na słowo że kosinusa i sinusa używa się do obliczania współrzędnych punktów na obwodzie okręgu. Dziesięć razy na sekundę zmienia się kąt położenia obrazu i obliczane są nowe współrzędne. Częstym błędem popełnianym przy takiej pracy jest zapominanie o dodaniu jednostki <code>px</code> do wartości. W większości przypadków brak jednostki oznacza, że styl nie zadziała, a więc trzeba dodać <code>px</code> (piksele), <code>%</code> (procenty), <code>em</code> (1em oznacza szerokość litery <code>M</code>) lub <code>pt</code> (punkty).</p>
+  <p>(pozwólmy obrazkowi spocząć…)</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">clearInterval</span>(<span class="variable">spin</span>);</pre>
+  <p>Miejsce uważane ze punkt 0,0 do określania pozycji zależy od tego, gdzie w dokumencie znajduje się węzeł. Jeśli węzeł znajduje się w innym węźle mającym własność <code>position: absolute</code> lub <code>position: relative</code>, to punktem zerowym jest lewy górny róg tego węzła. W pozostałych przypadkach jest nim lewy górny róg dokumentu.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Jeśli przestudiowałeś wszystkie przykłady przedstawione w tym rozdziale i może sam też coś zrobiłeś, to dokument, w którym pracujesz został mocno sponiewierany. Może prawię morały, ale muszę Ci powiedzieć, że nie powinieneś tego robić z prawdziwymi stronami. Czasami może Cię kusić, żeby zastosować jakieś ruchome błyskotki. Ale oprzyj się tej pokusie albo Twoje strony staną się nieczytelne albo nawet będą powodować zawieszanie się przeglądarek.</p>
+</div>

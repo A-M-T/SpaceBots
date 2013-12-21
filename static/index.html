@@ -1,7 +1,7 @@
 <!doctype html>
 <meta charset="utf-8">
-<title>★ SpaceBots ★ Where only limit is the speed of light</title>
-<link href='//fonts.googleapis.com/css?family=Share+Tech|Share+Tech+Mono' rel='stylesheet' type='text/css'>
+<title>SpaceBots - Where only limit is the speed of light</title>
+<link href='https://fonts.googleapis.com/css?family=Share+Tech|Share+Tech+Mono' rel='stylesheet' type='text/css'>
 <style>
 html {
   overflow: hidden;
@@ -10,29 +10,24 @@ body {
   margin: 0;
   color: white;
   font-family: 'Share Tech', sans-serif;
+  background-image: -webkit-radial-gradient(center, circle farthest-corner, #aaa 0%, #556 20%, #334 40%, #422 100%);
 }
-.button {
-  padding: 0 .2em;
-  font-family: 'Share Tech', sans-serif;
-  color: white;
-  text-shadow: 1px 1px 0 #000;
-  font-size: 1.1em;
-  font-weight: normal;
+canvas {
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
+  -webkit-transform: translateZ(0);
 }
-.button {
-  cursor: pointer;
-  vertical-align: top;
-  transition: all .2s;
-  -webkit-transition-timing-function: cubic-bezier(0.5, 0.5, 0.5, 1.5);
-}
-.button:hover {
-  letter-spacing: 3px;
+#overlay {
+  position: fixed;
+  top: 0;
+  width: 100%;
 }
 #intro {
+  font-size: 3em;
+  position: absolute;
   top: 0;
+  left: 10px;
   cursor:help;
   -webkit-animation-duration: .5s;
   -webkit-animation-name: jump;
@@ -40,281 +35,26 @@ body {
   -webkit-animation-timing-function: ease-in;
   -webkit-animation-direction:alternate;
 }
-#scripts {
-  position: fixed;
-  text-align: right;
-  right: 0;
-  bottom: 0;
+#intro a {
+  color: inherit;
+  text-decoration: none;
 }
-
 @-webkit-keyframes jump {
   0% {
-    top: 0;
+    top: 0px;
     -webkit-transform:scale(1,1);
   }
   80% {
-    top: .5em;
+    top: 20px;
     -webkit-transform:scale(1,1);
   }
   100% {
-    top: .6em;
+    top: 25px;
     -webkit-transform:scale(1,.8);
   }
 }
-#overlay {
-  position: fixed;
-  top: 0;
-}
-.details {
-  position: absolute;
-  background: white;
-  box-shadow: inset 0 0 30px #ccc;
-  color: #222;
-  min-width: 100px;
-  border: 1px solid white;
-  white-space: nowrap;
-  -webkit-transform: translateZ(0);
-}
-.details.focused {
-  outline: 1px dashed white;
-}
-.details .ace_editor {
-  height: 100%;
-}
-.details h2 {
-  margin: 0; padding: 0; font-weight: normal;
-  margin-left: 3px;
-  position: absolute; top: -1.2em;
-  margin-bottom: -1em;
-}
-.deep {
-  box-shadow: inset 0px -3px 15px #999;
-  background-color: #bbb;
-  padding: 5px;
-  text-align: center;
-}
-.sprite {
-  margin: 0 auto;
-}
-.feature {
-  border-radius: 3px;
-  box-shadow: 0 0 2px white;
-  padding: 3px;
-  margin: 3px;
-  background: white;
-  border-bottom: 2px solid #bbb;
-  border-right: 2px solid #bbb;
-  vertical-align: middle;
-}
-.axes {
-  margin: 5px;
-}
-canvas {
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-}
-#canvas {
-  -webkit-transform: translateZ(0);
-}
-ul, ol {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-li {
-padding: 2px;
-}
-li:nth-child(2n-1) {
-  background-color: rgba(0, 0, 0, 0.1);
-}
-.ace_editor {
-  font-family: "Share Tech Mono" !important;
-}
-.editor {
-  position: fixed;
-  width: 500px;
-  height: 500px;
-  top: 50px;
-  left: 50px;
-
-  -webkit-animation-duration: .5s;
-  -webkit-animation-name: showup;
-}
-.ace_scrollbar {
-  display: none;
-}
-.ace_scroller {
-  overflow-x: hidden !important;
-}
-
-@-webkit-keyframes showup {
-  0% {
-    top: 10px;
-    left: 10px;
-    opacity: .1;
-  }
-  100% {
-    top: 50px;
-    left: 50px;
-    opacity: 1;
-  }
-}
-.notransition {
-  -webkit-animation: none !important;
-  -moz-animation: none !important;
-  -o-animation: none !important;
-  -ms-animation: none !important;
-  animation: none !important;
-}
-#music {
-  position: fixed;
-  top: 10px;
-  left: 68px;
-}
-
-#tutorial {
-  width: 300px;
-  height: 100px;
-  position: absolute;
-  /*left: 50%;
-  top: 50%;
-  margin: -50px 0 0 -150px;*/
-}
-
-#tutwindow {
-  position: fixed;
-  top: 100px;
-  left: 25px;
-  width: 400px;
-  height: 175px;
-  white-space: normal;
-}
-
-.param {
-  display: inline-block;
-  font-family: inherit;
-  border: 1px solid #ddd;
-  border-radius: 3px;
-  background: white;
-  min-width: 1em;
-  text-align: center;
-  padding: 0 2px;
-}
-.command, .info {
-  padding: 5px;
-}
-.command .run {
-  cursor: pointer;
-  border-radius: 3px;
-  background: #444;
-  color: white;
-  padding: 2px 4px;
-  margin: 0 2px;
-}
-.death_message {
-  position: fixed;
-  background: rgba(255, 50, 55, 0.8);
-  font-size: 1.5em;
-  padding: .5em;
-  text-align: center;
-  display: block;
-  margin: .5em 25%;
-  width: 50%;
-  border-radius: 3px;
-}
-.destroyed {
-  font-size: 1.5em;
-  margin: .2em;
-}
-#forkme {
-  position: absolute;
-  top: 0;
-  right: 0;
-}
-@-webkit-keyframes slideOut {
-    from {opacity:1; -webkit-transform: translate(0, 0);}
-    to {opacity:0; -webkit-transform: translate(-100%, 0);}
-}
-#background {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background-image: -webkit-radial-gradient(center, circle farthest-corner, #aaa 0%, #556 20%, #334 40%, #422 100%);
-
-}
-.window > .resize {
-  width: 10%;
-  height: 10%;
-  border: 5px solid rgb(47, 49, 41);
-  position: absolute;
-  margin-left: -5%;
-  margin-top: -5%;
-  left: 50%;
-  top: 50%;
-  background: rgb(57, 59, 51);
-  border-radius: 40%;
-}
-.window > .resize.top {
-  top: 0;
-  margin-top: 0;
-  border-top-width: 0;
-}
-.window > .resize.bottom {
-  top: auto;
-  bottom: 0;
-  margin-top: 0;
-  border-bottom-width: 0;
-}
-.window > .resize.left {
-  left: 0;
-  margin-left: 0;
-  border-left-width: 0;
-}
-.window > .resize.right {
-  left: auto;
-  right: 0;
-  margin-left: 0;
-  border-right-width: 0;
-}
-.window > .drag {
-  border-radius: 5%;
-  width: 100%;
-  height: 100%;
-  background: rgb(57, 59, 51);
-}
-.window > .pressed {
-  background: rgb(77, 79, 71);
-}
-.content {
-  text-align: left;
-  position: absolute;
-  top: 5%;
-  left: 5%;
-  width: 90%;
-  height: 90%;
-  background: rgb(47, 49, 41);
-  border-radius: 5%;
-  display: flex;
-  flex-direction: column;
-}
-.titlebar {
-  margin: 0px;
-  padding: 6px 30px;
-  font-size: 21px;
-  flex: 0 24px 0;
-}
-.titlebar img {
-  float: right;
-  cursor: pointer;
-}
-.script {
-  height: 90%;
-  border-radius: 0 0 5% 5%;
-  flex: 1 0 0;
-}
 #reset {
-  position: fixed; top: 10px; left: 10px;
+  position: fixed; top: 10px; left: 40px;
 -webkit-transform: translate(0px, 0px), rotate(0deg);
 }
 #reset:hover {
@@ -341,102 +81,57 @@ li:nth-child(2n-1) {
     -webkit-transform: translate(0px, 0px) rotate(0deg);
   }
 }
+#forkme {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+#music {
+  position: absolute;
+  top: 10px;
+  left: 98px;
+}
+#death_message {
+  position: fixed;
+  background: rgba(255, 50, 55, 0.8);
+  font-size: 2em;
+  padding: .7em;
+  text-align: center;
+  display: block;
+  margin: .5em 25%;
+  width: 50%;
+  border-radius: 3px;
+  display: none;
+}
 
 </style>
 <body>
 <!-- Welcome to SpaceBots. For complete tutorial click on a link to client.js -->
-<div id="background"></div>
 <canvas id="canvas"></canvas>
-<div id="inspector">
-</div>
-<a id="forkme" href="https://github.com/mafik/SpaceBots/"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub" alt="Fork me on GitHub"></a>
-<img id="reset" title="Reset SpaceBots" onclick="if(confirm('This option will erase all your data and scripts.\nAre you sure?')) { localStorage.clear(); location.reload(); }" src="/game-reset.png" />
 <div id="overlay">
-  <table id="tutwindow" class="window details" style="display: none;">
-    <tr class="window_title features"><td colspan="2">Tutorial</td></tr>
-    <tr class="window_text deep" style="text-align: left;"><td id="tutwindow_text" style="vertical-align: top; padding: 0.5em;" colspan="2">[SOME INFO]</td></tr>
-    <tr class="window_buttonline features"><td style="text-align: left;"><input type="button" onclick="tutorial_reset()" value="Reset" id="tutwindow_resetbutton" /><td style="text-align: right;"><input type="button" onclick="tutorial_continue()" value="Continue >" id="tutwindow_button" /></td></tr>
-  </table>
-</div>
-<table id="tutorial" class="window details">
-  <tr class="window_title features"><td>Tutorial</td></tr>
-  <tr class="window_text deep"><td>Do you want to start a tutorial?<br />
-  <input type="button" onclick="tutorial_start()" value="Yes" /> <input type="button" onclick="tutorial_skip()" value="No" /></td></tr>
-</table>
-<div id="scripts">
-  <div class="button" onclick="script_new()">+</div>
-</div>
-<audio src="/freestylemix_-_hisboyelroy_-_Revolve.mp3" controls autoplay loop id="music"></audio>
-<template id="editor"><div class="window editor">
-    <div class="drag"></div>
-    <div class="resize top"></div>
-    <div class="resize right"></div>
-    <div class="resize left"></div>
-    <div class="resize bottom"></div>
-    <div class="resize top left"></div>
-    <div class="resize top right"></div>
-    <div class="resize bottom left"></div>
-    <div class="resize bottom right"></div>
-    <div class="content">
-      <div class="titlebar">
-        <img class="save" title="Save" alt="Save" src="/script-save.png">
-        <img class="run" title="Run" alt="Run" src="/script-run.png">
-        <div class="title" contenteditable>Scratch</div>
-      </div>
-      <div class="script"></div>
-    </div>
-</div></template>
-<template id="details">
-  <div class="details">
-	<div class="deep">
-	  <canvas width="50" height="50" class="sprite"></canvas>
-	</div>
-	<div style="position: absolute">
-      <h2>#0000</h2>
-	</div>
-	<div class="features"></div>
-	<div class="controls"></div>
-  </div>
-</template>
-<template id="destroyed">
-  <div class="death_message">
+  <div id="intro"><a href="intro_pl/index.html">?</a></div>
+  <img id="reset" title="Reset SpaceBots" onclick="if(confirm('This option will erase all your data.\nAre you sure?')) { localStorage.clear(); location.reload(); }" src="game-reset.png" />
+  <a id="forkme" href="https://github.com/mafik/SpaceBots/"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub" alt="Fork me on GitHub"></a>
+  <audio id="music" src="freestylemix_-_hisboyelroy_-_Revolve.mp3" controls autoplay loop></audio>
+  <div id="death_message">
     <div class="destroyed">You have been destroyed</div>
-    <div class="command run">delete localStorage.player_id;<br>location.reload();</div>
   </div>
-</template>
-<template id="impulse_drive_controls">
-    <div class="command"><span class=run>do_impulse</span>(<span class="param set_x" contenteditable>x</span>, <span class="param set_y" contenteditable>y</span>, <span class="param set_z" contenteditable>z</span>, <span class="param" contenteditable title="mass factor to use">1</span>, <span class="param" contenteditable title="speed factor to use">1</span>)</div>
-    <div class="command"><span class=run>navigate</span>("<span class="param set_id" contenteditable></span>")</div>
-    <div class="command"><span class=run>stop</span>()</div>
-</template>
-<template id="manipulator_controls">
-    <div class="info">Slot: <a class="manipulator_slot">empty</a></div>
-    <div class="command"><span class=run>grab</span>(<span class="param set_x" contenteditable>x</span>, <span class="param set_y" contenteditable>y</span>, <span class="param set_z" contenteditable>z</span>)</div>
-    <div class="command"><span class=run>grab</span>()</div>
-    <div class="command"><span class=run>release</span>()</div>
-    <div class="command"><span class=run>attach</span>("<span class="param set_id" contenteditable title="skeleton"></span>", <span class="param" contenteditable title="slot"></span>)</div>
-    <div class="command"><span class=run>detach</span>("<span class="param set_id" contenteditable title="skeleton"></span>", <span class="param" contenteditable title="slot"></span>)</div>
-    <div class="command"><span class=run>repulse</span>(<span class="param set_x" contenteditable>x</span>, <span class="param set_y" contenteditable>y</span>, <span class="param set_z" contenteditable>z</span>, <span class="param" title="power" contenteditable></span>)</div>
-</template>
-<template id="radio_controls">
-  <div class="info">Range: <span class="range"></span></div>
-  <div class="info">Status: <span class="status"></span></div>
-  <div class="command"><span class="run">radio_scanner.run()</span>;</div>
-  <div class="command"><span class="run">radio_scanner.stop()</span>;</div>
-  <div class="command"><span class="run">radio_scanner.interval</span> = <span class="param interval" contenteditable>1000</span>;</div>
-</template>
-<template id="laboratory_controls">
-  <div class="command"><span class="run">invent</span>(<span class="param" title="slot" contenteditable>0</span>, <span class="param" title="energy" contenteditable>100</span>)</div>
-  <div class="command"><span class="run">abandon</span>(<span class="param" title="slot" contenteditable>0</span>)</div>
-  <div class="info">Slots: <a class="laboratory_slots">empty</a></div>
-</template>
-<template id="assembler_controls">
-  <div class="command"><span class="run">estimate</span>(<span class="param" title="slot" contenteditable>0</span>)</div>
-  <div class="command"><span class="run">build</span>(<span class="param" title="slot" contenteditable>0</span>)</div>
-</template>
-<script src="/ace/ace.js"></script>
-<script src="/socket.io/socket.io.js"></script>
-<script src="/vectors.js"></script>
-<script src="/common.js"></script>
-<script src="/resources.js"></script>
-<script src="/base.js"></script>
+</div>
+<script src="socket.io/socket.io.js"></script>
+<script src="vectors.js"></script>
+<script src="common.js"></script>
+<script src="resources.js"></script>
+<script src="base.js"></script>
+<script src="logging_in.js"></script>
+<script src="fail_handler.js"></script>
+<script src="important_objects.js"></script>
+<script src="avatar_list.js"></script>
+<script src="radio.js"></script>
+<script src="component_reporting.js"></script>
+<script src="destruction_explosions.js"></script>
+<script src="impulse_drive.js"></script>
+<script src="manipulator.js"></script>
+<script src="laboratory.js"></script>
+<script src="assembler.js"></script>
+<script src="user_sprites.js"></script>
+<script src="gui.js"></script>

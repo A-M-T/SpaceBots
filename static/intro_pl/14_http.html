@@ -1,0 +1,190 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Żądania HTTP</title>
+<link rel=stylesheet href=doc.css>
+<link rel=author href=http://marijnhaverbeke.nl/>
+<link rel=license href=http://creativecommons.org/licenses/by/3.0/deed.pl>
+<h1>Żądania HTTP</h1>
+
+<div class="block">
+  <p>Jak wspomniałem w <a href="/kursy/javascript/wszystko-jasne/r11-programowanie-sieciowe/">rozdziale 11</a>, komunikacja na stronach WWW odbywa się za pośrednictwem protokołu <strong>HTTP</strong>. Proste <strong>żądanie HTTP</strong> może wyglądać tak:</p>
+  <pre class="preformatted">GET /wp-content/ejs/files/fruit.txt HTTP/1.1
+Host: eloquentjavascript.net
+User-Agent: Jakaś przeglądarka</pre>
+  <p>Jest to żądanie pliku <code>fruit.txt</code> do serwera znajdującego się pod adresem <code>eloquentjavascript.net</code>. Ponadto wiadomo, że użyty został protokół HTTP 1.1 ― wersja 1.0 również jest nadal używana i działa nieco inaczej. Wiersze <code>Host</code> i <code>User-Agent</code> mają strukturę odpowiadającą następującemu wzorcowi: słowo określające zawarte w nich informacje, średnik oraz sama informacja. Są to tzw. <strong>nagłówki HTTP</strong>. Nagłówek <code>User-Agent</code> informuje serwer, jaka przeglądarka (lub jaki program) wysłała żądanie. Dodatkowo zazwyczaj wysyłane są jeszcze inne nagłówki, np. określające typy dokumentów rozpoznawane przez klienta czy preferowany język.</p>
+  <p>W odpowiedzi na powyższe żądanie serwer może zwrócić następujące dane:</p>
+  <pre class="preformatted">HTTP/1.1 200 OK
+Last-Modified: Mon, 23 Jul 2007 08:41:56 GMT
+Content-Length: 24
+Content-Type: text/plain
+
+jabłka, pomarańcze, banany</pre>
+  <p>W pierwszym wierszu określona jest wersja protokołu HTTP oraz znajduje się informacja o stanie żądania. W tym przypadku kod stanu to <code>200</code>, co oznacza, że wszystko jest w porządku, nic niezwykłego się nie zdarzyło i został przesłany plik. Dalej znajduje się kilka nagłówków określających datę ostatniej modyfikacji pliku oraz jego długość i typ (zwykły tekst). Po nagłówkach znajduje się pusty wiersz, a za nim sam plik.</p>
+  <p>Podczas gdy żądania zaczynające się od słowa <code>GET</code>, oznaczającego, że klient chce tylko pobrać dokument, za pomocą słowa <code>POST</code> można informować, że w żądaniu do serwera wysyłane są jakieś informacje, które serwer ma w jakiś sposób przetworzyć.<a class="footref" href="#footnote1">1</a></p>
+</div>
+<hr>
+<div class="block">
+  <p>Gdy użytkownik kliknie łącze, zatwierdzi formularz albo inaczej spowoduje przejście do innej strony w przeglądarce, nastąpi wysłanie żądania HTTP i usunięcie starej strony, aby załadować nowy dokument. Zazwyczaj właśnie o to chodzi, bo tak działa sieć internetowa. Czasami jednak programy JavaScript potrzebują komunikacji z serwerem bez ponownego wczytywania strony. Na przykład przycisk Załaduj w konsoli służy do ładowania plików bez opuszczania strony.</p>
+  <p>Aby to było możliwe, program musi samodzielnie sporządzić żądanie HTTP. W nowoczesnych przeglądarkach dostępny jest specjalny interfejs, który pozwala to robić. Podobnie jak jest w przypadku otwierania nowych okien, interfejs ten podlega pewnym obostrzeniom. Aby uniemożliwić skryptom działanie na szkodę użytkowników, pozwolono im wysyłać żądania HTTP tylko do tej samej domeny, w której znajduje się strona, z której pochodzą.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Obiekt do tworzenia żądań HTTP w większości przeglądarek można utworzyć przy użyciu instrukcji <code>new XMLHttpRequest()</code>. W starszych wersjach Internet Explorera, w których pierwotnie te obiekty były używane, trzeba pisać <code>new ActiveXObject("Msxml2.XMLHTTP")</code> lub, w jeszcze starszych wersjach, <code>new ActiveXObject("Microsoft.XMLHTTP")</code>. <code>ActiveXObject</code> to interfejs przeglądarki Internet Explorer do różnych dodatków. Jesteśmy już przyzwyczajeni do pisania opakowań niwelujących różnice między przeglądarkami, a więc napisanie jeszcze jednego nie sprawi nam kłopotu:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">makeHttpObject</span>() {
+    <span class="keyword">try</span> {<span class="keyword">return</span> <span class="keyword">new</span> <span class="variable">XMLHttpRequest</span>();}
+    <span class="keyword">catch</span> (<span class="variabledef">error</span>) {}
+    <span class="keyword">try</span> {<span class="keyword">return</span> <span class="keyword">new</span> <span class="variable">ActiveXObject</span>(<span class="string">"Msxml2.XMLHTTP"</span>);}
+    <span class="keyword">catch</span> (<span class="variabledef">error</span>) {}
+    <span class="keyword">try</span> {<span class="keyword">return</span> <span class="keyword">new</span> <span class="variable">ActiveXObject</span>(<span class="string">"Microsoft.XMLHTTP"</span>);}
+    <span class="keyword">catch</span> (<span class="variabledef">error</span>) {}
+
+    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="variable">Error</span>(<span class="string">"Nie można utworzyć obiektu żądania HTTP."</span>);
+}
+
+    <span class="variable">show</span>(typeof(<span class="variable">makeHttpObject</span>()));</pre>
+  <p>Powyższa funkcja próbuje utworzyć obiekt na trzy sposoby i wykrywa, które techniki nie zadziałały za pomocą konstrukcji <code>try</code>-<code>catch</code>. Jeśli żadna z metod nie zadziała, co może się zdarzyć w bardzo starych przeglądarkach i przy włączonych wysokich zabezpieczeniach, zgłaszany jest błąd.</p>
+  <p>A dlaczego obiekt ten nazywa się żądaniem <em>XML</em> HTTP ? Nazwa ta jest trochę myląca. Język XML służy do przechowywania danych tekstowych. Jego składnia zawiera elementy i atrybuty podobne do języka HTML, ale jest on bardziej uporządkowany i elastyczniejszy — do przechowywania własnych rodzajów danych można definiować własne elementy XML. Obiekty żądań HTTP mają wbudowane funkcje do obsługi dokumentów XML i dlatego właśnie mają XML w nazwie. Za ich pomocą można jednak też obsługiwać inne typy dokumentów i z mojego doświadczenia wynika, że do tych celów wykorzystuje się je równie często.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Mając obiekt żądania HTTP możemy utworzyć żądanie podobne do wcześniej pokazanego przykładu.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">request</span> = <span class="variable">makeHttpObject</span>();
+    <span class="variable">request</span>.<span class="property">open</span>(<span class="string">"GET"</span>, <span class="string">"/wp-content/ejs/files/fruit.txt"</span>, <span class="atom">false</span>);
+    <span class="variable">request</span>.<span class="property">send</span>(<span class="atom">null</span>);
+    <span class="variable">print</span>(<span class="variable">request</span>.<span class="property">responseText</span>);</pre>
+  <p>Metoda <code>open</code> służy do konfigurowania żądań. W tym przypadku utworzyliśmy żądanie <code>GET</code> pliku <code>fruit.txt</code>. Podany tu adres URL jest względny, tzn. nie zawiera części <code>http://</code> ani nazwy serwera, dzięki czemu plik będzie szukany na serwerze, z którego został pobrany bieżący dokument. Trzeci parametr, <code>false</code>, jest opisany trochę dalej. Po wywołaniu metody <code>open</code> żądanie można wysłać przy użyciu metody <code>send</code>. Jeśli żądanie jest typu <code>POST</code>, to dane, które mają być wysłane do serwera (jako łańcuch) można przekazać jako argument tej metody. W przypadku żądania <code>GET</code>, należy przekazać wartość <code>null</code>.</p>
+  <p>Po wykonaniu żądania, własność <code>responseText</code> obiektu żądania zawiera treść otrzymanego dokumentu. Nagłówki przesłane przez serwer można znaleźć przy użyciu funkcji <code>getResponseHeader</code> i <code>getAllResponseHeaders</code>. Pierwsza znajduje konkretny nagłówek, a druga zwraca łańcuch zawierający wszystkie nagłówki. Dzięki nim można czasami zdobyć dodatkowe informacje o dokumencie.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">print</span>(<span class="variable">request</span>.<span class="property">getAllResponseHeaders</span>());
+    <span class="variable">show</span>(<span class="variable">request</span>.<span class="property">getResponseHeader</span>(<span class="string">"Last-Modified"</span>));</pre>
+  <p>Jeśli trzeba dodać nagłówki do żądania wysyłanego na serwer, można użyć metody <code>setRequestHeader</code>. Metoda ta przyjmuje dwa argumenty: nazwę i wartość nagłówka.</p>
+  <p>Kod odpowiedzi, którym w przykładzie była liczba <code>200</code>, znajduje się we własności <code>status</code>. Jeśli coś się nie uda, w tym kodzie znajdziemy odpowiednią informację. Na przykład kod <code>404</code> oznacza, że żądany plik nie istnieje. Własność <code>statusText</code> zawiera trochę bardziej zrozumiały opis zaistniałego stanu.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="variable">request</span>.<span class="property">status</span>);
+    <span class="variable">show</span>(<span class="variable">request</span>.<span class="property">statusText</span>);</pre>
+  <p>Aby dowiedzieć się czy żądanie zostało poprawnie spełnione, najczęściej wystarczy porównać zawartość własności <code>status</code> z wartością <code>200</code>. Teoretycznie serwer może w niektórych przypadkach zwrócić kod <code>304</code> oznaczający, że nadal aktualna jest starsza wersja dokumentu przechowywana w pamięci podręcznej przeglądarki. Ale przeglądarki chyba chronią nas przed tym ustawiając <code>status</code> na <code>200</code> nawet, gdy jest to <code>304</code>. Ponadto, jeśli żądanie jest wysyłane przy użyciu innego protokołu niż HTTP<a class="footref" href="#footnote2">2</a>, np. FTP, własność <code>status</code> jest bezużyteczna, ponieważ protokół ten nie korzysta z kodów stanu HTTP.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Gdy żądanie zostanie wysłane tak jak w powyższym przykładzie, metoda <code>send</code> zwraca wartość dopiero po zakończeniu tego żądania. Jest to dla nas wygodne, ponieważ po zakończeniu działania metody <code>send</code> dostępna jest własność <code>responseText</code>, której możemy od razu zacząć używać. Jest jednak pewien problem. Jeśli serwer jest powolny albo plik jest duży, wykonania żądanie może sporo potrwać. W tym czasie program oczekuje, a wraz z nim cała przeglądarka. Dopóki żądanie nie zostanie zakończone, użytkownik nie może nic robić, nawet nie przewinie strony. Dlatego metoda ta nadaje się do użytku w sieciach lokalnych, które są szybkie i niezawodne. Ale na stronach w wielkim internecie nie powinno się jej stosować.</p>
+  <p>Ustawienie trzeciego argumentu metody <code>open</code> na <code>true</code> powoduje, że żądanie jest wysyłane w <strong>trybie asynchronicznym</strong>. W takim przypadku metoda <code>send</code> zwraca wartość natychmiast, a żądanie jest wykonywane w tle.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">request</span>.<span class="property">open</span>(<span class="string">"GET"</span>, <span class="string">"/wp-content/ejs/files/fruit.xml"</span>, <span class="atom">true</span>);
+    <span class="variable">request</span>.<span class="property">send</span>(<span class="atom">null</span>);
+    <span class="variable">show</span>(<span class="variable">request</span>.<span class="property">responseText</span>);</pre>
+  <p>Odczekaj chwilę i…</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">print</span>(<span class="variable">request</span>.<span class="property">responseText</span>);</pre>
+  <p>„Odczekanie chwilę” można zaimplementować przy użyciu funkcji <code>setTimeout</code> lub innej podobnej, ale jest na to lepszy sposób. Obiekt żądania ma własność <code>readyState</code> określającą stan tego obiektu. Gdy dokument jest w całości załadowany, jej wartość wynosi <code>4</code>, a wcześniej jest mniejsza<a class="footref" href="#footnote3">3</a>. Aby reagować na zmiany tego stanu, można ustawić własność <code>onreadystatechange</code> obiektu na funkcję. Funkcja ta będzie wywoływana przy każdej zmianie stanu.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">request</span>.<span class="property">open</span>(<span class="string">"GET"</span>, <span class="string">"/wp-content/ejs/files/fruit.xml"</span>, <span class="atom">true</span>);
+    <span class="variable">request</span>.<span class="property">send</span>(<span class="atom">null</span>);
+    <span class="variable">request</span>.<span class="property">onreadystatechange</span> = <span class="keyword">function</span>() {
+    <span class="keyword">if</span> (<span class="variable">request</span>.<span class="property">readyState</span> == <span class="atom">4</span>)
+    <span class="variable">show</span>(<span class="variable">request</span>.<span class="property">responseText</span>.<span class="property">length</span>);
+};</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Jeśli plik otrzymany przez obiekt żądania jest dokumentem XML, we własności <code>responseXML</code> tego żądania znajduje się reprezentacja tego dokumentu. Reprezentacja ta ma podobne właściwości do drzewa DOM opisanego w <a href="/kursy/javascript/wszystko-jasne/r12-dom/">rozdziale 12</a>, z tym wyjątkiem, że nie ma elementów przeznaczonych do pracy z HTML-em, takich jak <code>style</code> czy <code>innerHTML</code>. Własność <code>responseXML</code> zawiera obiekt dokumentu, którego własność <code>documentElement</code> odnosi się do zewnętrznego elementu dokumentu XML.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">catalog</span> = <span class="variable">request</span>.<span class="property">responseXML</span>.<span class="property">documentElement</span>;
+    <span class="variable">show</span>(<span class="variable">catalog</span>.<span class="property">childNodes</span>.<span class="property">length</span>);</pre>
+  <p>Takich dokumentów XML można używać do wymiany danych strukturalnych z serwerem. Ich format — elementy znajdujące się w innych elementach — pozwala na przechowywanie informacji, których przesłanie w postaci zwykłego tekstu byłoby trudne. Jednak interfejs DOM nie najlepiej nadaje się do pobierania takich informacji, a dokumenty XML często bywają bardzo rozwlekłe: Można odnieść wrażenie, że dokument <code>fruit.xml</code> zawiera dużo informacji, a tak naprawdę informuje, że „jabłka są czerwone, pomarańcze są pomarańczowe, a banany są żółte”.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Alternatywnym dla XML-a formatem wymiany danych jest format <a href="http://www.json.org">JSON</a> opracowany przez programistów JavaScript. W formacie tym wykorzystywana jest składnia wartości JavaScript do reprezentowania „hierarchicznych” informacji w zwięzły sposób. Dokument JSON jest plikiem zawierającym obiekt lub tablicę JavaScript zawierającą dowolną liczbę obiektów, tablic, łańcuchów, liczb, wartości logicznych oraz wartości <code>null</code>. Jako przykład możesz obejrzeć zawartość pliku <code>fruit.json</code>:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">request</span>.<span class="property">open</span>(<span class="string">"GET"</span>, <span class="string">"/wp-content/ejs/files/fruit.json"</span>, <span class="atom">true</span>);
+    <span class="variable">request</span>.<span class="property">send</span>(<span class="atom">null</span>);
+    <span class="variable">request</span>.<span class="property">onreadystatechange</span> = <span class="keyword">function</span>() {
+    <span class="keyword">if</span> (<span class="variable">request</span>.<span class="property">readyState</span> == <span class="atom">4</span>)
+    <span class="variable">print</span>(<span class="variable">request</span>.<span class="property">responseText</span>);
+};</pre>
+  <p>Taki tekst można zamienić w zwykłą wartość JavaScript przy użyciu funkcji <code>eval</code>. Przed wywołaniem funkcji <code>eval</code> należy dodać nawias, ponieważ w przeciwnym razie JavaScript może zinterpretować obiekt (znajdujący się w klamrze) jako blok kodu i zgłosić błąd.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">evalJSON</span>(<span class="variabledef">json</span>) {
+    <span class="keyword">return</span> <span class="variable">eval</span>(<span class="string">"("</span> + <span class="localvariable">json</span> + <span class="string">")"</span>);
+}
+    <span class="keyword">var</span> <span class="variable">fruit</span> = <span class="variable">evalJSON</span>(<span class="variable">request</span>.<span class="property">responseText</span>);
+    <span class="variable">show</span>(<span class="variable">fruit</span>);</pre>
+  <p>Przekazując funkcji <code>eval</code> fragment tekstu należy pamiętać, że tekst ten może wykonać dowolny kod. Jako że w JavaScripcie można wysyłać żądania tylko do własnej domeny, najczęściej wie się, jaki tekst się otrzyma i nie stanowi to problemu. Jednak w innych sytuacjach może to być niebezpieczne.</p>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 14.1</div>
+  <div class="exercise">
+    <p>Napisz funkcję o nazwie <code>serializeJSON</code> przyjmującą wartość JavaScript i zwracającą łańcuch będący reprezentacją tej wartości w formacie JSON. Proste wartości, takie jak liczby i logiczne, można zwyczajnie zamienić na łańcuchy za pomocą funkcji <code>String</code>. Obiekty i tablice można przetworzyć przy użyciu rekurencji.</p>
+    <p>Trudności może sprawiać rozpoznawanie tablic, które są typu <code>object</code>. Można użyć instrukcji <code>instanceof Array</code>, ale ta zadziała tylko w przypadku tablic utworzonych we własnym oknie ― inne używają prototypu <code>Array</code> z innych okien i <code>instanceof</code> zwróci dla nich <code>false</code>. Istnieje też tania sztuczka polegająca na przekonwertowaniu własności <code>constructor</code> na łańcuch i sprawdzeniu, czy zawiera <code>"function Array"</code>.</p>
+    <p>Dokonując konwersji na typ łańcuchowy należy też zająć się znakami specjalnymi. Jeśli łańcuch zostanie umieszczony w podwójnym cudzysłowie, to specjalnymi sekwencjami trzeba będzie zastąpić znaki <code>\"</code>, <code>\\</code>, <code>\f</code>, <code>\b</code>, <code>\n</code>, <code>\t</code>, <code>\r</code> oraz <code>\v</code><a class="footref" href="#footnote4">4</a>.</p>
+  </div>
+  <div class="toggle">[pokaż rozwiązanie]</div><div class="solution" style="display: none;"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">serializeJSON</span>(<span class="variabledef">value</span>) {
+      <span class="keyword">function</span> <span class="variabledef">isArray</span>(<span class="variabledef">value</span>) {
+      <span class="keyword">return</span> <span class="string">/^\s*function Array/</span>.<span class="property">test</span>(<span class="variable">String</span>(<span class="localvariable">value</span>.<span class="property">constructor</span>));
+  }
+
+      <span class="keyword">function</span> <span class="variabledef">serializeArray</span>(<span class="variabledef">value</span>) {
+      <span class="keyword">return</span> <span class="string">"["</span> + <span class="variable">map</span>(<span class="variable">serializeJSON</span>, <span class="localvariable">value</span>).<span class="property">join</span>(<span class="string">", "</span>) + <span class="string">"]"</span>;
+  }
+      <span class="keyword">function</span> <span class="variabledef">serializeObject</span>(<span class="variabledef">value</span>) {
+      <span class="keyword">var</span> <span class="variabledef">properties</span> = [];
+      <span class="variable">forEachIn</span>(<span class="localvariable">value</span>, <span class="keyword">function</span>(<span class="variabledef">name</span>, <span class="variabledef">value</span>) {
+      <span class="localvariable">properties</span>.<span class="property">push</span>(<span class="variable">serializeString</span>(<span class="localvariable">name</span>) + <span class="string">": "</span> +
+      <span class="variable">serializeJSON</span>(<span class="localvariable">value</span>));
+    });
+      <span class="keyword">return</span> <span class="string">"{"</span> + <span class="localvariable">properties</span>.<span class="property">join</span>(<span class="string">", "</span>) + <span class="string">"}"</span>;
+  }
+      <span class="keyword">function</span> <span class="variabledef">serializeString</span>(<span class="variabledef">value</span>) {
+      <span class="keyword">var</span> <span class="variabledef">special</span> =
+      {<span class="string">"\""</span>: <span class="string">"\\\""</span>, <span class="string">"\\"</span>: <span class="string">"\\\\"</span>, <span class="string">"\f"</span>: <span class="string">"\\f"</span>, <span class="string">"\b"</span>: <span class="string">"\\b"</span>,
+      <span class="string">"\n"</span>: <span class="string">"\\n"</span>, <span class="string">"\t"</span>: <span class="string">"\\t"</span>, <span class="string">"\r"</span>: <span class="string">"\\r"</span>, <span class="string">"\v"</span>: <span class="string">"\\v"</span>};
+      <span class="keyword">var</span> <span class="variabledef">escaped</span> = <span class="localvariable">value</span>.<span class="property">replace</span>(<span class="string">/[\"\\\f\b\n\t\r\v]/g</span>,
+      <span class="keyword">function</span>(<span class="variabledef">c</span>) {<span class="keyword">return</span> <span class="localvariable">special</span>[<span class="localvariable">c</span>];});
+      <span class="keyword">return</span> <span class="string">"\""</span> + <span class="localvariable">escaped</span> + <span class="string">"\""</span>;
+  }
+
+      <span class="keyword">var</span> <span class="variabledef">type</span> = typeof <span class="localvariable">value</span>;
+      <span class="keyword">if</span> (<span class="localvariable">type</span> == <span class="string">"object"</span> &amp;&amp; <span class="localvariable">isArray</span>(<span class="localvariable">value</span>))
+      <span class="keyword">return</span> <span class="localvariable">serializeArray</span>(<span class="localvariable">value</span>);
+      <span class="keyword">else</span> <span class="keyword">if</span> (<span class="localvariable">type</span> == <span class="string">"object"</span>)
+      <span class="keyword">return</span> <span class="localvariable">serializeObject</span>(<span class="localvariable">value</span>);
+      <span class="keyword">else</span> <span class="keyword">if</span> (<span class="localvariable">type</span> == <span class="string">"string"</span>)
+      <span class="keyword">return</span> <span class="localvariable">serializeString</span>(<span class="localvariable">value</span>);
+      <span class="keyword">else</span>
+      <span class="keyword">return</span> <span class="variable">String</span>(<span class="localvariable">value</span>);
+}
+
+      <span class="variable">print</span>(<span class="variable">serializeJSON</span>(<span class="variable">fruit</span>));</pre>
+    <p>Sztuczka użyta w funkcji <code>serializeString</code> jest podobna do tego, co zrobiliśmy w funkcji <code>escapeHTML</code> w <a href="/kursy/javascript/wszystko-jasne/r10-wyrazenia-regularne/">rozdziale 10</a>. Zastępnik dla każdego znaku jest znajdowany w obiekcie. Niektóre z nich, jak choćby <code>"\\\\"</code>, wyglądają dziwnie, ponieważ każdy ukośnik wsteczny, który ma się pojawić w wyniku musi mieć towarzyszący ukośnik wsteczny.</p>
+    <p>Zwróć też uwagę, że także nazwy własności są zapisane w cudzysłowach, jako łańcuchy. W niektórych przypadkach nie jest to konieczne, ale dla nazw zawierających spacje i jakieś inne dziwne rzeczy tak. Tu zostało użyte uproszczone rozwiązanie polegające na ujęciu w cudzysłów wszystkiego.</p>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Jeśli często wysyłamy żądania, to oczywiście nie chcemy w kółko powtarzać rytuału <code>open</code>, <code>send</code>, <code>onreadystatechange</code>. Możemy napisać bardzo proste opakowanie, jak poniższe:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">simpleHttpRequest</span>(<span class="variabledef">url</span>, <span class="variabledef">success</span>, <span class="variabledef">failure</span>) {
+    <span class="keyword">var</span> <span class="variabledef">request</span> = <span class="variable">makeHttpObject</span>();
+    <span class="localvariable">request</span>.<span class="property">open</span>(<span class="string">"GET"</span>, <span class="localvariable">url</span>, <span class="atom">true</span>);
+    <span class="localvariable">request</span>.<span class="property">send</span>(<span class="atom">null</span>);
+    <span class="localvariable">request</span>.<span class="property">onreadystatechange</span> = <span class="keyword">function</span>() {
+    <span class="keyword">if</span> (<span class="localvariable">request</span>.<span class="property">readyState</span> == <span class="atom">4</span>) {
+    <span class="keyword">if</span> (<span class="localvariable">request</span>.<span class="property">status</span> == <span class="atom">200</span>)
+    <span class="localvariable">success</span>(<span class="localvariable">request</span>.<span class="property">responseText</span>);
+    <span class="keyword">else</span> <span class="keyword">if</span> (<span class="localvariable">failure</span>)
+    <span class="localvariable">failure</span>(<span class="localvariable">request</span>.<span class="property">status</span>, <span class="localvariable">request</span>.<span class="property">statusText</span>);
+    }
+  };
+}
+
+    <span class="variable">simpleHttpRequest</span>(<span class="string">"/wp-content/ejs/files/fruit.txt"</span>, <span class="variable">print</span>);</pre>
+  <p>Funkcja ta pobiera podany jej adres URL i wywołuje funkcję przekazaną jako drugi argument. Trzeci argument, jeśli zostanie zdefiniowany, służy do powiadamiania o niepowodzeniu ― kod inny niż <code>200</code>.</p>
+  <p>Aby móc wykonywać bardziej złożone żądania, można dodać tej funkcji jeszcze inne parametry, do określania metody (<code>GET</code> lub <code>POST</code>), opcjonalnego łańcucha, który ma być przekazany jako dane, do dodawania nagłówków itd. Gdy argumentów jest dużo, dobrym pomysłem jest przekazywanie ich w obiekcie, jak opisałem w <a href="/kursy/javascript/wszystko-jasne/r9-modularnosc/">rozdziale 9</a>.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Niektóre strony internetowe prowadzą intensywną komunikację między programami działającymi na kliencie i na serwerze. W przypadku takich systemów dobrym pomysłem jest traktowanie niektórych żądań HTTP jako wywołań funkcji działających na serwerze. Klient wysyła żądanie pod określony adres URL identyfikujący funkcje przekazując argumenty jako parametry URL lub dane <code>POST</code>. Następnie serwer wywołuje funkcję i zapisuje wynik w dokumencie JSON lub XML i wysyła go w odpowiedzi. Gdy napisze się kilka funkcji pomocniczych, wywoływanie funkcji na serwerze może być prawie tak łatwe jak wywoływanie funkcji na kliencie, oczywiście z tą różnicą, że wyniki nie będą dostępne natychmiast.</p>
+</div>
+<h3>Przypisy</h3>
+<ol>
+  <li id="footnote1">To nie są jedyne typy żądań. Istnieje też żądanie <code>HEAD</code> do pobierania nagłówków dokumentu, bez treści, <code>PUT</code> do dodawania dokumentów na serwer oraz <code>DELETE</code> do usuwania dokumentów. Typy te nie są używane przez przeglądarki i często nie obsługują ich serwery sieciowe, ale jeśli napisze się działające na serwerze programy do ich obsługi, to mogą być przydatne.</li>
+  
+  <li id="footnote2">Nie tylko część „XML” nazwy <strong><code>XMLHttpRequest</code></strong> jest myląca ― obiektu tego można używać także do wysyłania żądań przy użyciu innych protokołów niż HTTP, a więc tylko słowo <code>Request</code> ma rację bytu w tej nazwie.</li>
+  
+  <li id="footnote3"><code>0</code> (niezainicjowany) to stan obiektu przed wywołaniem na nim metody <code>open</code>. Wywołanie metody <code>open</code> zmienia go na <code>1</code> (otwarty). Wywołanie metody <code>send</code> powoduje zmianę na <code>2</code> (wysłany). Natomiast po odpowiedzi serwera wartość zmienia się na <code>3</code> (odbieranie). W końcu <code>4</code> oznacza „załadowany”.</li>
+  
+  <li id="footnote4">Znak <code>\n</code> już znamy — jest to znak nowego wiersza. <code>\t</code> to znak tabulatora, <code>\r</code> to znak powrót karetki, który w niektórych systemach jest używany przed lub zamiast znaku nowego wiersza do oznaczania końca wiersza. Znaki <code>\b</code> (backspace), <code>\v</code> (pionowy tabulator), <code>\f</code> (wysuw strony) są przydatne w pracy ze starymi drukarkami, natomiast w przeglądarkach nie mają zastosowania.</li>
+</ol>

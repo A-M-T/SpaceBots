@@ -1,0 +1,203 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Wyrażenia regularne</title>
+<link rel=stylesheet href=doc.css>
+<link rel=author href=http://marijnhaverbeke.nl/>
+<link rel=license href=http://creativecommons.org/licenses/by/3.0/deed.pl>
+<h1>Wyrażenia regularne</h1>
+
+<div class="block">
+  <p>W poprzednich rozdziałach kilka razy szukaliśmy różnych wzorców w łańcuchach. W <a href="/kursy/javascript/wszystko-jasne/r4-obiekty-tablice">rozdziale 4</a> wydobywaliśmy daty z łańcuchów wypisując precyzyjnie pozycje, na których znajdowały się liczby będące częścią daty. Później w <a href="/kursy/javascript/wszystko-jasne/r6-programowanie-funkcyjne">rozdziale 6</a> oglądaliśmy wyjątkowo paskudne fragmenty kodu do znajdowania wybranych typów znaków w łańcuchach, np. znaków, które w kodzie HTML trzeba zastąpić encjami.</p>
+  <p><strong>Wyrażenia regularne</strong> to język do opisywania <strong>wzorców w łańcuchach</strong>. Jest to niewielki, ale osobny język, który został wbudowany w JavaScript (a także inne języki programowania). Kod w tym języku nie jest zbyt czytelny, a rozbudowane wyrażenia regularne są wręcz niemożliwe do odczytania. Jest to jednak bardzo przydatne narzędzie pozwalające znacznie uprościć operacje związane z obróbką łańcuchów.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Podobnie jak łańcuchy wpisuje się w podwójnych cudzysłowach, wyrażenia regularne pisze się między ukośnikami (<code>/</code>). To oznacza, że jeśli w wyrażeniu jest użyty ukośnik, to trzeba zastosować unik.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">slash</span> = <span class="string">/\//</span>;
+<span class="variable">show</span>(<span class="string">"AC/DC"</span>.<span class="property">search</span>(<span class="variable">slash</span>));</pre>
+  <p>Metoda <code>search</code> działaniem przypomina <code>indexOf</code>, tylko zamiast łańcucha szuka wyrażenia regularnego. Wzorce definiowane za pomocą wyrażeń regularnych mają pewne właściwości, których pozbawione są łańcuchy. Po pierwsze niektóre ich elementy mogą pasować do więcej niż jednego znaku. W <a href="/kursy/javascript/wszystko-jasne/r6-programowanie-funkcyjne">rozdziale 6</a> aby wydobyć znaczniki z dokumentu musieliśmy znaleźć pierwszą gwiazdkę lub klamrę w łańcuchu. Taką operację można wyrazić następująco:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">asteriskOrBrace</span> = <span class="string">/[\{\*]/</span>;
+<span class="keyword">var</span> <span class="variable">story</span> =
+  <span class="string">"Spostrzegliśmy *gigantycznego lemura* zwisającego z gałęzi."</span>;
+<span class="variable">show</span>(<span class="variable">story</span>.<span class="property">search</span>(<span class="variable">asteriskOrBrace</span>));</pre>
+  <p>Znaki <code>[</code> i <code>]</code> w wyrażeniach regularnych mają specjalne przeznaczenie. Można między nimi wpisywać znaki i wówczas wyrażenie takie oznacza „którykolwiek z tych znaków”. W wyrażeniach regularnych specjalne znaczenie ma większość znaków nie alfanumerycznych, dlatego dobrym pomysłem jest poprzedzanie ich zawsze ukośnikiem<a class="footref" href="#footnote1">1</a>, gdy są używane jako zwykłe znaki.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Dla często używanych zbiorów znaków dostępne są specjalne skrócone formy zapisu. Kropka (<code>.</code>) oznacza „dowolny znak nie będący znakiem nowego wiersza”, „d” z ukośnikiem (<code>\d</code>) oznacza „dowolna cyfra”, „w” z ukośnikiem (<code>\w</code>) pasuje do każdego znaku alfanumerycznego (nie wiedzieć czemu zalicza się do nich też znak podkreślenia), a „s” z ukośnikiem (<code>\s</code>) pasuje do wszelkich białych znaków (tabulatora, nowego wiersza, spacji).</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">digitSurroundedBySpace</span> = <span class="string">/\s\d\s/</span>;
+<span class="variable">show</span>(<span class="string">"1a 2 3d"</span>.<span class="property">search</span>(<span class="variable">digitSurroundedBySpace</span>));</pre>
+  <p>Znaki „d”, „w” oraz „s” z ukośnikiem mają też odpowiedniki w postaci wielkich liter, które oznaczają ich odwrotność. Na przykład <code>\S</code> pasuje do każdego znaku <em>nie</em> będącego białym znakiem. Gdy używany jest nawias <code>[]</code>, wzorzec można odwrócić stawiając przed nim znak <code>^</code>:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">notABC</span> = <span class="string">/[^ABC]/</span>;
+<span class="variable">show</span>(<span class="string">"ABCBACCBBADABC"</span>.<span class="property">search</span>(<span class="variable">notABC</span>));</pre>
+  <p>Jak widać, sposób używania znaków w wyrażeniach regularnych sprawia, że za pomocą tych wyrażeń można tworzyć bardzo krótkie i trudne do czytania wzorce.</p>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 10.1</div>
+  <div class="exercise">
+    <p>Napisz wyrażenie regularne dopasowujące datę w formacie <code>"XX/XX/XXXX"</code>, gdzie znaki <code>X</code> są cyframi. Wypróbuj je na łańcuchu <code>"urodzeni 15/11/2003 (matka Spot): White Fang"</code>.</p>
+  </div>
+  <div class="toggle">[pokaż rozwiązanie]</div><div class="solution" style="display: none;"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">datePattern</span> = <span class="string">/\d\d\/\d\d\/\d\d\d\d/</span>;
+<span class="variable">show</span>(<span class="string">"urodzeni 15/11/2003 (matka Spot): White Fang"</span>.<span class="property">search</span>(<span class="variable">datePattern</span>));</pre>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Czasami trzeba sprawdzić, czy wzorzec zaczyna się na początku lub kończy na końcu łańcucha. Do tego służą znaki specjalne <code>^</code> i <code>$</code>. Pierwszy dopasowuje początek łańcucha, a drugi koniec.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="string">/e+/</span>.<span class="property">test</span>(<span class="string">"ble"</span>));
+<span class="variable">show</span>(<span class="string">/^e+$/</span>.<span class="property">test</span>(<span class="string">"ble"</span>));</pre>
+  <p>Pierwsze z powyższych wyrażeń pasuje do każdego łańcucha zawierającego znak <code>e</code>, a drugie tylko do tych łańcuchów, które w całości składają się ze znaków <code>e</code>.</p>
+  <p>Warto podkreślić, że wyrażenia regularne są obiektami i mają metody. Metoda <code>test</code> zwraca wartość logiczną oznaczającą czy dany łańcuch pasuje do wyrażenia regularnego.</p>
+  <p>Kod <code>\b</code> dopasowuje „granice słów”, którymi mogą być znaki przestankowe, białe znaki oraz początek i koniec łańcucha.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="string">/kat/</span>.<span class="property">test</span>(<span class="string">"kontaktenacja"</span>));
+<span class="variable">show</span>(<span class="string">/\bkat\b/</span>.<span class="property">test</span>(<span class="string">"konkatenacja"</span>));</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Można zezwolić, aby wybrane części wzorca powtarzały się pewną liczbę razy. Umieszczenie gwiazdki (<code>*</code>) za elementem oznacza, że może się on powtarzać dowolną liczbę razy, także zero. Plus (<code>+</code>) oznacza, że element może powtarzać się przynajmniej raz. Znak zapytania (<code>?</code>) oznacza, że element jest opcjonalny, tzn. może występować zero razy lub raz.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">parenthesizedText</span> = <span class="string">/\(.*\)/</span>;
+<span class="variable">show</span>(<span class="string">"Jego (leniwca) pazury były gigantyczne!"</span>.<span class="property">search</span>(<span class="variable">parenthesizedText</span>));</pre>
+  <p>W razie potrzeby za dopuszczalną liczbę powtórzeń elementu można dokładnie określić przy użyciu klamry. Liczbę tę należy wpisać w klamrze, np. <code>{4}</code>. Jeśli wpisze się dwie liczby rozdzielone przecinkiem (np. <code>{3,10}</code>), oznacza to, że element musi występować przynajmniej tyle razy, ile wynosi pierwsza liczba i maksymalnie tyle razy, ile wynosi druga. Analogicznie <code>{2,}</code> oznacza dwa wystąpienia lub więcej, a <code>{,4}</code> oznacza cztery lub mniej.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">datePattern</span> = <span class="string">/\d{1,2}\/\d\d?\/\d{4}/</span>;
+<span class="variable">show</span>(<span class="string">"urodzeni 15/11/2003 (matka Spot): White Fang"</span>.<span class="property">search</span>(<span class="variable">datePattern</span>));</pre>
+  <p>Zapisy <code>/\d{1,2}/</code> i <code>/\d\d?/</code> oznaczają „jedna lub dwie cyfry”.</p>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 10.2</div>
+  <div class="exercise">
+    <p>Napisz wzorzec dopasowujący adresy e-mail. Dla uproszczenia przyjmij założenie, że przed i za znakiem <code>@</code> mogą znajdować się tylko znaki alfanumeryczne oraz znaki <code>.</code> i <code>-</code> (kropka i łącznik), natomiast w ostatniej części adresu, zawierającej kod kraju za ostatnią kropką, mogą znajdować się tylko znaki alfanumeryczne i ich liczba musi wynosić dwa lub trzy.</p>
+  </div>
+  <div class="toggle">[pokaż rozwiązanie]</div><div class="solution" style="display: none;"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">mailAddress</span> = <span class="string">/\b[\w\.-]+@[\w\.-]+\.\w{2,3}\b/</span>;
+
+<span class="variable">show</span>(<span class="variable">mailAddress</span>.<span class="property">test</span>(<span class="string">"kenny@test.net"</span>));
+<span class="variable">show</span>(<span class="variable">mailAddress</span>.<span class="property">test</span>(<span class="string">"Wyłsałem mleja na adres kenny@tets.nets, ale nie dźła!"</span>));
+<span class="variable">show</span>(<span class="variable">mailAddress</span>.<span class="property">test</span>(<span class="string">"the_giant_sloth@gmail.com"</span>));</pre>
+    <p>Ciągi <code>\b</code> na początku i końcu wzorca sprawiają, że drugi łańcuch nie pasuje.</p>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Części wyrażeń regularnych można grupować za pomocą nawiasów. Dzięki temu można stosować <code>*</code> i inne znaki do więcej niż jednego znaku. Na przykład:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">cartoonCrying</span> = <span class="string">/boo(hoo+)+/i</span>;
+<span class="variable">show</span>(<span class="string">"Następnie wykrzyknął „Boohoooohoohooo”"</span>.<span class="property">search</span>(<span class="variable">cartoonCrying</span>));</pre>
+  <p>Skąd się wzięła litera <code>i</code> na końcu tego wyrażenia regularnego? Za ukośnikiem zamykającym wyrażenie można dodawać opcje dla tego wyrażenia. Litera <code>i</code> tutaj oznacza, że wielkość liter nie ma znaczenia, dzięki czemu mała litera b we wzorcu pasuje do wielkiej litery B w łańcuchu.</p>
+  <p>Pionowa kreska (<code>|</code>) umożliwia wybór jednego spośród dwóch elementów. Na przykład:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">holyCow</span> = <span class="string">/(sacred|holy) (cow|bovine|bull|taurus)/i</span>;
+<span class="variable">show</span>(<span class="variable">holyCow</span>.<span class="property">test</span>(<span class="string">"Sacred bovine!"</span>));</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Często szukanie wzorca jest tylko pierwszym krokiem do wydobycia czegoś z łańcucha. W poprzednich rozdziałach ciągi z łańcuchów były wydobywane za pomocą metod <code>indexOf</code> i <code>slice</code>. Teraz znając wyrażenia regularne możemy zamiast nich używać metody <code>match</code>. Przy porównywaniu łańcucha z wyrażeniem regularnym można otrzymać w wyniku wartość <code>null</code>, jeśli dopasowanie nie uda się albo tablicę dopasowanych łańcuchów.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="string">"Nie"</span>.<span class="property">match</span>(<span class="string">/Tak/</span>));
+<span class="variable">show</span>(<span class="string">"... tak"</span>.<span class="property">match</span>(<span class="string">/tak/</span>));
+<span class="variable">show</span>(<span class="string">"Wielka małpa"</span>.<span class="property">match</span>(<span class="string">/wielka (\w+)/i</span>));</pre>
+  <p>Pierwszy element w zwróconej tablicy zawsze jest tą częścią łańcucha, która pasowała do wzorca. Jak pokazuje ostatni przykład, jeśli we wzorcu znajdują się części w nawiasach, dopasowane przez nie części również zostają dodane do tablicy. To bardzo ułatwia wydobywanie kawałków łańcuchów.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">parenthesized</span> = <span class="variable">prompt</span>(<span class="string">"Powiedz mi coś"</span>, <span class="string">""</span>).<span class="property">match</span>(<span class="string">/\((.*)\)/</span>);
+<span class="keyword">if</span> (<span class="variable">parenthesized</span> != <span class="atom">null</span>)
+  <span class="variable">print</span>(<span class="string">"Umieściłeś w nawiasie „"</span>, <span class="variable">parenthesized</span>[<span class="atom">1</span>], <span class="string">"”"</span>);</pre>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 10.3</div>
+  <div class="exercise">
+    <p>Napisz jeszcze raz funkcję <code>extractDate</code> z <a href="/kursy/javascript/wszystko-jasne/r4-obiekty-tablice">rozdziału 4</a>. Funkcja ta, gdy przekaże się jej łańcuch, szuka czegoś, co ma określony format daty. Jeśli uda się znaleźć taką datę, zapisuje wartości w obiekcie <code>Date</code>. W przeciwnym razie zgłasza wyjątek. Niech akceptuje daty, w których dzień lub miesiąc zostały zapisane przy użyciu tylko jednej cyfry.</p>
+  </div>
+  <div class="toggle">[pokaż rozwiązanie]</div><div class="solution" style="display: none;"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">extractDate</span>(<span class="variabledef">string</span>) {
+  <span class="keyword">var</span> <span class="variabledef">found</span> = <span class="localvariable">string</span>.<span class="property">match</span>(<span class="string">/(\d\d?)\.(\d\d?)\.(\d{4})/</span>);
+  <span class="keyword">if</span> (<span class="localvariable">found</span> == <span class="atom">null</span>)
+    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="variable">Error</span>(<span class="string">"Nie znaleziono daty w „"</span> + <span class="localvariable">string</span> + <span class="string">"”."</span>);
+  <span class="keyword">return</span> <span class="keyword">new</span> <span class="variable">Date</span>(<span class="variable">Number</span>(<span class="localvariable">found</span>[<span class="atom">3</span>]), <span class="variable">Number</span>(<span class="localvariable">found</span>[<span class="atom">2</span>]) - <span class="atom">1</span>,
+                  <span class="variable">Number</span>(<span class="localvariable">found</span>[<span class="atom">1</span>]));
+}
+
+<span class="variable">show</span>(<span class="variable">extractDate</span>(<span class="string">"urodzeni 5.2.2007 (matka Noog): Long-ear Johnson"</span>));</pre>
+    <p>Ta wersja jest nieco dłuższa niż poprzednia, ale ma tę zaletę, że sprawdza co robi i złości się, gdy otrzyma bezsensowne dane. Bez wyrażeń regularnych osiągnięcie tego było dużo trudniejsze ― trzeba by było wykonać wielu wywołań funkcji <code>indexOf</code>, aby dowiedzieć się czy liczby zawierają jedną cyfrę czy dwie oraz czy łączniki znajdowały się we właściwych miejscach.</p>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Metoda <code>replace</code> wartości łańcuchowych, którą widzieliśmy już w <a href="/kursy/javascript/wszystko-jasne/r6-programowanie-funkcyjne">rozdziale 6</a>, może przyjmować wyrażenie regularne jako pierwszy argument.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">print</span>(<span class="string">"Borobudur"</span>.<span class="property">replace</span>(<span class="string">/[ou]/g</span>, <span class="string">"a"</span>));</pre>
+  <p>Zwróć uwagę na znak <code>g</code> za wyrażeniem regularnym. Litera ta oznacza „globalny”, czyli że każda część łańcucha, która pasuje do wzorca ma zostać wymieniona. Gdyby nie było litery <code>g</code>, zamieniona zostałaby tylko pierwsza litera <code>o</code>.</p>
+  <p>Czasami trzeba zachowywać części zamienionych łańcuchów. Na przykład mamy długi łańcuch zawierający imiona i nazwiska, po jednej parze na wiersz, w formacie „Nazwisko, Imię”. Chcemy zamienić imiona i nazwiska miejscami oraz usunąć przecinki, aby uzyskać format „Imię Nazwisko”.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">names</span> = <span class="string">"Picasso, Pablo\nGauguin, Paul\nVan Gogh, Vincent"</span>;
+<span class="variable">print</span>(<span class="variable">names</span>.<span class="property">replace</span>(<span class="string">/([\w ]+), ([\w ]+)/g</span>, <span class="string">"$2 $1"</span>));</pre>
+  <p>Ciągi <code>$1</code> i <code>$2</code> w łańcuchu zamiany odnoszą się do części znajdujących się we wzorcu w nawiasach. Ciąg <code>$1</code> zostaje zastąpiony tekstem dopasowanym do pierwszej pary nawiasów, a <code>$2</code> — do drugiej itd. aż do <code>$9</code>.</p>
+  <p>Jeśli nawiasów jest więcej niż 9, ta metoda nie zadziała. Ale jest jeszcze inny sposób na zamianę łańcuchów, który może być przydatny także w kilku innych trudnych sytuacjach. Gdy drugi argument metody <code>replace</code> jest funkcją, a nie łańcuchem, funkcja ta jest wywoływana za każdym razem, gdy zostanie znalezione dopasowanie i dopasowany tekst jest zastępowany tym, co zwraca ta funkcja. Argumenty przekazane do funkcji są dopasowywanymi elementami, podobnie do wartości w tablicach zwracanych przez metodę <code>match</code> pierwszy jest całym dopasowaniem, a za nim znajdują się argumenty dla każdej „nawiasowej” części wzorca.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">eatOne</span>(<span class="variabledef">match</span>, <span class="variabledef">amount</span>, <span class="variabledef">unit</span>) {
+  <span class="localvariable">amount</span> = <span class="variable">Number</span>(<span class="localvariable">amount</span>) - <span class="atom">1</span>;
+  <span class="keyword">if</span> (<span class="localvariable">amount</span> == <span class="atom">1</span>) {
+    <span class="localvariable">unit</span> = <span class="localvariable">unit</span>.<span class="property">slice</span>(<span class="atom">0</span>, <span class="localvariable">unit</span>.<span class="property">length</span> - <span class="atom">1</span>);
+  }
+  <span class="keyword">else</span> <span class="keyword">if</span> (<span class="localvariable">amount</span> == <span class="atom">0</span>) {
+    <span class="localvariable">unit</span> = <span class="localvariable">unit</span> + <span class="string">"s"</span>;
+    <span class="localvariable">amount</span> = <span class="string">"no"</span>;
+  }
+  <span class="keyword">return</span> <span class="localvariable">amount</span> + <span class="string">" "</span> + <span class="localvariable">unit</span>;
+}
+
+<span class="keyword">var</span> <span class="variable">stock</span> = <span class="string">"1 lemon, 2 cabbages, and 101 eggs"</span>;
+<span class="variable">stock</span> = <span class="variable">stock</span>.<span class="property">replace</span>(<span class="string">/(\d+) (\w+)/g</span>, <span class="variable">eatOne</span>);
+
+<span class="variable">print</span>(<span class="variable">stock</span>);</pre>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 10.4</div>
+  <div class="exercise">
+    <p>Ostatnią sztuczkę można wykorzystać do poprawienia funkcji wstawiającej encje HTML z <a href="/kursy/javascript/wszystko-jasne/r6-programowanie-funkcyjne">rozdziału 6</a>. Przypomnę, jak wyglądała: </p>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">escapeHTML</span>(<span class="variabledef">text</span>) {
+  <span class="keyword">var</span> <span class="variabledef">replacements</span> = [[<span class="string">/&amp;/g</span>, <span class="string">"&amp;amp;"</span>], [<span class="string">/"/g</span>, <span class="string">"&amp;quot;"</span>],
+                      [<span class="string">/&lt;/g</span>, <span class="string">"&amp;lt;"</span>], [<span class="string">/&gt;/g</span>, <span class="string">"&amp;gt;"</span>]];
+  <span class="variable">forEach</span>(<span class="localvariable">replacements</span>, <span class="keyword">function</span>(<span class="variabledef">replace</span>) {
+    <span class="localvariable">text</span> = <span class="localvariable">text</span>.<span class="property">replace</span>(<span class="localvariable">replace</span>[<span class="atom">0</span>], <span class="localvariable">replace</span>[<span class="atom">1</span>]);
+  });
+  <span class="keyword">return</span> <span class="localvariable">text</span>;
+}</pre>
+    <p>Napisz nową funkcję <code>escapeHTML</code>, która robi to samo, co stara, ale wywołuje funkcję <code>replace</code> tylko raz.</p>
+  </div>
+  <div class="toggle">[pokaż rozwiązanie]</div><div class="solution" style="display: none;"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">escapeHTML</span>(<span class="variabledef">text</span>) {
+  <span class="keyword">var</span> <span class="variabledef">replacements</span> = {<span class="string">"&lt;"</span>: <span class="string">"&lt;"</span>, <span class="string">"&gt;"</span>: <span class="string">"&gt;"</span>,
+                      <span class="string">"&amp;"</span>: <span class="string">"&amp;"</span>, <span class="string">"\""</span>: <span class="string">"""</span>};
+  <span class="keyword">return</span> <span class="localvariable">text</span>.<span class="property">replace</span>(<span class="string">/[&lt;&gt;&amp;"]/g</span>, <span class="keyword">function</span>(<span class="variabledef">character</span>) {
+    <span class="keyword">return</span> <span class="localvariable">replacements</span>[<span class="localvariable">character</span>];
+  });
+}
+
+<span class="variable">print</span>(<span class="variable">escapeHTML</span>(<span class="string">"Tekst preformatowany zapisuje się w elemencie \"&lt;pre&gt;\"."</span>));</pre>
+    <p>Obiekt <code>replacements</code> pozwala szybko związać każdy znak z jego encją. Używanie go w ten sposób jest bezpieczne (tzn. nie jest potrzebny żaden obiekt <code>Dictionary</code>), ponieważ jedyne własności, jakie będą używane to te, które zostaną dopasowane przez wyrażenie <code>/[&lt;&gt;&amp;"]/</code>.</p>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Czasami wzorzec, którego trzeba będzie używać do dopasowywania nie jest znany podczas pisania kodu. Wyobraź sobie, że piszesz bardzo prosty filtr brzydkich słów dla tablicy ogłoszeń. Chcesz, aby przepuszczał tylko te ogłoszenia, które nie zawierają wulgaryzmów. Administrator tablicy może zdefiniować listę słów, których nie akceptuje.</p>
+  <p>Najlepszym sposobem na sprawdzenie czy w tekście znajdują się słowa z pewnego zbioru jest użycie wyrażeń regularnych. Jeśli lista brzydkich słów zostanie zapisana w postaci tablicy, to wyrażenie regularne możemy utworzyć tak:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">badWords</span> = [<span class="string">"małpa"</span>, <span class="string">"krowa"</span>, <span class="string">"osioł"</span>, <span class="string">"baran"</span>, <span class="string">"kaszalot"</span>];
+<span class="keyword">var</span> <span class="variable">pattern</span> = <span class="keyword">new</span> <span class="variable">RegExp</span>(<span class="variable">badWords</span>.<span class="property">join</span>(<span class="string">"|"</span>), <span class="string">"i"</span>);
+<span class="keyword">function</span> <span class="variable">isAcceptable</span>(<span class="variabledef">text</span>) {
+  <span class="keyword">return</span> !<span class="variable">pattern</span>.<span class="property">test</span>(<span class="localvariable">text</span>);
+}
+
+<span class="variable">show</span>(<span class="variable">isAcceptable</span>(<span class="string">"Mmmm, baranina."</span>));
+<span class="variable">show</span>(<span class="variable">isAcceptable</span>(<span class="string">"A to stara baranica"</span>));</pre>
+  <p>Moglibyśmy dodać wzorce <code>\b</code> wokół słów, dzięki czemu wyrażenia typu „baranina” nie byłyby traktowane jako brzydkie. To jednak spowodowałoby również przepuszczenie drugiego przypadku, co chyba nie jest pożądane. Bardzo trudno jest utworzyć dobry filtr wulgaryzmów i zazwyczaj filtry takie są zbyt denerwujące, żeby je stosować.</p>
+  <p>Pierwszy argument konstruktora <code>RegExp</code> jest łańcuchem zawierającym wzorzec, a w drugim można dodać opcję ignorowania wielkości liter lub „globalności”. Tworząc łańcuch wzorca należy uważać na ukośniki wsteczne. Ponieważ normalnie ukośniki te są usuwane podczas interpretowania łańcucha, wszystkie takie znaki, które mają znajdować się w wyrażeniu muszą zostać zastąpione specjalną sekwencją:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">digits</span> = <span class="keyword">new</span> <span class="variable">RegExp</span>(<span class="string">"\\d+"</span>);
+<span class="variable">show</span>(<span class="variable">digits</span>.<span class="property">test</span>(<span class="string">"101"</span>));</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Najważniejsze jeśli chodzi o wyrażenia regularne jest to, aby wiedzieć, że istnieją i że mogą bardzo pomóc w napisaniu kodu do obróbki łańcuchów. Są jednak tak zawiłe, że zanim użyjesz ich pierwszy raz, to pewnie będziesz miał z dziesięć nieudanych podejść. Nie poddawaj się, a już wkrótce będziesz pisać wyrażenia przypominające hieroglify jakiegoś czarnoksiężnika.</p>
+  <img src="xkcd_regular_expressions.png" alt="Komiks o wyrażeniach regularnych" width="600" height="607">
+  <p>(Komiks autorstwa <a href="http://xkcd.com">Randalla Munroe’a</a>.)</p>
+</div>
+<h3>Przypisy</h3>
+<ol>
+  <li id="footnote1">W tym przypadku ukośniki wsteczne nie były niezbędne, ponieważ znaki te znajdują się w nawiasie <code>[</code> <code>]</code>, ale lepiej jest ich użyć mimo to, aby nie musieć o tym pamiętać.</li>
+</ol>

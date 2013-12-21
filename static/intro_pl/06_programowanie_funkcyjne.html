@@ -1,0 +1,640 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Programowanie funkcyjne</title>
+<link rel=stylesheet href=doc.css>
+<link rel=author href=http://marijnhaverbeke.nl/>
+<link rel=license href=http://creativecommons.org/licenses/by/3.0/deed.pl>
+<h1>Programowanie funkcyjne</h1>
+
+<div class="block">
+  <p>Program w miarę jak się rozrasta, staje się coraz bardziej skomplikowany i trudniejszy do zrozumienia. Oczywiście wydaje nam się, że jesteśmy niezwykle inteligentni, ale tak naprawdę jesteśmy tylko ludźmi i nawet niewielki chaos sprawia nam kłopoty. I tak to się wszystko toczy.  Praca nad czymś, czego się nie rozumie przypomina obcinanie na chybił trafił kabelków w bombie czasowej, jak pokazują w filmach. Jeśli będziesz mieć szczęście, może uda Ci się odciąć właściwy przewód — Twoje szanse rosną, gdy jesteś super bohaterem filmowym i przyjmiesz odpowiednią dramatyczną pozę — ale zawsze istnieje ryzyko, że wysadzisz wszystko w powietrze.</p>
+  <p>Oczywiście uszkodzenie programu zwykle nie powoduje żadnego wybuchu. Ale czasami doprowadzenie do porządku programu, w którym grzebał ktoś nie znający się na rzeczy jest tak trudne, że równie dobrze można by go było napisać od nowa.</p>
+  <p>Dlatego programiści zawsze starają się pisać jak najprostszy kod. Jedną z ważnych technik wykorzystywanych do tego celu jest <strong>abstrakcja</strong>. Podczas pisania programu łatwo dać się wciągnąć w szczegóły. Napotykasz jakiś niewielki problem, rozwiązujesz go, przechodzisz do następnego drobiazgu itd. Tak napisany kod czyta się jak babcine opowieści.</p>
+  <blockquote>Tak, mój drogi, aby zrobić zupę grochową, trzeba mieć łuskany suszony groch. Potem należy go namoczyć przynajmniej przez noc, aby nie trzeba było go gotować wiele godzin. Pamiętam, jak mój niezbyt bystry syn próbował ugotować zupę grochową. Dasz wiarę, że nie namoczył grochu? Omal nie połamaliśmy sobie zębów. Wracając do sedna, gdy będziesz moczyć groch, a dla każdej osoby będziesz potrzebować około szklanki grochu, i pamiętaj, że groch wciągając wodę mocno się rozszerza i jeśli nie weźmiesz odpowiednio dużego naczynia, to z niego wyjdzie, a więc weź dużo wody, aby mogła zostać wciągnięta, zatem jak mówiłam, około szklanki suchego grochu, i po namoczeniu gotuj go w czterech szklankach wody na szklankę grochu. Gotuj na wolnym ogniu przez dwie godziny, czyli przykryj garnek i ustaw tak ogień, aby zupa ledwo się gotowała, a potem dodaj pokrojoną cebulę, posiekanego selera, z dwie marchewki i możesz dorzucić kawałek szynki. To wszystko podgotuj jeszcze kilka minut i można jeść.</blockquote>
+  <p>A oto inny sposób przedstawienia tego przepisu:</p>
+  <blockquote>Dla każdej osoby: jedna szklanka suszonego łuskanego grochu, pół pokrojonej cebuli, pół marchewki, seler i ewentualnie kawałek szynki.<br>
+    <br>
+    Namoczyć groch przez noc, gotować na wolnym ogniu w czterech szklankach wody (na osobę), dodać warzywa i szynkę, gotować jeszcze 10 minut.</blockquote>
+    <p>Ta wersja jest znacznie krótsza, ale jeśli nie wiemy, jak namoczyć groch, to na pewno zrobimy to źle i dodamy za mało wody. Ale zawsze można sprawdzić, jak się namacza groch i to jest w tym wszystkim kluczowe. Jeśli założy się, że odbiorca posiada określoną wiedzę, można posługiwać się bardziej ogólnymi pojęciami i wyrażać się w sposób znacznie bardziej klarowny oraz zwięzły. Na tym mniej więcej polega abstrakcja.</p>
+    <p>Jak ta kulinarna przypowieść ma się do programowania? Oczywiście przepis to metafora programu. Podstawowa wiedza kucharska to w tym opowiadaniu odpowiednik funkcji i innych dostępnych programiście konstrukcji programistycznych. Na początku książki poznałeś np. instrukcję <code>while</code> ułatwiającą pisanie pętli, a w <a href="/kursy/javascript/wszystko-jasne/r4-obiekty-tablice/">rozdziale 4</a> pokazałem Ci, jak pisać proste <strong>funkcje</strong>, aby móc tworzyć inne funkcje w łatwy sposób. Narzędzia te, niektóre dostępne jako część języka programowania, a inne pisane przez programistę, pozwalają pozbyć się wielu niepotrzebnych szczegółów z reszty programu ułatwiając pracę z tym programem.</p>
+</div>
+<hr>
+<div class="block">
+  <p><strong>Programowanie funkcyjne</strong>, które jest tematem tego rozdziału, pozwala tworzyć abstrakcje poprzez sprytne łączenie funkcji. Programista dysponujący zestawem podstawowych funkcji i umiejący ich używać jest znacznie bardziej efektywny od programisty, który wszystko zaczyna od początku. Niestety standardowe środowiska JavaScript zawiera wręcz nieprzyzwoicie mało niezbędnych funkcji, przez co musimy pisać własne albo, co jest zwykle lepszym rozwiązaniem, musimy korzystać z kodu napisanego przez innych programistów (więcej na ten temat dowiesz się w <a href="/kursy/javascript/wszystko-jasne/r9-modularnosc">rozdziale 9</a>).</p>
+  <p>Istnieją jeszcze inne popularne techniki abstrakcji, wśród których jedną z najważniejszych jest programowanie obiektowe będące tematem <a href="/kursy/javascript/wszystko-jasne/r8-obiektowe">rozdziału 8</a>.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Jednym z paskudnych szczegółów, który jeśli masz choć odrobinę dobrego gustu, powinien Cię irytować jest ciągle powtarzana pętla <code>for</code> do przeglądania tablic: <code>for (var i = 0; i &lt; something.length; i++)…</code> Czy da się tu zastosować abstrakcję?</p>
+  <p>Problem polega na tym, że podczas gdy większość funkcji pobiera jakieś wartości, wykonuje na nich działania, a następnie zwraca jakąś wartość, taka pętla zawiera fragment kodu, który musi wykonać. Napisanie funkcji przeglądającej tablicę i drukującej wszystkie jej elementy jest łatwe:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">printArray</span>(<span class="variabledef">array</span>) {
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">i</span> = <span class="atom">0</span>; <span class="localvariable">i</span> &lt; <span class="localvariable">array</span>.<span class="property">length</span>; <span class="localvariable">i</span>++)
+    <span class="variable">print</span>(<span class="localvariable">array</span>[<span class="localvariable">i</span>]);
+}</pre>
+  <p>A gdybyśmy chcieli zrobić coś innego, niż tylko drukowanie? Ponieważ „robienie czegoś” można przedstawić jako funkcję, a funkcje są także wartościami, naszą czynność możemy przekazać jako wartość funkcyjną:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">forEach</span>(<span class="variabledef">array</span>, <span class="variabledef">action</span>) {
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">i</span> = <span class="atom">0</span>; <span class="localvariable">i</span> &lt; <span class="localvariable">array</span>.<span class="property">length</span>; <span class="localvariable">i</span>++)
+    <span class="localvariable">action</span>(<span class="localvariable">array</span>[<span class="localvariable">i</span>]);
+}
+
+    <span class="variable">forEach</span>([<span class="string">"Wampeter"</span>, <span class="string">"Foma"</span>, <span class="string">"Granfalloon"</span>], <span class="variable">print</span>);</pre>
+  <p>I przy użyciu funkcji anonimowej coś takiego, jak pętla <code>for</code> można napisać przy użyciu mniejszej ilości niepotrzebnych szczegółów:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">sum</span>(<span class="variabledef">numbers</span>) {
+    <span class="keyword">var</span> <span class="variabledef">total</span> = <span class="atom">0</span>;
+    <span class="variable">forEach</span>(<span class="localvariable">numbers</span>, <span class="keyword">function</span> (<span class="variabledef">number</span>) {
+    <span class="localvariable">total</span> += <span class="localvariable">number</span>;
+  });
+    <span class="keyword">return</span> <span class="localvariable">total</span>;
+}
+    <span class="variable">show</span>(<span class="variable">sum</span>([<span class="atom">1</span>, <span class="atom">10</span>, <span class="atom">100</span>]));</pre>
+  <p>Zwróć uwagę, że zmienna <code>total</code> dzięki zasadom leksykalnego określania zakresu dostępności jest widoczna wewnątrz funkcji anonimowej. Zauważ również, że ta wersja jest niewiele krótsza od pętli <code>for</code> i na końcu zawiera niezgrabne <code>});</code> ― klamra zamyka funkcję anonimową, nawias stanowi koniec wywołania funkcji <code>forEach</code>, a średnik jest potrzebny dlatego, ponieważ to wywołanie jest instrukcją.</p>
+  <p>Otrzymujemy zmienną związaną z bieżącym elementem tablicy, <code>number</code>, dzięki czemu nie musimy używać notacji <code>numbers[i]</code>, a gdy tablica ta jest tworzona poprzez ewaluację jakiegoś wyrażenia, nie trzeba zapisywać jej w zmiennej, ponieważ można ją przekazać bezpośrednio do <code>forEach</code>.</p>
+  <p>W „kocim” kodzie w <a href="/kursy/javascript/wszystko-jasne/r4-obiekty-tablice/">rozdziale 4</a> znajduje się następujący fragment kodu:</p>
+  <pre class="preformatted">var paragraphs = mailArchive[mail].split("\n");
+for (var i = 0; i &lt; paragraphs.length; i++)
+  handleParagraph(paragraphs[i]);</pre>
+  <p>Teraz można to zapisać tak:</p>
+  <pre class="preformatted">forEach(mailArchive[mail].split("\n"), handleParagraph);</pre>
+  <p>Ogólnie rzecz biorąc, użycie bardziej abstrakcyjnych (wyższego poziomu) konstrukcji powoduje, że jest więcej informacji i mniej szumu: kod w funkcji <code>sum</code> można przeczytać tak: „<em>dla każdej liczby w tablicy numbers dodaj tę liczbę do sumy</em>”, zamiast… „<em>jest zmienna, która początkowo ma wartość zero i zmienia wartości w górę do długości tablicy o nazwie numbers i dla każdej wartości tej zmiennej szukamy odpowiedniego elementu w tablicy, a następnie dodajemy go do sumy</em>”.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Nasza funkcja <code>forEach</code> stanowi przykład abstrakcyjnego zapisu algorytmu przeglądania tablicy. „Luki” w tym algorytmie, w tym przypadku dotyczące tego, co robić z każdym z elementów, są wypełnione funkcjami, które są przekazywane do funkcji algorytmu.</p>
+  <p>Funkcje operujące na innych funkcjach nazywają się funkcjami wyższego rzędu. Operując na funkcjach mogą wyrażać czynności na całkiem nowym poziomie. Funkcja <code>makeAddFunction</code> z <a href="/kursy/javascript/wszystko-jasne/r3-funkcje">rozdziału 3</a> także jest funkcją wyższego rzędu. Zamiast pobierać wartość funkcyjną jako argument, tworzy nową funkcję.</p>
+  <p>Funkcji wyższego rzędu można używać do uogólnienia wielu algorytmów, których za pomocą zwykłych funkcji nie da się w łatwy sposób opisać. Mając repertuar tych funkcji do dyspozycji łatwiej jest myśleć o swoim kodzie w bardziej klarowny sposób: zamiast tworzyć zawiłą plątaninę zmiennych i pętli możesz rozłożyć algorytm na kombinację kilku podstawowych algorytmów, które są wywoływane za pomocą nazw i nie muszą być wielokrotnie wpisywane w całości.</p>
+  <p>Pisanie <em>co</em> chce się zrobić, zamiast <em>jak</em> chce się to zrobić oznacza, że pracujemy na wyższym poziomie abstrakcji. W praktyce powstaje krótszy, klarowniejszy i przyjemniejszy kod.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Inny przydatny typ funkcji wyższego rzędu <em>modyfikuje</em> otrzymaną wartość funkcyjną:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">negate</span>(<span class="variabledef">func</span>) {
+    <span class="keyword">return</span> <span class="keyword">function</span>(<span class="variabledef">x</span>) {
+    <span class="keyword">return</span> !<span class="localvariable">func</span>(<span class="localvariable">x</span>);
+  };
+}
+    <span class="keyword">var</span> <span class="variable">isNotNaN</span> = <span class="variable">negate</span>(<span class="variable">isNaN</span>);
+    <span class="variable">show</span>(<span class="variable">isNotNaN</span>(<span class="atom">NaN</span>));</pre>
+  <p>Funkcja zwrócona przez <code>negate</code> przekazuje swój argument do funkcji <code>func</code>, a następnie neguje wynik. A co, gdyby funkcja, którą chcemy zanegować pobierała więcej niż jeden argument? Dostęp do argumentów przekazanych do funkcji można uzyskać dzięki tablicy <code>arguments</code>, ale jak wywołać funkcję, gdy nie wie się, ile jest argumentów?</p>
+  <p>Funkcje mają metodę o nazwie <code>apply</code>, której używa się właśnie w takich sytuacjach. Metoda ta pobiera dwa argumenty. Rola pierwszego argumentu zostanie opisana w <a href="/kursy/javascript/wszystko-jasne/r8-obiektowe">rozdziale 8</a>, a na razie nadamy mu wartość <code>null</code>. Drugi argument to tablica zawierająca argumenty, do których funkcja musi zostać zastosowana.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="variable">Math</span>.<span class="property">min</span>.<span class="property">apply</span>(<span class="atom">null</span>, [<span class="atom">5</span>, <span class="atom">6</span>]));
+
+    <span class="keyword">function</span> <span class="variable">negate</span>(<span class="variabledef">func</span>) {
+    <span class="keyword">return</span> <span class="keyword">function</span>() {
+    <span class="keyword">return</span> !<span class="localvariable">func</span>.<span class="property">apply</span>(<span class="atom">null</span>, <span class="localvariable">arguments</span>);
+  };
+}</pre>
+  <p>Niestety w przeglądarce Internet Explorer wiele wbudowanych funkcji, takich jak np. <code>alert</code>, nie jest <em>prawdziwymi</em> funkcjami, tylko… czymś. Operatorowi <code>typeof</code> zgłaszają się jako typ <code>"object"</code> i nie mają metody <code>apply</code>. Funkcje które tworzysz są zawsze prawdziwymi funkcjami.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Przyjrzymy się jeszcze kilku innym typowym algorytmom związanym z tablicami. Funkcja <code>sum</code> to w rzeczywistości wariant algorytmu, który zazwyczaj nazywa się <code>reduce</code> (redukcja) lub <code>fold</code> (zwijanie):</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">reduce</span>(<span class="variabledef">combine</span>, <span class="variabledef">base</span>, <span class="variabledef">array</span>) {
+    <span class="variable">forEach</span>(<span class="localvariable">array</span>, <span class="keyword">function</span> (<span class="variabledef">element</span>) {
+    <span class="localvariable">base</span> = <span class="localvariable">combine</span>(<span class="localvariable">base</span>, <span class="localvariable">element</span>);
+  });
+    <span class="keyword">return</span> <span class="localvariable">base</span>;
+}
+
+    <span class="keyword">function</span> <span class="variable">add</span>(<span class="variabledef">a</span>, <span class="variabledef">b</span>) {
+    <span class="keyword">return</span> <span class="localvariable">a</span> + <span class="localvariable">b</span>;
+}
+
+    <span class="keyword">function</span> <span class="variable">sum</span>(<span class="variabledef">numbers</span>) {
+    <span class="keyword">return</span> <span class="variable">reduce</span>(<span class="variable">add</span>, <span class="atom">0</span>, <span class="localvariable">numbers</span>);
+}</pre>
+  <p>Funkcja <code>reduce</code> sprowadza tablicę do pojedynczej wartości poprzez wielokrotne użycie funkcji, która dokonuje kombinacji elementu tablicy z wartością bazową. Dokładnie to robiła funkcja <code>sum</code>, a więc można ją skrócić używając <code>reduce</code>… z tym, że dodawanie w języku JavaScript jest operatorem, a nie funkcją, przez co najpierw musieliśmy je zaimplementować jako funkcję.</p>
+  <p>Powodem, dla którego funkcja <code>reduce</code> pobiera funkcję jako pierwszy, a nie ostatni argument, jak było w funkcji <code>forEach</code> częściowo jest tradycja ― w innych językach programowania tak się robi ― a częściowo to, że dzięki temu będziemy mogli zastosować pewną sztuczkę, o której będzie mowa pod koniec rozdziału. To oznacza, że gdy wywoływana jest funkcja <code>reduce</code>, napisanie funkcji redukującej jako funkcji anonimowej wygląda nieco dziwniej, ponieważ teraz pozostałe argumenty znajdują się za tą funkcją i podobieństwo do normalnego bloku <code>for</code> zostało całkowicie utracone.</p>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 6.1</div>
+  <div class="exercise">
+    <p>Napisz funkcję o nazwie <code>countZeroes</code> pobierającą tablicę liczb i zwracającą liczbę znajdujących się w niej zer. Użyj funkcji <code>reduce</code>.</p>
+    <p>Następnie napisz funkcję wyższego rzędu o nazwie <code>count</code> pobierającą tablicę i funkcję testową oraz zwracającą liczbę elementów w tej tablicy, dla których funkcja testowa zwróciła wartość <code>true</code>. Zaimplementuj ponownie funkcję <code>countZeroes</code> używając tej funkcji.</p>
+  </div>
+  <div class="toggle">[pokaż rozwiązanie]</div><div style="display: none;" class="solution"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">countZeroes</span>(<span class="variabledef">array</span>) {
+      <span class="keyword">function</span> <span class="variabledef">counter</span>(<span class="variabledef">total</span>, <span class="variabledef">element</span>) {
+      <span class="keyword">return</span> <span class="localvariable">total</span> + (<span class="localvariable">element</span> === <span class="atom">0</span> ? <span class="atom">1</span> : <span class="atom">0</span>);
+  }
+      <span class="keyword">return</span> <span class="variable">reduce</span>(<span class="localvariable">counter</span>, <span class="atom">0</span>, <span class="localvariable">array</span>);
+}</pre>
+    <p>Ten dziwny fragment ze znakiem zapytania to nowy operator. W <a href="/kursy/javascript/wszystko-jasne/r2-podstawy">rozdziale 2</a> poznałeś operatory jedno- i dwuargumentowe. Ten natomiast jest trójargumentowy, tzn. działa na trzech wartościach. Efekt jego działania jest podobny do instrukcji <code>if</code>/<code>else</code>, z tym, że instrukcja <code>if</code> warunkowo wykonuje instrukcje, a ten operator warunkowo wybiera wyrażenia. Pierwszy argument, znajdujący się przed znakiem zapytania, jest warunkiem. Jeśli wartością warunku jest <code>true</code>, wybrane zostaje wyrażenie znajdujące się bezpośrednio za znakiem zapytania — w tym przypadku <code>1</code>. Jeśli jest <code>false</code>, wybrana zostaje część znajdująca się za dwukropkiem — w tym przypadku <code>0</code>.</p>
+    <p>Dzięki temu operatorowi można znacznie skrócić niektóre fragmenty kodu. Gdy jednak wyrażenia są bardzo duże albo w warunkach trzeba podjąć więcej decyzji, to zazwyczaj zwykłe instrukcje <code>if</code> i <code>else</code> są bardziej przejrzyste.</p>
+    <p>Poniżej znajduje się rozwiązanie z użyciem funkcji <code>count</code> z funkcją tworzącą testery równości, dzięki której ostateczna funkcja <code>countZeroes</code> może być jeszcze krótsza:</p>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">count</span>(<span class="variabledef">test</span>, <span class="variabledef">array</span>) {
+      <span class="keyword">return</span> <span class="variable">reduce</span>(<span class="keyword">function</span>(<span class="variabledef">total</span>, <span class="variabledef">element</span>) {
+      <span class="keyword">return</span> <span class="localvariable">total</span> + (<span class="localvariable">test</span>(<span class="localvariable">element</span>) ? <span class="atom">1</span> : <span class="atom">0</span>);
+  }, <span class="atom">0</span>, <span class="localvariable">array</span>);
+}
+
+      <span class="keyword">function</span> <span class="variable">equals</span>(<span class="variabledef">x</span>) {
+      <span class="keyword">return</span> <span class="keyword">function</span>(<span class="variabledef">element</span>) {<span class="keyword">return</span> <span class="localvariable">x</span> === <span class="localvariable">element</span>;};
+}
+
+      <span class="keyword">function</span> <span class="variable">countZeroes</span>(<span class="variabledef">array</span>) {
+      <span class="keyword">return</span> <span class="variable">count</span>(<span class="variable">equals</span>(<span class="atom">0</span>), <span class="localvariable">array</span>);
+}</pre>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Inny ogólnie przydatny podstawowy algorytm dotyczący tablic nazywa się <code>map</code>. Jego działanie polega na przeglądaniu tablicy i stosowaniu do każdego jej elementu funkcji, podobnie jak to robi funkcja <code>forEach</code>. Jednak zamiast odrzucać wartości zwrócone przez funkcję tworzy z nich nową tablicę.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">map</span>(<span class="variabledef">func</span>, <span class="variabledef">array</span>) {
+    <span class="keyword">var</span> <span class="variabledef">result</span> = [];
+    <span class="variable">forEach</span>(<span class="localvariable">array</span>, <span class="keyword">function</span> (<span class="variabledef">element</span>) {
+    <span class="localvariable">result</span>.<span class="property">push</span>(<span class="localvariable">func</span>(<span class="localvariable">element</span>));
+  });
+    <span class="keyword">return</span> <span class="localvariable">result</span>;
+}
+
+    <span class="variable">show</span>(<span class="variable">map</span>(<span class="variable">Math</span>.<span class="property">round</span>, [<span class="atom">0.01</span>, <span class="atom">2</span>, <span class="atom">9.89</span>, <span class="variable">Math</span>.<span class="property">PI</span>]));</pre>
+  <p>Zwróć uwagę, że pierwszy argument nazywa się <code>func</code>, a nie <code>function</code>. Jest to spowodowane tym, że <code>function</code> jest słowem kluczowym i nie może być używane jako nazwa zmiennej.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Dawno, dawno temu w górzystych lasach Pensylwanii mieszkał pewien samotnik. Większość czasu spędzał na przechadzaniu się wokół swojej góry, rozmawianiu z drzewami i żartowaniu z ptakami. Ale od czasu do czasu, gdy ulewne deszcze nie pozwalały mu wyjść chaty, a wyjący wicher sprawiał, że czuł się maleńki na tym świecie, samotnik pisał. Przelewał na papier swoje myśli z nadzieją, że kiedyś staną się większe od niego.</p>
+  <p>Po nieudanych próbach pisania poezji, fikcji i filozofii samotnik postanowił napisać książkę techniczną. W młodości trochę programował i uświadomił sobie, że jeśli napisze dobrą książkę na ten temat, czekają go sława i szacunek.</p>
+  <p>Jak postanowił, tak uczynił. Początkowo do pisania używał kory drzewnej, ale nie była ona zbyt dobrym materiałem. Poszedł więc do pobliskiej wioski i kupił sobie laptopa. Po napisaniu kilku rozdziałów doszedł do wniosku, że książkę napisze w formacie HTML, aby móc ją opublikować na swojej stronie internetowej…</p>
+</div>
+<hr>
+<div class="block">
+  <p>Znasz język HTML? Służy on do tworzenia stron internetowych i od czasu do czasu będzie używany w dalszej części tej książki. Dlatego dobrze by było, gdybyś znał przynajmniej jego podstawy. Jeśli jesteś dobrym uczniem, to teraz poszukasz w sieci jakiegoś dobrego wprowadzenia do HTML-a i wrócisz do dalszej lektury tej książki, gdy przeczytasz to wprowadzenie. Wiem jednak, że większość czytelników to słabi uczniowie i dlatego poniżej przedstawiam krótki przewodnik, który mam nadzieję, że wystarczy.</p>
+  <p>Akronim HTML pochodzi od słów <span lang="en">HyperText Mark-up Language</span> oznaczających język znakowania hipertekstowego. Dokument HTML to plik tekstowy. Ponieważ potrzebny jest jakiś sposób na określenie struktury tego tekstu, informacje o tym, co jest nagłówkiem, który akapit jest różowy itd. wyraża się za pomocą kilku specjalnych znaków, które są czymś podobnym do ukośników w JavaScripcie. Znaki większości i mniejszości służą do tworzenia znaczników. Znacznik definiuje dodatkowe informacje o tekście dokumentu. Znacznik może być samodzielnym bytem, gdy np. oznacza miejsce, w którym na stronie ma być wyświetlony obraz albo może zawierać tekst i inne znaczniki, gdy np. jest używany do oznaczenia akapitu.</p>
+  <p>Niektóre znaczniki muszą znajdować się w każdym dokumencie, np. cała treść dokumentu HTML musi znajdować się między otwarciem i zamknięciem znacznika <code>html</code>. Poniżej znajduje się przykładowy dokument HTML:</p>
+  <pre class="preformatted">&lt;html&gt;
+  &lt;head&gt;
+    &lt;title&gt;Cytat&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;h1&gt;Cytat&lt;/h1&gt;
+    &lt;blockquote&gt;
+      &lt;p&gt;Język, w którym myślimy i programujemy jest ściśle
+      powiązany z problemami i rozwiązaniami, jakie potrafimy
+      sobie wyobrazić jest bardzo ścisły.  Dlatego też
+      ograniczanie funkcjonalności języka w celu eliminacji
+      błędów popełnianych przez programistów jest w najlepszym
+      wypadku ryzykowne.&lt;/p&gt;
+      &lt;p&gt;-- Bjarne Stroustrup&lt;/p&gt;
+    &lt;/blockquote&gt;
+    &lt;p&gt;Bjarne Stroustrup jest nie tylko twórcą języka C++,
+    ale również wnikliwym obserwatorem otaczającej go
+    rzeczywistości.&lt;/p&gt;
+    &lt;p&gt;A poniżej przedstawiono fotografię strusia:&lt;/p&gt;
+    &lt;img src="img/ostrich.png"/&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</pre>
+  <p>Elementy mogące zawierać tekst lub inne znaczniki składają się ze znacznika otwierającego <code>&lt;nazwaelementu&gt;</code> i zamykającego <code>&lt;/nazwaelementu&gt;</code>. Element <code>html</code> ma zawsze dwa elementy-dzieci: <code>head</code> i <code>body</code>. Pierwszy zawiera informacje <em>o</em> dokumencie, a drugi — treść właściwą tego dokumentu.</p>
+  <p>Większość nazw elementów to zagadkowe skróty, np. <code>h1</code> oznacza <span lang="en">„heading 1”</span>, czyli największy nagłówek. Istnieją też elementy od <code>h2</code> do <code>h6</code> oznaczające kolejne poziomy nagłówków. Element <code>p</code> to akapit (ang. paragraph), a <code>img</code> służy do wstawiania obrazów (od ang. image). Element <code>img</code> nie może zawierać tekstu ani innych znaczników, ale może zawierać dodatkowe informacje, jak np. <code>src="img/ostrich.png"</code> zwane atrybutami. Ten element zawiera atrybut informujący, gdzie znajduje się obraz, który ma zostać wyświetlony na stronie.</p>
+  <p>Jako że znaki <code>&lt;</code> i <code>&gt;</code> w HTML-u mają specjalne znaczenie, nie można ich zapisywać jako zwykłego tekstu dokumentów. Aby napisać wyrażenie <code>5 &lt; 10</code>, należałoby napisać <code>5 &amp;lt; 10</code>, gdzie <code>lt</code> oznacza „mniejszy niż” (od ang. less than). Zapis <code>&amp;gt;</code> oznacza <code>&gt;</code>, a ponieważ w tych łańcuchach także znak ampersand ma specjalne znaczenie, aby użyć tego znaku w tekście, należy napisać <code>&amp;amp;</code>.</p>
+  <p>To są tylko podstawowe informacje na temat języka HTML, ale myślę, że do zrozumienia dalszej części tego rozdziału i kolejnych rozdziałów taka wiedza wystarczy.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Konsola JavaScript zawiera funkcję <code>viewHTML</code>, za pomocą której można przeglądać dokumenty HTML. Przedstawiony powyżej przykładowy dokument zapisałem w zmiennej <code>stroustrupQuote</code>, dzięki czemu można go obejrzeć wykonując poniższy kod:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">viewHTML</span>(<span class="variable">stroustrupQuote</span>);</pre>
+  <p>Jeśli w Twojej przeglądarce działa jakiś program blokujący wyskakujące okienka, to prawdopodobnie będzie on przeszkadzał w działaniu funkcji <code>viewHTML</code>, która próbuje wyświetlić dokument HTML w nowym oknie lub na nowej karcie. Dlatego jeśli masz taki program, wyłącz w nim blokowanie wyskakujących okienek dla tej strony.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Wracając do naszej opowieści, samotnik postanowił zapisać swoją książkę w formacie HTML. Początkowo wpisywał wszystkie znaczniki ręcznie bezpośrednio w rękopisie, ale od wpisywania tych wszystkich znaków większości i mniejszości rozbolały go palce, a na dodatek ciągle zapominał wpisywać <code>&amp;amp;</code>, gdy potrzebował <code>&amp;</code>. Czuł, że ma z tym problem. Później próbował pisać książkę w programie Microsoft Word, a potem zapisywać ją w formacie HTML. Niestety kod HTML tworzony przez tę aplikację był piętnaście razy większy, niż to było potrzebne. A poza tym sam Microsoft Word również mu się nie podobał.</p>
+  <p>W końcu znalazł takie rozwiązanie: napisał książkę jako czysty tekst stosując proste reguły oddzielania akapitów i oznaczania nagłówków. Następnie napisał program, który zamieniał ten tekst na dokładnie taki dokument HTML, jakiego potrzebował.</p>
+  <p>Reguły, które stosował były następujące:</p>
+  <ol>
+    <li>Akapity rozdzielać pustymi wierszami.</li>
+    <li>Akapit zaczynający się od symbolu % jest nagłówkiem. Im więcej znaków %, tym mniejszy nagłówek.</li>
+    <li>W akapitach fragmenty tekstu między gwiazdkami to tekst wyróżniony (emfaza).</li>
+    <li>Przypisy dolne zapisywane są w klamrach.</li>
+  </ol>
+</div>
+<hr>
+<div class="block">
+  <p>Po kilku miesiącach ciężkiej pracy samotnik miał gotowych tylko kilka akapitów. W tym momencie nadeszła straszna burza, w czasie której w chatę samotnika uderzył piorun zabijając go i grzebiąc na zawsze jego marzenia o zostaniu pisarzem. Ze zwęglonych resztek jego laptopa udało mi się odzyskać poniższy plik:</p>
+  <pre class="preformatted">% Księga programowania
+
+%% Dwa aspekty
+
+Pod powłoką maszyny tętni życie programu. Bez żadnego wysiłku program rozszerza się i kurczy. Elektrony harmonicznie rozpraszają się i grupują. Formy powstające na ekranie monitora są niczym zmarszczki na powierzchni wody. Esencja pozostaje niezauważalna poniżej.
+
+Konstruktorzy maszyny umieścili w niej procesor i pamięć. To z nich powstały dwa aspekty programu.
+
+Aspekt procesora jest substancją aktywną. Nazywa się Kontrolą. Aspekt pamięci jest substancją pasywną. Nazywa się
+Danymi.
+
+Dane, mimo że składają się jedynie z bitów, mogą przyjmować niezwykle skomplikowane formy. Kontrola składa się tylko z prostych instrukcji, a mimo to może wykonywać trudne zadania. Małe i banalne byty dają początek rzeczom wielkim i skomplikowanym.
+
+Źródłem programu są Dane. Daje on początek istnieniu Kontroli. Kontrola może tworzyć nowe Dane. Jedne rodzą się z innych, inne są bezużyteczne bez poprzednich. Jest to harmonijny cykl Danych i Kontroli.
+
+Same w sobie Dane i Kontrola nie mają struktury. Z tej surowej substancji dawni programiści wyrzeźbili swoje programy. Z czasem z bezkształtnej masy wyłoniły się typy danych i chaotyczna Kontrola została ograniczona do roli struktur sterujących i funkcji.
+
+%% Aforyzmy
+
+Gdy uczeń zapytał Fu-Tzu o naturę cyklu Danych i Kontroli, Fu-Tzu odparł: „Pomyśl o kompilatorze, który sam siebie kompiluje”.
+
+Uczeń zapytał: „Dawni programiści używali tylko prostych maszyn i nie znali języków programowania, a mimo to tworzyli piękne programy. Dlaczego my używamy skomplikowanych maszyn i języków programowania?”. Fu-Tzu odparł: „Dawni budowniczowie używali tylko patyków i gliny, a mimo to budowali piękne chaty”.
+
+Pustelnik spędził dziesięć lat na pisaniu programu. Gdy skończył, z dumą ogłosił: „Mój program potrafi obliczyć ruch gwiazd na komputerze o architekturze 286 z systemem MS DOS”. „Dziś nikt już nie ma, ani nie używa komputerów o architekturze 286 z systemem MS DOS” odparł Fu-Tzu.
+
+Fu-Tzu napisał niewielki program pełen globalnych stanów i wątpliwych skrótów. Uczeń czytając ten kod spytał: „Ostrzegałeś nas przed tego typu technikami, a sam je stosujesz. Dlaczego”? Fu-Tzu odparł: „Nie ma sensu biec po węże strażackie, kiedy dom się nie pali” {nie ma to być zachętą do stosowania złych praktyk programistycznych, a jedynie ostrzeżeniem przed fanatycznym trzymaniem się podstawowych zasad}.
+
+%% Mądrość
+
+Uczeń skarżył się na wyniki obliczeń cyfrowych. „Gdy obliczę pierwiastek z dwóch, a potem podniosę to do potęgi, wynik jest niedokładny”! Fu-Tzu, który go przypadkiem usłyszał, roześmiał się. „Oto kawałek papieru. Napisz na nim dokładną wartość pierwiastka z dwóch”.
+
+Fu-Tzu rzekł: „Aby przeciąć pestkę, trzeba użyć dużej siły. Aby programem rozwiązać sedno problemu, trzeba napisać dużo kodu”.
+
+Tzu-li i Tzu-ssu chwalili się rozmiarem swoich najnowszych programów. „Dwieście tysięcy wierszy kodu”, powiedział Tzu-li, „nie licząc komentarzy”! Tzu-ssu odrzekł: „Phi, mój ma prawie *milion* wierszy kodu”. Fu-Tzu słysząc to, odparł: „Mój najlepszy program zawiera pięćset wierszy kodu”. Tzu-li i Tzu-ssu słysząc te słowa doznali olśnienia.
+
+Uczeń siedział w bezruchu przed swoim komputerem przez kilka godzin i tylko groźnie spoglądał. Próbował napisać piękne rozwiązanie trudnego problemu, ale nic dobrego nie przychodziło mu do głowy. Fu-Tzu trzasnął go w tył głowy i krzyknął: „*Napiszże coś!*”. Student zaczął pisać szpetne rozwiązanie. Gdy skończył, nagle pojął, jak napisać piękne rozwiązanie.
+
+%% Postęp
+
+Początkujący programista pisze programy tak, jak mrówka buduje swój kopiec, kawałek po kawałku bez zważania na ogólną strukturę. Jego programy są, jak luźne ziarnka piasku. Przez jakiś czas utrzymają się w całości, ale gdy za bardzo urosną, rozlecą się{odniesienie do wewnętrznej niespójności i duplikacji struktury w źle zorganizowanym kodzie.}.
+
+Gdy zda sobie sprawę z problemu, programista zacznie o wiele więcej czasu poświęcać na projektowanie struktury. Jego programy będą ściśle zbudowane, jak skalne rzeźby. Będą solidne, ale gdy będzie trzeba w nich coś zmienić, konieczne będzie zastosowanie brutalnych metod{Odniesienie do faktu, że struktura może ograniczać ewolucję programu.}.
+
+Mistrz programowania wie, kiedy zastosować strukturę, a kiedy pozostawić proste rozwiązania. Jego programy są jak glina, zwarte ale i plastyczne.
+
+%% Język
+
+W trakcie powstawania każdy język programowania otrzymuje składnię i semantykę. Składnia opisuje formę programu, semantyka zaś opisuje jego funkcję. Gdy składnia jest piękna, a semantyka klarowna, program będzie dostojny, jak pień potężnego drzewa. Gdy składnia jest niezgrabna, a semantyka niejasna, program jest jak krzak jeżyny.
+
+Tzu-ssu poproszono o napisanie programu w języku o nazwie Java, w którym funkcje są bardzo prymitywne. Każdego ranka zasiadając przed komputerem Tzu-ssu od razu zaczynał narzekać. Całymi dniami przeklinał i obwiniał język za wszystkie swoje niepowodzenia. Fu-Tzu przez pewien czas go słuchał, aż w końcu rzucił: „Każdy język ma swoje właściwości. Postępuj zgodnie z jego zasadami, zamiast próbować pisać tak, jakbyś używał innego języka”.</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Na cześć dobrego samotnika chciałbym dokończyć za niego jego program generujący HTML. Do problemu tego można podjeść następująco:</p>
+  <ol>
+    <li>Podziel plik na akapity wg pustych wierszy.</li>
+    <li>Usuń znaki % z akapitów nagłówkowych i oznacz je jako nagłówki.</li>
+    <li>Przeanalizuj akapity dzieląc ich tekst na zwykły tekst, emfazę oraz przypisy dolne.</li>
+    <li>Przenieś wszystkie przypisy na dół strony, pozostawiając w ich miejscu liczby <span class="footref">1</span>.</li>
+    <li>Każdy fragment tekstu umieść w odpowiednim elemencie HTML.</li>
+    <li>Połącz wszystko w jeden dokument HTML.</li>
+  </ol>
+  <p>To podejście nie przewiduje używania przypisów w wyróżnionym tekście i odwrotnie. Jest to drobna wada, ale dzięki temu nasz przykładowy kod będzie prostszy. Jeśli na końcu rozdziału będziesz miał ochotę podjąć wyzwanie, będziesz mógł dodać do programu obsługę zagnieżdżonych znaczników.</p>
+  <p>Cały tekst jest dostępny na tej stronie poprzez wywołanie funkcji <code>recluseFile</code>.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Pierwszy krok algorytmu jest prosty. Pusty wiersz występuje wtedy, gdy dwa znaki nowego wiersza znajdują się jeden po drugim. Jeśli przypomnisz sobie metodę <code>split</code>łańcuchów, o której była mowa w <a href="/kursy/javascript/wszystko-jasne/r4-obiekty-tablice/">rozdziale 4</a>, to zrozumiesz, że wystarczy napisać poniższy kod:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">paragraphs</span> = <span class="variable">recluseFile</span>().<span class="property">split</span>(<span class="string">"\n\n"</span>);
+    <span class="variable">print</span>(<span class="string">"Znaleziono "</span>, <span class="variable">paragraphs</span>.<span class="property">length</span>, <span class="string">" akapitów."</span>);</pre>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 6.2</div>
+  <div class="exercise">
+    <p>Napisz funkcję o nazwie <code>processParagraph</code> pobierającą jako argument akapit sprawdzającą, czy akapit ten jest nagłówkiem. Jeśli tak, niech usuwa znaki % i liczy, ile ich było. Następnie niech zwraca obiekt z dwiema własnościami: <code>content</code> zawierającą tekst akapitu i <code>type</code> zawierającą element HTML, w którym ten akapit powinien zostać umieszczony. Możliwe elementy to <code>p</code> dla zwykłych akapitów, <code>h1</code> dla nagłówków z jednym znakiem % i <code>hX</code> dla nagłówków z <code>X</code> znaków %.</p>
+    <p>Przypomnę, że łańcuchy mają metodę <code>charAt</code> służącą do sprawdzania, czy zawierają określony znak.</p>
+  </div>
+  <div class="toggle">[pokaż rozwiązanie]</div><div style="display: none;" class="solution"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">processParagraph</span>(<span class="variabledef">paragraph</span>) {
+      <span class="keyword">var</span> <span class="variabledef">header</span> = <span class="atom">0</span>;
+      <span class="keyword">while</span> (<span class="localvariable">paragraph</span>.<span class="property">charAt</span>(<span class="atom">0</span>) == <span class="string">"%"</span>) {
+      <span class="localvariable">paragraph</span> = <span class="localvariable">paragraph</span>.<span class="property">slice</span>(<span class="atom">1</span>);
+      <span class="localvariable">header</span>++;
+  }
+
+      <span class="keyword">return</span> {<span class="property">type</span>: (<span class="localvariable">header</span> == <span class="atom">0</span> ? <span class="string">"p"</span> : <span class="string">"h"</span> + <span class="localvariable">header</span>),
+      <span class="property">content</span>: <span class="localvariable">paragraph</span>};
+}
+
+      <span class="variable">show</span>(<span class="variable">processParagraph</span>(<span class="variable">paragraphs</span>[<span class="atom">0</span>]));</pre>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Tu możemy wypróbować widzianą wcześniej funkcję <code>map</code>.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">paragraphs</span> = <span class="variable">map</span>(<span class="variable">processParagraph</span>,
+    <span class="variable">recluseFile</span>().<span class="property">split</span>(<span class="string">"\n\n"</span>));</pre>
+  <p>W ten sposób otrzymaliśmy tablicę obiektów akapitów posortowanych wg kategorii. Ale wybiegamy za daleko w przód, ponieważ pominęliśmy 3. krok algorytmu:</p>
+  <blockquote>Przeanalizuj akapity dzieląc ich tekst na zwykły tekst, emfazę oraz przypisy dolne.</blockquote>
+  <p>Zadanie to można rozbić na następujące etapy:</p>
+  <ol>
+    <li>Jeśli akapit zaczyna się od gwiazdki, pobierz wyróżniony fragment i zapisz go.</li>
+    <li>Jeśli akapit zaczyna się od otwarcia klamry, pobierz przypis i zapisz go.</li>
+    <li>W pozostałych przypadkach pobieraj tekst do napotkania wyróżnienia lub przypisu albo do końca łańcucha i zapisz to jako zwykły tekst.</li>
+    <li>Jeśli w akapicie coś pozostanie, zacznij ponownie od punktu 1.</li>
+  </ol>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 6.3</div>
+  <div class="exercise">
+    <p>Napisz funkcję o nazwie <code>splitParagraph</code> przyjmującą jako argument akapit i zwracającą tablicę jego fragmentów. Wymyśl dobry sposób na reprezentację tych fragmentów.</p>
+    <p>Może się tu przydać metoda <code>indexOf</code>, która znajduje znak lub podłańcuch w łańcuchu i zwraca jego pozycję albo <code>-1</code>, jeśli nic nie znajdzie.</p>
+    <p>Ten algorytm jest skomplikowany i istnieje wiele nie całkiem poprawnych lub o wiele za długich sposobów jego realizacji. Jeśli napotkasz jakiś problem, po prostu zastanów się nad nim przez chwilę. Spróbuj napisać wewnętrzne funkcje, które wykonują mniejsze zadania składające się na algorytm.</p>
+  </div>
+  <div class="toggle">[pokaż rozwiązanie]</div><div style="display: none;" class="solution"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <p>Oto jedno z możliwych rozwiązań tego problemu:</p>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">splitParagraph</span>(<span class="variabledef">text</span>) {
+      <span class="keyword">function</span> <span class="variabledef">indexOrEnd</span>(<span class="variabledef">character</span>) {
+      <span class="keyword">var</span> <span class="variabledef">index</span> = <span class="localvariable">text</span>.<span class="property">indexOf</span>(<span class="localvariable">character</span>);
+      <span class="keyword">return</span> <span class="localvariable">index</span> == -<span class="atom">1</span> ? <span class="localvariable">text</span>.<span class="property">length</span> : <span class="localvariable">index</span>;
+  }
+
+      <span class="keyword">function</span> <span class="variabledef">takeNormal</span>() {
+      <span class="keyword">var</span> <span class="variabledef">end</span> = <span class="variable">reduce</span>(<span class="variable">Math</span>.<span class="property">min</span>, <span class="localvariable">text</span>.<span class="property">length</span>,
+      <span class="variable">map</span>(<span class="localvariable">indexOrEnd</span>, [<span class="string">"*"</span>, <span class="string">"{"</span>]));
+      <span class="keyword">var</span> <span class="variabledef">part</span> = <span class="localvariable">text</span>.<span class="property">slice</span>(<span class="atom">0</span>, <span class="localvariable">end</span>);
+      <span class="localvariable">text</span> = <span class="localvariable">text</span>.<span class="property">slice</span>(<span class="localvariable">end</span>);
+      <span class="keyword">return</span> <span class="localvariable">part</span>;
+  }
+
+      <span class="keyword">function</span> <span class="variabledef">takeUpTo</span>(<span class="variabledef">character</span>) {
+      <span class="keyword">var</span> <span class="variabledef">end</span> = <span class="localvariable">text</span>.<span class="property">indexOf</span>(<span class="localvariable">character</span>, <span class="atom">1</span>);
+      <span class="keyword">if</span> (<span class="localvariable">end</span> == -<span class="atom">1</span>)
+      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="variable">Error</span>(<span class="string">"Brak zamykającego '"</span> + <span class="localvariable">character</span> + <span class="string">"'"</span>);
+      <span class="keyword">var</span> <span class="variabledef">part</span> = <span class="localvariable">text</span>.<span class="property">slice</span>(<span class="atom">1</span>, <span class="localvariable">end</span>);
+      <span class="localvariable">text</span> = <span class="localvariable">text</span>.<span class="property">slice</span>(<span class="localvariable">end</span> + <span class="atom">1</span>);
+      <span class="keyword">return</span> <span class="localvariable">part</span>;
+  }
+
+      <span class="keyword">var</span> <span class="variabledef">fragments</span> = [];
+
+      <span class="keyword">while</span> (<span class="localvariable">text</span> != <span class="string">""</span>) {
+      <span class="keyword">if</span> (<span class="localvariable">text</span>.<span class="property">charAt</span>(<span class="atom">0</span>) == <span class="string">"*"</span>)
+      <span class="localvariable">fragments</span>.<span class="property">push</span>({<span class="property">type</span>: <span class="string">"emphasised"</span>,
+      <span class="property">content</span>: <span class="localvariable">takeUpTo</span>(<span class="string">"*"</span>)});
+      <span class="keyword">else</span> <span class="keyword">if</span> (<span class="localvariable">text</span>.<span class="property">charAt</span>(<span class="atom">0</span>) == <span class="string">"{"</span>)
+      <span class="localvariable">fragments</span>.<span class="property">push</span>({<span class="property">type</span>: <span class="string">"footnote"</span>,
+      <span class="property">content</span>: <span class="localvariable">takeUpTo</span>(<span class="string">"}"</span>)});
+      <span class="keyword">else</span>
+      <span class="localvariable">fragments</span>.<span class="property">push</span>({<span class="property">type</span>: <span class="string">"normal"</span>,
+      <span class="property">content</span>: <span class="localvariable">takeNormal</span>()});
+  }
+      <span class="keyword">return</span> <span class="localvariable">fragments</span>;
+}</pre>
+    <p>Zwróć uwagę na sposób użycia funkcji <code>map</code> i <code>reduce</code> w funkcji <code>takeNormal</code>. To jest rozdział o programowaniu funkcyjnym, a więc programujemy funkcyjnie! Rozumiesz, jak to działa? Funkcja <code>map</code> zwraca tablicę pozycji, na których znaleziono podane znaki lub koniec łańcucha, jeśli nic nie znaleziono, a funkcja <code>reduce</code> pobiera minimum z nich, które określa następny punkt w łańcuchu do przejrzenia.</p>
+    <p>Gdybyśmy to zapisali bez mapowania i redukowania, otrzymalibyśmy coś takiego:</p>
+    <pre class="preformatted">var nextAsterisk = text.indexOf("*");
+var nextBrace = text.indexOf("{");
+var end = text.length;
+if (nextAsterisk != -1)
+  end = nextAsterisk;
+if (nextBrace != -1 &amp;&amp; nextBrace &lt; end)
+  end = nextBrace;</pre>
+    <p>To jest jeszcze brzydsze. W większości przypadków, gdy trzeba dokonać decyzji na podstawie szeregu warunków, nawet jeśli są tylko dwa, użycie operacji tablicowych jest bardziej eleganckim rozwiązaniem niż obsługa każdej wartości w osobnej instrukcji <code>if</code>. (W <a href="/kursy/javascript/wszystko-jasne/r10-wyrazenia-regularne/">rozdziale 10</a> jest opisany lepszy sposób na znajdowanie pierwszego wystąpienia „tego lub tamtego znaku” w łańcuchu.)</p>
+    <p>Jeśli Twoja funkcja <code>splitParagraph</code> zapisuje fragmenty w inny sposób niż w powyższym rozwiązaniu, może być konieczne jej zmodyfikowanie, ponieważ funkcje przedstawione w dalszej części tego rozdziału wymagają, aby fragmenty były obiektami mającymi własności <code>type</code> i <code>content</code>.</p>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Możemy teraz sprawić, aby funkcja <code>processParagraph</code> również dzieliła tekst w akapitach. Moją wersję można zmodyfikować tak:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">processParagraph</span>(<span class="variabledef">paragraph</span>) {
+    <span class="keyword">var</span> <span class="variabledef">header</span> = <span class="atom">0</span>;
+    <span class="keyword">while</span> (<span class="localvariable">paragraph</span>.<span class="property">charAt</span>(<span class="atom">0</span>) == <span class="string">"%"</span>) {
+    <span class="localvariable">paragraph</span> = <span class="localvariable">paragraph</span>.<span class="property">slice</span>(<span class="atom">1</span>);
+    <span class="localvariable">header</span>++;
+  }
+
+    <span class="keyword">return</span> {<span class="property">type</span>: (<span class="localvariable">header</span> == <span class="atom">0</span> ? <span class="string">"p"</span> : <span class="string">"h"</span> + <span class="localvariable">header</span>),
+    <span class="property">content</span>: <span class="variable">splitParagraph</span>(<span class="localvariable">paragraph</span>)};
+}</pre>
+  <p>Otrzymujemy tablicę obiektów akapitów, które z kolei zawierają tablice obiektów fragmentów. Kolejnym zadaniem jest pobranie przypisów i umieszczenie w odpowiednim miejscu odwołań do nich. Może coś takiego:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">extractFootnotes</span>(<span class="variabledef">paragraphs</span>) {
+    <span class="keyword">var</span> <span class="variabledef">footnotes</span> = [];
+    <span class="keyword">var</span> <span class="variabledef">currentNote</span> = <span class="atom">0</span>;
+
+    <span class="keyword">function</span> <span class="variabledef">replaceFootnote</span>(<span class="variabledef">fragment</span>) {
+    <span class="keyword">if</span> (<span class="localvariable">fragment</span>.<span class="property">type</span> == <span class="string">"footnote"</span>) {
+    <span class="localvariable">currentNote</span>++;
+    <span class="localvariable">footnotes</span>.<span class="property">push</span>(<span class="localvariable">fragment</span>);
+    <span class="localvariable">fragment</span>.<span class="property">number</span> = <span class="localvariable">currentNote</span>;
+    <span class="keyword">return</span> {<span class="property">type</span>: <span class="string">"reference"</span>, <span class="property">number</span>: <span class="localvariable">currentNote</span>};
+    }
+    <span class="keyword">else</span> {
+    <span class="keyword">return</span> <span class="localvariable">fragment</span>;
+    }
+  }
+
+    <span class="variable">forEach</span>(<span class="localvariable">paragraphs</span>, <span class="keyword">function</span>(<span class="variabledef">paragraph</span>) {
+    <span class="localvariable">paragraph</span>.<span class="property">content</span> = <span class="variable">map</span>(<span class="localvariable">replaceFootnote</span>,
+    <span class="localvariable">paragraph</span>.<span class="property">content</span>);
+  });
+
+    <span class="keyword">return</span> <span class="localvariable">footnotes</span>;
+}     </pre>
+  <p>Funkcja <code>replaceFootnote</code> jest wywoływana na każdym fragmencie. Jeśli otrzyma fragment, który powinien pozostać na swoim miejscu, po prostu go zwraca, ale jeśli otrzyma przypis, zapisuje go w tablicy <code>footnotes</code> i zwraca odwołanie. W procesie tym wszystkie przypisy i referencje są numerowane.</p>
+</div>
+<hr>
+<div class="block">
+  <p>W ten sposób uzyskujemy z pliku wszystkie potrzebne nam informacje. Pozostało już tylko wygenerować kod HTML.</p>
+  <p>Wiele osób myśli, że doskonałym sposobem tworzenia kodu HTML jest konkatenacja łańcuchów. Gdy potrzebny jest odnośnik do witryny, w której można np. zagrać w grę Go, piszą coś takiego:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">url</span> = <span class="string">"http://www.gokgs.com/"</span>;
+    <span class="keyword">var</span> <span class="variable">text</span> = <span class="string">"Zagraj w Go!"</span>;
+    <span class="keyword">var</span> <span class="variable">linkText</span> = <span class="string">"&lt;a href=\""</span> + <span class="variable">url</span> + <span class="string">"\"&gt;"</span> + <span class="variable">text</span> + <span class="string">"&lt;/a&gt;"</span>;
+    <span class="variable">print</span>(<span class="variable">linkText</span>);</pre>
+  <p>(<code>a</code> to znacznik HTML służący do tworzenia łączy.) Wadą tego rozwiązania, oprócz braku elegancji, jest to, że jeśli łańcuch <code>text</code> będzie zawierał ostry nawias albo znak &amp;, to będzie niepoprawne. Na stronie będą dziać się dziwne rzeczy, a Ty wyjdziesz na kompletnego amatora. Tego byśmy nie chcieli. Napisanie kilku prostych funkcji generujących kod HTML jest łatwe. Dlatego też posłużymy się właśnie tą metodą.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Tajemnicą udanego generowania kodu HTML jest traktowanie dokumentu HTML jako struktury danych, a nie zwykłego tekstu. W języku JavaScript takie modele można tworzyć w bardzo prosty sposób:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">linkObject</span> = {<span class="property">name</span>: <span class="string">"a"</span>,
+    <span class="property">attributes</span>: {<span class="property">href</span>: <span class="string">"http://www.gokgs.com/"</span>},
+    <span class="property">content</span>: [<span class="string">"Zagraj w Go!"</span>]};</pre>
+  <p>Każdy element HTML ma własność <code>name</code> zawierającą nazwę tego elementu. Jeśli element ma atrybuty, to dodatkowo posiada również własność <code>attributes</code> będącą obiektem zawierającym atrybuty tego elementu. Jeśli element ma treść, to posiada również własność <code>content</code> zawierającą tablicę innych elementów znajdujących się w tym elemencie. W naszym dokumencie rolę fragmentów tekstu grają łańcuchy, a więc tablica <code>["Zagraj w Go!"]</code> oznacza, że to łącze zawiera tylko jeden element będący zwykłym tekstem.</p>
+  <p>Bezpośrednie wpisywanie tych obiektów jest nieeleganckie, ale nie musimy tego robić. Utworzymy funkcję pomocniczą, która będzie to robić za nas:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">tag</span>(<span class="variabledef">name</span>, <span class="variabledef">content</span>, <span class="variabledef">attributes</span>) {
+    <span class="keyword">return</span> {<span class="property">name</span>: <span class="localvariable">name</span>, <span class="property">attributes</span>: <span class="localvariable">attributes</span>, <span class="property">content</span>: <span class="localvariable">content</span>};
+}</pre>
+  <p>Zwróć uwagę, że ponieważ własności <code>attributes</code> i <code>content</code> elementu mogą być niezdefiniowane, gdy są nieużywane, drugi i trzeci argument tej funkcji można opuścić, jeśli nie są potrzebne.</p>
+  <p>Funkcja <code>tag</code> jest dość prymitywna, a więc napiszemy skróty dla często używanych typów elementów, takich jak łącza i zewnętrznej struktury prostego dokumentu:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">link</span>(<span class="variabledef">target</span>, <span class="variabledef">text</span>) {
+    <span class="keyword">return</span> <span class="variable">tag</span>(<span class="string">"a"</span>, [<span class="localvariable">text</span>], {<span class="property">href</span>: <span class="localvariable">target</span>});
+}
+
+    <span class="keyword">function</span> <span class="variable">htmlDoc</span>(<span class="variabledef">title</span>, <span class="variabledef">bodyContent</span>) {
+    <span class="keyword">return</span> <span class="variable">tag</span>(<span class="string">"html"</span>, [<span class="variable">tag</span>(<span class="string">"head"</span>, [<span class="variable">tag</span>(<span class="string">"title"</span>, [<span class="localvariable">title</span>])]),
+    <span class="variable">tag</span>(<span class="string">"body"</span>, <span class="localvariable">bodyContent</span>)]);
+}</pre>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 6.4</div>
+  <div class="exercise">
+    <p>Wróć w razie potrzeby do przykładowego dokumentu HTML i napisz funkcję o nazwie <code>image</code> pobierającą lokalizację obrazu graficznego i tworzącą element <code>img</code> HTML.</p>
+  </div>
+  <div class="toggle">[pokaż rozwiązanie]</div><div style="display: none;" class="solution"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">image</span>(<span class="variabledef">src</span>) {
+      <span class="keyword">return</span> <span class="variable">tag</span>(<span class="string">"img"</span>, [], {<span class="property">src</span>: <span class="localvariable">src</span>});
+}</pre>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Utworzony dokument trzeba zredukować do postaci łańcucha. A utworzenie łańcucha z tych struktur danych, które mamy jest bardzo łatwe. Trzeba tylko pamiętać o zamianie specjalnych znaków znajdujących się w tekście dokumentu…</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">escapeHTML</span>(<span class="variabledef">text</span>) {
+    <span class="keyword">var</span> <span class="variabledef">replacements</span> = [[<span class="string">/&amp;/g</span>, <span class="string">"&amp;amp;"</span>], [<span class="string">/"/g</span>, <span class="string">"&amp;quot;"</span>],
+                      [<span class="string">/&lt;/g</span>, <span class="string">"&amp;lt;"</span>], [<span class="string">/&gt;/g</span>, <span class="string">"&amp;gt;"</span>]];
+    <span class="variable">forEach</span>(<span class="localvariable">replacements</span>, <span class="keyword">function</span>(<span class="variabledef">replace</span>) {
+    <span class="localvariable">text</span> = <span class="localvariable">text</span>.<span class="property">replace</span>(<span class="localvariable">replace</span>[<span class="atom">0</span>], <span class="localvariable">replace</span>[<span class="atom">1</span>]);
+  });
+    <span class="keyword">return</span> <span class="localvariable">text</span>;
+}</pre>
+  <p>Metoda łańcuchów <code>replace</code> tworzy nowy łańcuch, w którym wszystkie wystąpienia wzorca podanego w pierwszym argumencie są zamienione na łańcuch podany w drugim dokumencie, a więc <code>"Borobudur".replace(/r/g, "k")</code> daje wynik <code>"Bokobuduk"</code>. Nie przejmuj się na razie składnią tego wzorca, poznasz ją dokładnie w <a href="/kursy/javascript/wszystko-jasne/r10-wyrazenia-regularne/">rozdziale 10</a>. Funkcja <code>escapeHTML</code> wszystkie zamiany, jakie mają być dokonane ma zapisane w tablicy, dzięki czemu może je przeglądać za pomocą pętli i stosować do argumentu jedna po drugiej.</p>
+  <p>Podwójne cudzysłowy również są zamieniane, ponieważ funkcję tę będziemy stosować także do tekstu znajdującego się wewnątrz atrybutów HTML. Atrybuty są umieszczane w podwójnych cudzysłowach prostych i nie mogą zawierać takich cudzysłowów.</p>
+  <p>czterokrotne wywołanie funkcji replace oznacza, że komputer musi cały łańcuch przejrzeć i zmodyfikować cztery razy. Jest to niewydajne rozwiązanie. Gdyby nam zależało, moglibyśmy napisać bardziej skomplikowaną wersję tej funkcji, która wyglądałaby podobnie do napisanej wcześniej funkcji <code>splitParagraph</code>, przeglądającą łańcuch tylko raz. Teraz jednak nie chce nam się tego robić, bo jesteśmy leniwi. W <a href="/kursy/javascript/wszystko-jasne/r10-wyrazenia-regularne/">rozdziale 10</a> przedstawię o wiele lepszą metodę.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Aby zamienić obiekt elementu HTML w łańcuch, możemy użyć <strong>funkcji rekurencyjnej</strong>:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">renderHTML</span>(<span class="variabledef">element</span>) {
+    <span class="keyword">var</span> <span class="variabledef">pieces</span> = [];
+
+    <span class="keyword">function</span> <span class="variabledef">renderAttributes</span>(<span class="variabledef">attributes</span>) {
+    <span class="keyword">var</span> <span class="variabledef">result</span> = [];
+    <span class="keyword">if</span> (<span class="localvariable">attributes</span>) {
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">name</span> <span class="keyword">in</span> <span class="localvariable">attributes</span>) 
+    <span class="localvariable">result</span>.<span class="property">push</span>(<span class="string">" "</span> + <span class="localvariable">name</span> + <span class="string">"=\""</span> +
+    <span class="variable">escapeHTML</span>(<span class="localvariable">attributes</span>[<span class="localvariable">name</span>]) + <span class="string">"\""</span>);
+    }
+    <span class="keyword">return</span> <span class="localvariable">result</span>.<span class="property">join</span>(<span class="string">""</span>);
+  }
+
+    <span class="keyword">function</span> <span class="variabledef">render</span>(<span class="variabledef">element</span>) {
+    <span class="comment">// Węzeł tekstowy</span>
+    <span class="keyword">if</span> (typeof <span class="localvariable">element</span> == <span class="string">"string"</span>) {
+    <span class="localvariable">pieces</span>.<span class="property">push</span>(<span class="variable">escapeHTML</span>(<span class="localvariable">element</span>));
+    }
+    <span class="comment">// Pusty element</span>
+    <span class="keyword">else</span> <span class="keyword">if</span> (!<span class="localvariable">element</span>.<span class="property">content</span> || <span class="localvariable">element</span>.<span class="property">content</span>.<span class="property">length</span> == <span class="atom">0</span>) {
+    <span class="localvariable">pieces</span>.<span class="property">push</span>(<span class="string">"&lt;"</span> + <span class="localvariable">element</span>.<span class="property">name</span> +
+    <span class="localvariable">renderAttributes</span>(<span class="localvariable">element</span>.<span class="property">attributes</span>) + <span class="string">"/&gt;"</span>);
+    }
+    <span class="comment">// Element z treścią</span>
+    <span class="keyword">else</span> {
+    <span class="localvariable">pieces</span>.<span class="property">push</span>(<span class="string">"&lt;"</span> + <span class="localvariable">element</span>.<span class="property">name</span> +
+    <span class="localvariable">renderAttributes</span>(<span class="localvariable">element</span>.<span class="property">attributes</span>) + <span class="string">"&gt;"</span>);
+    <span class="variable">forEach</span>(<span class="localvariable">element</span>.<span class="property">content</span>, <span class="localvariable">render</span>);
+    <span class="localvariable">pieces</span>.<span class="property">push</span>(<span class="string">"&lt;/"</span> + <span class="localvariable">element</span>.<span class="property">name</span> + <span class="string">"&gt;"</span>);
+    }
+  }
+
+    <span class="localvariable">render</span>(<span class="localvariable">element</span>);
+    <span class="keyword">return</span> <span class="localvariable">pieces</span>.<span class="property">join</span>(<span class="string">""</span>);
+}</pre>
+  <p>Zwróć uwagę na pętlę z <code>in</code>, która pobiera własności obiektu JavaScript, aby utworzyć z nich atrybuty HTML. Zwróć też uwagę, że w dwóch miejscach tablice są używane do kumulowania łańcuchów, które następnie zostają połączone w jeden długi łańcuch. Dlaczego nie rozpocząłem po prostu od pustego łańcucha, a następnie nie dodałem do niego treści za pomocą operatora <code>+=</code>?</p>
+  <p>Powinieneś wiedzieć, że tworzenie nowych łańcuchów, zwłaszcza długich, jest bardzo pracochłonne. Przypomnę, że wartości łańcuchowe w JavaScripcie są niezmienne. Jeśli doda się coś do nich, tworzony jest nowy łańcuch, a stare pozostają bez zmian. Jeśli będziemy budować długi łańcuch poprzez połączenie wielu krótkich łańcuchów, to za każdym razem będzie tworzony nowy łańcuch, który zostanie „wyrzucony na śmietnik” zaraz po dodaniu następnego kawałka. Jeśli natomiast wszystkie fragmenty zapiszemy w tablicy i następnie je połączymy, to zostanie utworzony tylko <em>jeden</em> długi łańcuch.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Możemy chyba wypróbować nasz generator HTML-a…</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">print</span>(<span class="variable">renderHTML</span>(<span class="variable">link</span>(<span class="string">"http://www.nedroid.com"</span>, <span class="string">"Drawings!"</span>)));</pre>
+  <p>Chyba działa.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">body</span> = [<span class="variable">tag</span>(<span class="string">"h1"</span>, [<span class="string">"Test"</span>]),
+    <span class="variable">tag</span>(<span class="string">"p"</span>, [<span class="string">"To jest akapit i obrazek..."</span>]),
+    <span class="variable">image</span>(<span class="string">"/wp-content/uploads/sheep.png"</span>)];
+    <span class="keyword">var</span> <span class="variable">doc</span> = <span class="variable">htmlDoc</span>(<span class="string">"Test"</span>, <span class="variable">body</span>);
+    <span class="variable">viewHTML</span>(<span class="variable">renderHTML</span>(<span class="variable">doc</span>));</pre>
+  <p>Muszę Cię ostrzec, że to rozwiązanie nie jest idealne. W rzeczywistości otrzymany przez nas kod to XML, który jest podobny do HTML-a, ale różni się od niego strukturą. W prostych przypadkach, jak powyższy nie powoduje to żadnych problemów. Jednak pewne rzeczy, które są dozwolone w XML-u są zabronione w HTML-u. Rzeczy te mogą uniemożliwić przeglądarce wyświetlenie dokumentów. Gdybyśmy np. w dokumencie utworzyli pusty element <code>script</code> (służący do umieszczania kodu JavaScript na stronach), przeglądarki nie domyśliłyby się, że jest to pusty element i wszystko, co by się za nim znajdowało traktowałyby jako kod JavaScript. (Problem ten można rozwiązać wpisując jedną spację w tym elemencie, aby przestał być pusty i został utworzony dla niego znacznik zamykający.)</p>
+</div>
+<hr>
+<div class="block">
+  <div class="exercisenum">Ćwiczenie 6.5</div>
+  <div class="exercise">
+    <p>Napisz funkcję o nazwie <code>renderFragment</code> i przy jej użyciu zaimplementuj funkcję o nazwie <code>renderParagraph</code> pobierającą obiekt akapitu (z odfiltrowanymi już przypisami) i zwracającą poprawny element HTML (którym może być akapit albo nagłówek w zależności od własności <code>type</code> otrzymanego obiektu).</p>
+    <p>Funkcja ta może być przydatna do tworzenia odwołań do przypisów:</p>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">footnote</span>(<span class="variabledef">number</span>) {
+      <span class="keyword">return</span> <span class="variable">tag</span>(<span class="string">"sup"</span>, [<span class="variable">link</span>(<span class="string">"#footnote"</span> + <span class="localvariable">number</span>,
+      <span class="variable">String</span>(<span class="localvariable">number</span>))]);
+}</pre>
+    <p>Element <code>sup</code> służy do wyświetlania treści w indeksie górnym, tzn. trochę mniejszą czcionką i nieco wyżej niż normalna treść. Celem łącza będzie coś w rodzaju <code>"#footnote1"</code>. Odnośniki, na końcu których znajduje się znak # odnoszą się do „kotwic” w obrębie strony. W tym przypadku wykorzystamy tę technikę do tworzenia łączy, których kliknięcie będzie powodować przejście na dół strony do przypisów.</p>
+    <p>Element emfazy nazywa się <code>em</code> i można renderować zwykły tekst bez dodatkowych znaczników.</p>
+  </div>
+  <div class="toggle">[pokaż rozwiązanie]</div><div style="display: none;" class="solution"><div class="solutionarrow" title="Ukryj rozwiązanie">×</div>
+    <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">renderParagraph</span>(<span class="variabledef">paragraph</span>) {
+      <span class="keyword">return</span> <span class="variable">tag</span>(<span class="localvariable">paragraph</span>.<span class="property">type</span>, <span class="variable">map</span>(<span class="variable">renderFragment</span>,
+      <span class="localvariable">paragraph</span>.<span class="property">content</span>));
+}
+
+      <span class="keyword">function</span> <span class="variable">renderFragment</span>(<span class="variabledef">fragment</span>) {
+      <span class="keyword">if</span> (<span class="localvariable">fragment</span>.<span class="property">type</span> == <span class="string">"reference"</span>)
+      <span class="keyword">return</span> <span class="variable">footnote</span>(<span class="localvariable">fragment</span>.<span class="property">number</span>);
+      <span class="keyword">else</span> <span class="keyword">if</span> (<span class="localvariable">fragment</span>.<span class="property">type</span> == <span class="string">"emphasised"</span>)
+      <span class="keyword">return</span> <span class="variable">tag</span>(<span class="string">"em"</span>, [<span class="localvariable">fragment</span>.<span class="property">content</span>]);
+      <span class="keyword">else</span> <span class="keyword">if</span> (<span class="localvariable">fragment</span>.<span class="property">type</span> == <span class="string">"normal"</span>)
+      <span class="keyword">return</span> <span class="localvariable">fragment</span>.<span class="property">content</span>;
+}</pre>
+  </div>
+</div>
+<hr>
+<div class="block">
+  <p>Prawie skończyliśmy. Pozostało jeszcze tylko napisanie funkcji do renderowania przypisów. Aby odnośniki typu <code>"#footnote1"</code> działały, każdy przypis musi mieć kotwicę. W HTML-u kotwice można oznaczać za pomocą elementu <code>a</code>, który jest też używany do tworzenia łączy. Tylko że w tym przypadku zamiast atrybutu <code>href</code> będzie miał atrybut <code>name</code>.</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">renderFootnote</span>(<span class="variabledef">footnote</span>) {
+    <span class="keyword">var</span> <span class="variabledef">number</span> = <span class="string">"["</span> + <span class="localvariable">footnote</span>.<span class="property">number</span> + <span class="string">"] "</span>;
+    <span class="keyword">var</span> <span class="variabledef">anchor</span> = <span class="variable">tag</span>(<span class="string">"a"</span>, [<span class="localvariable">number</span>], {<span class="property">name</span>: <span class="string">"footnote"</span> + <span class="localvariable">footnote</span>.<span class="property">number</span>});
+    <span class="keyword">return</span> <span class="variable">tag</span>(<span class="string">"p"</span>, [<span class="variable">tag</span>(<span class="string">"small"</span>, [<span class="localvariable">anchor</span>, <span class="localvariable">footnote</span>.<span class="property">content</span>])]);
+}</pre>
+  <p>Poniżej znajduje się funkcja pobierającą plik w określonym formacie i tytuł dokumentu i zwracająca dokument HTML:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">renderFile</span>(<span class="variabledef">file</span>, <span class="variabledef">title</span>) {
+    <span class="keyword">var</span> <span class="variabledef">paragraphs</span> = <span class="variable">map</span>(<span class="variable">processParagraph</span>, <span class="localvariable">file</span>.<span class="property">split</span>(<span class="string">"\n\n"</span>));
+    <span class="keyword">var</span> <span class="variabledef">footnotes</span> = <span class="variable">map</span>(<span class="variable">renderFootnote</span>,
+    <span class="variable">extractFootnotes</span>(<span class="localvariable">paragraphs</span>));
+    <span class="keyword">var</span> <span class="variabledef">body</span> = <span class="variable">map</span>(<span class="variable">renderParagraph</span>, <span class="localvariable">paragraphs</span>).<span class="property">concat</span>(<span class="localvariable">footnotes</span>);
+    <span class="keyword">return</span> <span class="variable">renderHTML</span>(<span class="variable">htmlDoc</span>(<span class="localvariable">title</span>, <span class="localvariable">body</span>));
+}
+
+    <span class="variable">viewHTML</span>(<span class="variable">renderFile</span>(<span class="variable">recluseFile</span>(), <span class="string">"Księga programowania"</span>));</pre>
+  <p>Metoda <code>concat</code> tablic służy do łączenia jednej tablicy z inną, podobnie jak operator <code>+</code> łączy łańcuchy.</p>
+</div>
+<hr>
+<div class="block">
+  <p>W dalszych rozdziałach podstawowe funkcje wyższego rzędu <code>map</code> i <code>reduce</code> będą cały czas dostępne i używane w przykładach. Od czasu do czasu będą dodawane do nich kolejne przydatne narzędzia. W <a href="/kursy/javascript/wszystko-jasne/r9-modularnosc">rozdziale 9</a> zastosujemy bardziej uporządkowane podejście do tworzenia zestawu „podstawowych” funkcji.</p>
+</div>
+<hr>
+<div class="block">
+  <p>Gdy używa się funkcji wyższego rzędu, często irytującym problemem jest to, że operatory w JavaScripcie nie są funkcjami. W kilku miejscach potrzebne nam były funkcje <code>add</code> i <code>equals</code>. Ciągłe przepisywanie ich jest uciążliwe. Dlatego od tej pory przyjmiemy, że istnieje obiekt o nazwie <code>op</code>, który zawiera następujące funkcje:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">var</span> <span class="variable">op</span> = {
+    <span class="string">"+"</span>: <span class="keyword">function</span>(<span class="variabledef">a</span>, <span class="variabledef">b</span>){<span class="keyword">return</span> <span class="localvariable">a</span> + <span class="localvariable">b</span>;},
+    <span class="string">"=="</span>: <span class="keyword">function</span>(<span class="variabledef">a</span>, <span class="variabledef">b</span>){<span class="keyword">return</span> <span class="localvariable">a</span> == <span class="localvariable">b</span>;},
+    <span class="string">"==="</span>: <span class="keyword">function</span>(<span class="variabledef">a</span>, <span class="variabledef">b</span>){<span class="keyword">return</span> <span class="localvariable">a</span> === <span class="localvariable">b</span>;},
+    <span class="string">"!"</span>: <span class="keyword">function</span>(<span class="variabledef">a</span>){<span class="keyword">return</span> !<span class="localvariable">a</span>;}
+    <span class="comment">/* itd. */</span>
+};</pre>
+  <p>Dzięki temu możemy napisać <code>reduce(op["+"], 0, [1, 2, 3, 4, 5])</code>, aby zsumować tablicę. Ale co, jeśli potrzebujemy czegoś takiego, jak <code>equals</code> albo <code>makeAddFunction</code> i jeden z argumentów ma już wartość? W takim przypadku wracamy do pisania nowej funkcji.</p>
+  <p>W tego typu sytuacjach przydatne jest tzw. częściowe wywołanie (ang. partial application). Chcemy utworzyć funkcję, która niektóre swoje argumenty zna z góry, a dodatkowe, które zostaną jej przekazane wstawia za tymi znanymi. Można to osiągnąć dzięki kreatywnemu podejściu do użycia metody <code>apply</code> funkcji:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">asArray</span>(<span class="variabledef">quasiArray</span>, <span class="variabledef">start</span>) {
+    <span class="keyword">var</span> <span class="variabledef">result</span> = [];
+    <span class="keyword">for</span> (<span class="keyword">var</span> <span class="variabledef">i</span> = (<span class="localvariable">start</span> || <span class="atom">0</span>); <span class="localvariable">i</span> &lt; <span class="localvariable">quasiArray</span>.<span class="property">length</span>; <span class="localvariable">i</span>++)
+    <span class="localvariable">result</span>.<span class="property">push</span>(<span class="localvariable">quasiArray</span>[<span class="localvariable">i</span>]);
+    <span class="keyword">return</span> <span class="localvariable">result</span>;
+}
+
+    <span class="keyword">function</span> <span class="variable">partial</span>(<span class="variabledef">func</span>) {
+    <span class="keyword">var</span> <span class="variabledef">fixedArgs</span> = <span class="variable">asArray</span>(<span class="localvariable">arguments</span>, <span class="atom">1</span>);
+    <span class="keyword">return</span> <span class="keyword">function</span>() {
+    <span class="keyword">return</span> <span class="localvariable">func</span>.<span class="property">apply</span>(<span class="atom">null</span>, <span class="localvariable">fixedArgs</span>.<span class="property">concat</span>(<span class="variable">asArray</span>(<span class="localvariable">arguments</span>)));
+  };
+}</pre>
+  <p>Chcemy, aby było możliwe wiązanie wielu argumentów na raz, a więc funkcja <code>asArray</code> jest potrzebna do robienia normalnych tablic z obiektów <code>arguments</code>. Kopiuje ich zawartość do prawdziwej tablicy, na której można użyć metody <code>concat</code>. Ponadto przyjmuje drugi, opcjonalny, argument, dzięki któremu można opuścić kilka argumentów z początku.</p>
+  <p>Zauważ też, że zmienna <code>arguments</code> zewnętrznej funkcji (<code>partial</code>) musi zostać zapisana pod inną nazwą, ponieważ w przeciwnym razie wewnętrzna funkcja jej nie znajdzie ― funkcja ta ma własną zmienną o nazwie <code>arguments</code>, która zasłoni zmienną o tej samej nazwie w funkcji zewnętrznej.</p>
+  <p>Teraz instrukcję <code>equals(10)</code> można zastąpić instrukcją <code>partial(op["=="], 10)</code>, a więc nie trzeba używać specjalnej funkcji <code>equals</code>. I można robić takie rzeczy:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="variable">show</span>(<span class="variable">map</span>(<span class="variable">partial</span>(<span class="variable">op</span>[<span class="string">"+"</span>], <span class="atom">1</span>), [<span class="atom">0</span>, <span class="atom">2</span>, <span class="atom">4</span>, <span class="atom">6</span>, <span class="atom">8</span>, <span class="atom">10</span>]));</pre>
+  <p>Powodem, dla którego funkcja <code>map</code> pobiera swój argument funkcyjny przed argumentem tablicowym jest to, że często przydaje się częściowe wywołanie tej funkcji poprzez przekazanie jej funkcji. W ten sposób funkcja zamiast na pojedynczej wartości może działać na tablicy wartości. Gdybyśmy np. mieli tablicę tablic liczb i chcielibyśmy je wszystkie podnieść do kwadratu, napisalibyśmy to:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">square</span>(<span class="variabledef">x</span>) {<span class="keyword">return</span> <span class="localvariable">x</span> * <span class="localvariable">x</span>;}
+
+    <span class="variable">show</span>(<span class="variable">map</span>(<span class="variable">partial</span>(<span class="variable">map</span>, <span class="variable">square</span>), [[<span class="atom">10</span>, <span class="atom">100</span>], [<span class="atom">12</span>, <span class="atom">16</span>], [<span class="atom">0</span>, <span class="atom">1</span>]]));</pre>
+</div>
+<hr>
+<div class="block">
+  <p>Ostatnia sztuczka, która może Ci się przydać przy kombinowaniu funkcji to złożenie funkcji. Na początku tego rozdziału pokazałem funkcję <code>negate</code>, która stosowała operator logicznego <em>nie</em> do wyniku wywołania funkcji:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">negate</span>(<span class="variabledef">func</span>) {
+    <span class="keyword">return</span> <span class="keyword">function</span>() {
+    <span class="keyword">return</span> !<span class="localvariable">func</span>.<span class="property">apply</span>(<span class="atom">null</span>, <span class="localvariable">arguments</span>);
+  };
+}</pre>
+  <p>Jest to specjalny przypadek ogólnego wzorca: wywołaj funkcję A i zastosuj do jej wyniku funkcję B. Złożenie funkcji to znane pojęcie matematyczne. Można je wyrazić za pomocą funkcji wyższego rzędu następująco:</p>
+  <pre class="code not-run"><button class="codebutton run" title="Wykonaj ten kod" type="button"></button><button class="codebutton load" type="button" title="Wczytaj ten kod do konsoli"></button><span class="keyword">function</span> <span class="variable">compose</span>(<span class="variabledef">func1</span>, <span class="variabledef">func2</span>) {
+    <span class="keyword">return</span> <span class="keyword">function</span>() {
+    <span class="keyword">return</span> <span class="localvariable">func1</span>(<span class="localvariable">func2</span>.<span class="property">apply</span>(<span class="atom">null</span>, <span class="localvariable">arguments</span>));
+  };
+}
+
+    <span class="keyword">var</span> <span class="variable">isUndefined</span> = <span class="variable">partial</span>(<span class="variable">op</span>[<span class="string">"==="</span>], <span class="atom">undefined</span>);
+    <span class="keyword">var</span> <span class="variable">isDefined</span> = <span class="variable">compose</span>(<span class="variable">op</span>[<span class="string">"!"</span>], <span class="variable">isUndefined</span>);
+    <span class="variable">show</span>(<span class="variable">isDefined</span>(<span class="variable">Math</span>.<span class="property">PI</span>));
+    <span class="variable">show</span>(<span class="variable">isDefined</span>(<span class="variable">Math</span>.<span class="property">PIE</span>));</pre>
+  <p>Definiujemy tu nowe funkcje w ogóle nie używając słowa kluczowego <code>function</code>. Technika ta może być przydatna, gdy trzeba utworzyć prostą funkcję do przekazania np. funkcji <code>map</code> albo <code>reduce</code>. Jeśli jednak funkcja jest dłuższa, to zazwyczaj krótszy (nie mówiąc już o lepszej wydajności) kod uzyska się pisząc zwykłą funkcję przy użyciu słowa kluczowego <code>function</code>.</p>
+</div>

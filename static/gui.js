@@ -10,22 +10,6 @@ var canvas = document.getElementById('canvas');
 // To draw, we have to get drawing context first.
 var ctx = canvas.getContext('2d');
 
-// Small fix for browsers that does not support dashed lines.
-if (!ctx.setLineDash) {
-  ctx.setLineDash = function () {};
-  ctx.lineDashOffset = 0;
-}
-
-// This function should fire every time the screen is refreshed. This usually
-// happens 60 times per second but it might differ depending on the screen.
-// We use `requestAnimationFrame` to run our animation exactly when the screen
-// refreshes, but as a fallback (when `requestAnimationFrame` isn't available)
-//  we try to use other methods.
-var animate = window.requestAnimationFrame       ||
-  window.webkitRequestAnimationFrame ||
-  window.mozRequestAnimationFrame    ||
-  function animate(f) { setTimeout(f, 1000 / 60); };
-
 // We will do 3d rendering using isometric projection. World axes will be
 // placed like this:
 //                                 .
@@ -133,7 +117,6 @@ var explosions = [];
 socket.on('explosion', function explosion(data) {
   data.reported = current_time;
   data.position = vectors.create(data.position);
-  data.screen_position = vectors.create(2);
   explosions.push(data);
   new Audio('/boom'+Math.floor(Math.random()*3)+'.ogg').play();
 });
@@ -178,7 +161,7 @@ var tick = function tick(time) {
   current_time = time;
 
   // Next, we schedule next execution of `tick`.
-  animate(tick);
+  requestAnimationFrame(tick);
 
   // The drawing begins with clearing canvas by filling it with background.
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -356,41 +339,8 @@ var tick = function tick(time) {
 
   ctx.restore();
 
-  // Execute animate function from the tutorial
-
-  if(tutorial_process < tutorial_strings.length && tutorial_strings[tutorial_process].animate) tutorial_strings[tutorial_process].animate();
-
-  // Check if the step is finished, and set the button state
-
-  var btn = document.getElementById("tutwindow_button");
-  if(tutorial_process < tutorial_strings.length && tutorial_strings[tutorial_process].finished) {
-    if(tutorial_strings[tutorial_process].finished()) {
-      btn.disabled = false;
-    } else {
-      btn.disabled = true;
-    }
-  } else {
-    btn.disabled = false;
-  }
-
-
-  if(focused_obj) {
-    var root = common.get_root(focused_obj);
-    var current_pos = get_position_now(root);
-    document.querySelectorAll('.set_x').text(Math.round(current_pos[0]));
-    document.querySelectorAll('.set_y').text(Math.round(current_pos[1]));
-    document.querySelectorAll('.set_z').text(Math.round(current_pos[2]));
-  }
-
-  // Update fetch_time and position if in tutorial mode
-  if(document.getElementById("tutwindow").style.display != "none") {
-    for(var obj in objects) {
-      if(objects[obj].position) objects[obj].position = get_position_now(objects[obj]);
-      objects[obj].fetch_time = current_time;
-    }
-  }
 };
-animate(tick);
+requestAnimationFrame(tick);
 
 var draw_explosions = function(time) {
 
@@ -424,334 +374,7 @@ var draw_explosions = function(time) {
   }
 };
 
-var controls = {};
-
-controls.skeleton = function(elem, object) {
-  var list = document.createElement('ol');
-  for(var i = 0; i < object.skeleton_slots.length; ++i) {
-    var item = document.createElement('li');
-    item.classList.add('drag');
-    var child = object.skeleton_slots[i];
-    if(child) {
-      var link = document.createElement('a');
-      link.textContent = child.id.slice(0, 4);
-      link.classList.add('object');
-      link.href = '#' + child.id;
-      item.appendChild(link);
-
-      if(child.features) {
-        Object.keys(child.features).forEach(function(feature) {
-          var icon = document.createElement('img');
-          icon.src = '/features/' + feature + '.png';
-          icon.setAttribute('title', feature);
-          item.appendChild(icon);
-        });
-      }
-
-    } else {
-      var text_node = document.createTextNode('empty');
-      item.appendChild(text_node);
-    }
-    list.appendChild(item);
-  }
-  elem.appendChild(list);
-};
-
-controls.avatar = function(elem, object) {
-  elem.appendChild(document.createTextNode('Avatar status: OK'));
-};
-
-controls.radio = function(elem, object) {
-  var template = document.getElementById("radio_controls").content;
-  template.querySelectorAll('.range').text(Math.round(object.radio_range));
-  template.querySelectorAll('.status').text(radio_scanner.status());
-  template.querySelectorAll('.interval').text(radio_scanner.interval);
-  elem.appendChild(template.cloneNode(true));
-};
-
-controls.manipulator = function(elem, object) {
-  var template = document.getElementById("manipulator_controls").content;
-  template.querySelectorAll('.set_id').text(document.querySelector('.focused').id.substr(0, 4));
-  elem.appendChild(template.cloneNode(true));
-};
-
-controls.store = function(elem, object) {
-  var scvs = document.createElement('canvas');
-  scvs.width = 200;
-  scvs.height = 100;
-  elem.appendChild(scvs);
-
-  var max = 0;
-  var sum = 0;
-  for(var i = 0; i < 100; ++i) {
-    max = Math.max(max, object.store_stored[i]);
-    sum += object.store_stored[i];
-  }
-
-  var desc = 'Filled ' + Math.round(sum) + '/' + Math.round(object.store_capacity);
-  elem.appendChild(document.createTextNode(desc));
-
-  var sctx = scvs.getContext('2d');
-  sctx.lineWidth = 2;
-  for(var i = 0; i < 100; ++i) {
-    sctx.beginPath();
-    sctx.moveTo(i*2+1, 100);
-    sctx.lineTo(i*2+1, 100 - object.store_stored[i] / max * 100);
-    sctx.stroke();
-  }
-};
-
-controls.battery = function(elem, object) {
-  var desc = 'Filled ' + Math.round(object.battery_energy) + '/' + Math.round(object.battery_capacity);
-  elem.appendChild(document.createTextNode(desc));
-};
-
-controls.impulse_drive = function(elem, object) {
-  var template = document.getElementById("impulse_drive_controls").content;
-  template.querySelectorAll('.set_id').text(document.querySelector('.focused').id.substr(0, 4));
-  elem.appendChild(template.cloneNode(true));
-};
-
-var stringify = function(o) {
-  return JSON.stringify(o, function(key, value) {
-    if(typeof value === 'number') {
-      return Math.round(value*100)/100;
-    }
-    return value;
-  }, '  ').replace(/\n/g, '<br>').replace(/ /g, '&nbsp;')
-};
-
-controls.laboratory = function(elem, object) {
-  var template = document.getElementById("laboratory_controls").content;
-  template.querySelector('.laboratory_slots').innerHTML = stringify(object.laboratory_slots);
-  elem.appendChild(template.cloneNode(true));
-};
-
-controls.assembler = function(elem, object) {
-  var template = document.getElementById("assembler_controls").content;
-  elem.appendChild(template.cloneNode(true));
-};
-
-var element_in_document = function( element ) {
-  if (element === document) {
-    return true;
-  }
-  element = element.parentNode;
-  if (element) {
-    return element_in_document ( element );
-  }
-  return false;
-};
-
-var top_index = 1;
-var focused_obj;
-
-var focus_details = function(details) {
-  if(details.id.match(/[0-9A-F]{32}/i)) {
-    focused_obj = common.get(details.id);
-    var focused = document.querySelector('.focused');
-    if(focused) {
-      focused.classList.remove('focused');
-    }
-    details.classList.add('focused');
-
-    // This line prevented issuing commands. It might be important so
-    // we'll leave it commented for now.
-
-    //document.querySelectorAll('.set_id').text(details.id.substr(0, 4));
-  }
-  details.style['z-index'] = top_index++;
-};
-
-var drag;
-var show_details_for = function(object, event) {
-  var details = document.getElementById(object.id);
-  if(!details) {
-
-    var t = document.getElementById('details');
-
-    t.content.querySelector('h2').textContent = object.id.slice(0, 4);
-
-    var features = t.content.querySelector('.features');
-    while(features.hasChildNodes()) {
-      features.removeChild(features.lastChild);
-    }
-    if(object.features) {
-      Object.keys(object.features).forEach(function(feature) {
-        var icon = document.createElement('img');
-        icon.src = '/features/' + feature + '.png';
-        icon.setAttribute('title', feature);
-        icon.classList.add('feature');
-        t.content.querySelector('.features').appendChild(icon);
-      });
-    }
-
-    details = t.content.cloneNode(true).querySelector('.details');
-    details.id = object.id;
-    document.getElementById('overlay').appendChild(details);
-
-
-    var view = details.querySelector('canvas.sprite');
-    var cx = view.getContext('2d');
-    var draw = function(time) {
-      time /= 1000;
-
-      if(!element_in_document(view)) return;
-      animate(draw);
-      cx.clearRect(0,0, view.width, view.height);
-      var sprite_url = object.sprite || '/unknown.png';
-
-      if(!(sprite_url in image_cache)) {
-        image_cache[sprite_url] = new Image;
-        image_cache[sprite_url].src = sprite_url;
-      }
-
-      var sprite = image_cache[sprite_url];
-
-      var match = /(\d+)\.png$/.exec(sprite_url);
-      var frames = 1;
-      if(match) {
-        frames = Number(match[1]);
-      }
-
-      var fw = sprite.width / frames;
-      var fh = sprite.height;
-
-      view.width = fw;
-      view.height = fh;
-
-      var sx = (Math.round(time * 30) % frames) * fw;
-      var sy = 0;
-
-      cx.drawImage(
-        sprite,
-        sx, sy, fw, fh,
-        0,
-        0,
-        fw, fh
-      );
-    };
-    animate(draw);
-
-  }
-
-  focus_details(details);
-
-  document.querySelectorAll('.set_id').text(details.id.substr(0, 4));
-
-  var rect = details.getBoundingClientRect();
-  var w2 = (rect.right - rect.left) / 2;
-  var h2 = (rect.bottom - rect.top) / 2;
-
-  details.style.left = (event.x - w2) + 'px';
-  details.style.top = (event.y - h2) + 'px';
-
-  drag = {
-    dragged: details,
-    x: event.x,
-    y: event.y
-  };
-  return details;
-};
-
-var find_parent = function(element, className) {
-  while(!element.classList.contains(className)) {
-    element = element.parentElement;
-    if(element == null) {
-      return undefined;
-    }
-  }
-  return element;
-};
-
-var dont_drag_by = {
-  "A": true,
-  "BUTTON": true,
-  "INPUT": true,
-  "TEXTAREA": true
-};
-
-var can_drag = function(element) {
-  if(element.classList.contains('ace_content')) return false;
-  if(element.contentEditable == "true") return false;
-  if(dont_drag_by[element.tagName]) return false;
-  return true;
-};
-
-document.addEventListener('mousemove', function(e) {
-  if(drag) {
-    var dx = e.x - drag.x;
-    var dy = e.y - drag.y;
-    drag.dragged.style.left = drag.dragged.offsetLeft + dx + 'px';
-    drag.dragged.style.top = drag.dragged.offsetTop + dy + 'px';
-    drag.x = e.x;
-    drag.y = e.y;
-  }
-}, true);
-
-document.addEventListener('mousedown', function(e) {
-  if(find_parent(e.target, 'nobubble')) {
-    e.stopPropagation();
-  }
-}, true);
-
-document.addEventListener('mousedown', function(e) {
-
-  var details = find_parent(e.target, 'details');
-
-  if(details && e.button == 1) {
-    if(details.classList.contains('focused')) {
-      focused_obj = undefined;
-      details.classList.remove('focused');
-    }
-    details.remove();
-    e.stopPropagation();
-    e.preventDefault();
-  } else if(e.button == 0) {
-    if((e.target.tagName == 'A') && (e.target.href.indexOf('#') >= 0)) {
-      var hash = e.target.href.split('#')[1];
-      show_details_for(objects[hash], e);
-      e.preventDefault();
-      e.stopPropagation();
-    } else if(e.target.classList.contains('feature')) { // 
-      var curr = e.target;
-      var controls_div;
-      while((controls_div = curr.querySelector('.controls')) == null) {
-        curr = curr.parentElement;
-      }
-
-      var details = curr;
-      while(!details.classList.contains('details')) {
-        details = details.parentElement;
-      }
-
-      while (controls_div.hasChildNodes()) {
-        controls_div.removeChild(controls_div.lastChild);
-      }
-
-      var feature = e.target.getAttribute('title');
-      var object = objects[details.id];
-      controls[feature](controls_div, object);
-
-      // Notify the tutorial code that we're changing controls
-
-      if(tutorial_process < tutorial_strings.length && tutorial_strings[tutorial_process].on_controlschange) tutorial_strings[tutorial_process].on_controlschange(details.id, feature);
-
-    } else if(details && can_drag(e.target)) {
-      drag = {
-        dragged: details,
-        x: e.x,
-        y: e.y
-      };
-      e.preventDefault();
-      e.stopPropagation();
-      focus_details(details);
-    }
-  }
-}, false);
-
-document.addEventListener('mouseup', function(e) {
-  drag = undefined;
+canvas.addEventListener('mousemove', function(e) {
 }, true);
 
 canvas.addEventListener('mousedown', function(e) {
@@ -772,9 +395,8 @@ canvas.addEventListener('mousedown', function(e) {
       }
     }
     if(clicked) {
-      show_details_for(clicked, e);
+      // TODO
     } else {
-      focused_obj = undefined;
       var focused = document.querySelector('.focused');
       if(focused) focused.classList.remove('focused');
     }
@@ -795,21 +417,6 @@ onresize = function(e) {
   var dh = window.innerHeight - canvas.height;
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-
-  for(var hash in objects) {
-    var obj = objects[hash];
-    if(obj.screen_position) {
-      obj.screen_position.x += dw/2;
-      obj.screen_position.y += dh/2;
-    }
-  }
-
-  document.getElementById("tutorial").style.left = (window.innerWidth/2 - 150)+"px";
-  document.getElementById("tutorial").style.top = (window.innerHeight/2 - 50)+"px";
-
-  // Execute resize function from the tutorial
-
-  if(tutorial_process < tutorial_strings.length && tutorial_strings[tutorial_process].resize) tutorial_strings[tutorial_process].resize();
 };
 onresize();
 
