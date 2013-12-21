@@ -249,8 +249,6 @@ var tick = function tick(time) {
 
     if(messages[obj.id]) {
       ctx.save();
-      ctx.font = 'bold 20px Dosis';
-      ctx.textAlign = 'center';
       ctx.lineWidth = 3;
       messages[obj.id].forEach(function draw_message(msg, j) {
         if(current_time - msg.time < 8) {
@@ -297,13 +295,16 @@ var tick = function tick(time) {
     var sy = 0;
 
     try {
-    ctx.drawImage(
-      sprite,
-      sx, sy, fw, fh,
-      pos.getScreenX() - fw/2,
-      pos.getScreenY() - fh/2,
-      fw, fh
-    );
+      ctx.drawImage(
+        sprite,
+        sx, sy, fw, fh,
+        pos.getScreenX() - fw/2,
+        pos.getScreenY() - fh/2,
+        fw, fh
+      );
+      var short_id = obj.id.substring(0, 6);
+      ctx.fillStyle = '#' + short_id;
+      ctx.fillText(short_id, pos.getScreenX(), pos.getScreenY() - fh/2);
     } catch(e) {
       console.log(pos);
     }
@@ -428,6 +429,7 @@ onresize = function(e) {
   var dh = window.innerHeight - canvas.height;
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
+  ctx.font = '20px "Share Tech"';
+  ctx.textAlign = 'center';
 };
 onresize();
-
