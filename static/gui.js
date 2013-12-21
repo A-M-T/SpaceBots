@@ -386,37 +386,38 @@ var draw_explosions = function(time) {
   }
 };
 
+var hovered;
+
 canvas.addEventListener('mousemove', function(e) {
-}, true);
+  hovered = null;
+  var closest = 30;
+  for(var hash in objects) {
+    var o = objects[hash];
+    if(o.position) {
+      var dx = (o.position.getScreenX() - canvas.width/2) * scale.current + canvas.width/2 - e.x;
+      var dy = (o.position.getScreenY() - canvas.height/2) * scale.current + canvas.height/2 - e.y;
 
-canvas.addEventListener('mousedown', function(e) {
-  if(e.button == 0) {
-    var clicked;
-    var closest = 30;
-    for(var hash in objects) {
-      var o = objects[hash];
-      if(o.position) {
-        var dx = (o.position.getScreenX() - canvas.width/2) * scale.current + canvas.width/2 - e.x;
-        var dy = (o.position.getScreenY() - canvas.height/2) * scale.current + canvas.height/2 - e.y;
-
-        var d = Math.sqrt(dx*dx+dy*dy);
-        if(d < closest) {
-          closest = d;
-          clicked = o;
-        }
+      var d = Math.sqrt(dx*dx+dy*dy);
+      if(d < closest) {
+        closest = d;
+        hovered = o;
       }
     }
-    if(clicked) {
-      // TODO
-    } else {
-      var focused = document.querySelector('.focused');
-      if(focused) focused.classList.remove('focused');
-    }
-    e.stopPropagation();
-    e.preventDefault();
-  } else if(e.button == 1) {
-    scale.target = 1;
   }
+}, true);
+
+canvas.addEventListener('contextmenu', function(e) {
+  e.preventDefault();
+  return false;
+}, false);
+
+canvas.addEventListener('mousedown', function(e) {
+  if(e.button == 0 && hovered)
+    prompt("Press Ctrl + C and Enter.", hovered.id);
+  else if(e.button == 2 && hovered)
+    prompt("Press Ctrl + C and Enter.", 'objects["'+hovered.id+'"]');
+  else if(e.button == 1)
+    scale.target = 1;
 }, false);
 
 canvas.addEventListener('mousewheel', function(e) {
