@@ -4,17 +4,17 @@ SpaceBots is a programming game where players employ their in-browser javascript
 
 ## Quickstart guide
 
-1. Clone or download the repo.
+ 1. Clone or download the repo.
 
-2 _(Linux)_. Install node.js, enter `SpaceBots` directory and download dependencies using `npm install`. Start server using `npm start`.
+ 2 _(Linux)_. Install node.js, enter `SpaceBots` directory and download dependencies using `npm install`. Start server using `npm start`.
 
-2 _(Windows)_. Enter `SpaceBots/static` directory and run `server.exe`. 
+ 2 _(Windows)_. Enter `SpaceBots/static` directory and run `server.exe`. 
 
-3. Open [http://localhost:8080/](http://localhost:8080/) to start the game.
+ 3. Open [http://localhost:8080/](http://localhost:8080/) to start the game.
 
-4. Click question mark to see game description.
+ 4. Click question mark to see game description.
 
-5. Modify files in `SpaceBots/static` to suit your gameplay strategy.
+ 5. Modify files in `SpaceBots/static` to suit your gameplay strategy.
 
 ## Starting local server
 
