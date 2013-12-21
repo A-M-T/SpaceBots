@@ -3,7 +3,7 @@ var file = new (require('node-static').Server)('./static');
 var logger = require('./logger');
 var argv = require('optimist').argv;
 
-var port = 8000;
+var port = 8080;
 var redirect_port = 0;
 var certpath, keypath;
 
