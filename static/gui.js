@@ -10,6 +10,10 @@ var canvas = document.getElementById('canvas');
 // To draw, we have to get drawing context first.
 var ctx = canvas.getContext('2d');
 
+if(typeof ctx.setLineDash === 'undefined') {
+  ctx.setLineDash = function() {};
+}
+
 // We will do 3d rendering using isometric projection. World axes will be
 // placed like this:
 //                                 .
