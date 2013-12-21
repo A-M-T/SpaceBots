@@ -11,7 +11,14 @@ var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
 
 if(typeof ctx.setLineDash === 'undefined') {
-  ctx.setLineDash = function() {};
+  if(typeof ctx.mozDash !== 'undefined') {
+    ctx.setLineDash = function(arr) { 
+      if(arr[0] == 0) ctx.mozDash = null;
+      else ctx.mozDash = arr;
+    };
+  } else {
+    ctx.setLineDash = function() {};
+  }
 }
 
 // We will do 3d rendering using isometric projection. World axes will be
