@@ -64,7 +64,7 @@ var reg = function(obj) {
 };
 
 var place = function(host, guest, pos) {
-  host.skeleton_slots[pos] = guest;
+  host.hub_slots[pos] = guest;
   guest.parent = host;
   return guest;
 };
@@ -92,10 +92,10 @@ for(var i = 0; i < 60; ++i) {
 var get_or_create_player = function(hash) {
   if(!(hash in objects)) {
 
-    var hull = reg(bp.make('skeleton manipulator', 10));
+    var hull = reg(bp.make('hub manipulator', 10));
     hull.position = vectors.random2(200);
     hull.velocity = vectors.random2(5);
-    hull.skeleton_slots = [null, null, null, null, null, null];
+    hull.hub_slots = [null, null, null, null, null, null];
     hull.sprite = '/hull.png';
 
     var avatar = place(hull, reg(bp.make('avatar radio', 10)), 0);
@@ -205,21 +205,21 @@ var destroy = global.destroy = function(object) {
     }
   }
 
-  if(object.skeleton_slots) {
-    for(var i = 0; i < object.skeleton_slots.length; ++i) {
-      var orphan = object.skeleton_slots[i];
+  if(object.hub_slots) {
+    for(var i = 0; i < object.hub_slots.length; ++i) {
+      var orphan = object.hub_slots[i];
       if(orphan) {
         orphan.parent = undefined;
         orphan.velocity = vectors.create(vel);
         orphan.position = vectors.create(pos);
-        object.skeleton_slots[i] = undefined;
+        object.hub_slots[i] = undefined;
       }
     }
   }
 
   if(object.parent) {
-    var me = object.parent.skeleton_slots.indexOf(object);
-    object.parent.skeleton_slots[me] = undefined;
+    var me = object.parent.hub_slots.indexOf(object);
+    object.parent.hub_slots[me] = undefined;
     object.parent = undefined;
   }
 
@@ -236,10 +236,10 @@ var apply_thrust_dmg = function(object, source, v, reduce_dmg) {
   if(object.parent && object.parent !== source) {
     mass += apply_thrust_dmg(object.parent, object, v, true);
   }
-  if(object.skeleton_slots) {
-    for(var i = 0; i < object.skeleton_slots.length; ++i) {
-      if(object.skeleton_slots[i] && object.skeleton_slots[i] !== source) {
-        mass += apply_thrust_dmg(object.skeleton_slots[i], object, v, true);
+  if(object.hub_slots) {
+    for(var i = 0; i < object.hub_slots.length; ++i) {
+      if(object.hub_slots[i] && object.hub_slots[i] !== source) {
+        mass += apply_thrust_dmg(object.hub_slots[i], object, v, true);
       }
     }
   }
@@ -393,10 +393,10 @@ io.sockets.on('connection', function (socket) {
       if(current.parent) {
         queue.push(current.parent.id);
       }
-      if(current.skeleton_slots) {
-        for(var i = 0; i < current.skeleton_slots.length; ++i) {
-          if(current.skeleton_slots[i]) {
-            queue.push(current.skeleton_slots[i].id);
+      if(current.hub_slots) {
+        for(var i = 0; i < current.hub_slots.length; ++i) {
+          if(current.hub_slots[i]) {
+            queue.push(current.hub_slots[i].id);
           }
         }
       }
@@ -455,8 +455,8 @@ io.sockets.on('connection', function (socket) {
     if('parent' in target) {
       report.parent = stub(target.parent);
     }
-    if('skeleton_slots' in target) {
-      report.skeleton_slots = target.skeleton_slots.map(stub);
+    if('hub_slots' in target) {
+      report.hub_slots = target.hub_slots.map(stub);
     }
     if('manipulator_slot' in target) {
       report.manipulator_slot = stub(target.manipulator_slot);
@@ -558,9 +558,9 @@ io.sockets.on('connection', function (socket) {
       return;
     if(typeof target.manipulator_slot === 'undefined')
       return fail(999, 'Manipulator empty - nothing to be attached.');
-    var skeleton = find_co_component(target, data.skeleton, 'skeleton');
-    if(typeof data.skeleton_slot !== 'number')
-      return fail(999, 'Skeleton slot should be a number.');
+    var hub = find_co_component(target, data.hub, 'hub');
+    if(typeof data.hub_slot !== 'number')
+      return fail(999, 'hub slot should be a number.');
     var idx = Math.round(data.skeleton_slot);
     if(idx < 0)
       return fail(999, 'Specified skeleton doesn\'t have negative slots.');

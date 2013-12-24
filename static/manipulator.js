@@ -18,16 +18,16 @@ socket.on('manipulator released', function(data) {
   delete objects[data.id].manipulator_slot;
 });
 
-var attach = function(skeleton, slot) {
-  skeleton = common.get(skeleton);
-  socket.emit('manipulator attach', {target: manipulator.id, skeleton: skeleton.id, skeleton_slot: slot});
+var attach = function(hub, slot) {
+  hub = common.get(hub);
+  socket.emit('manipulator attach', {target: manipulator.id, hub: hub.id, hub_slot: slot});
 };
 
 socket.on('manipulator attached', function(data) {
-  var s = common.get(data.skeleton.id);
+  var s = common.get(data.hub.id);
   var o = common.get(data.object.id);
   var m = common.get(data.manipulator.id);
-  s.skeleton_slots[data.slot] = o;
+  s.hub_slots[data.slot] = o;
   o.parent = s;
   delete o.position;
   delete o.velocity;
@@ -36,18 +36,18 @@ socket.on('manipulator attached', function(data) {
   socket.emit('report', { target: o.id });
 });
 
-var detach = function(skeleton, slot) {
-  var s = common.get(skeleton);
-  socket.emit('manipulator detach', {target: manipulator.id, skeleton: s.id, skeleton_slot: slot});
+var detach = function(hub, slot) {
+  var s = common.get(hub);
+  socket.emit('manipulator detach', {target: manipulator.id, hub: s.id, hub_slot: slot});
 };
 
 socket.on('manipulator detached', function(data) {
-  var s = common.get(data.skeleton.id);
+  var s = common.get(data.hub.id);
   var o = common.get(data.object.id);
   var m = common.get(data.manipulator.id);
 
   m.manipulator_slot = o;
-  s.skeleton_slots[idx] = null;
+  s.hub_slots[idx] = null;
   delete o.parent;
   o.grabbed_by = target;
   o.position = vectors.create(common.get_root(target).position);

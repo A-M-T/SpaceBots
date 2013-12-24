@@ -24,21 +24,21 @@ socket.on('destroyed', function(stub) {
   explosions.push(exp);
   new Audio('/boom'+Math.floor(Math.random()*3)+'.ogg').play();
 
-  if(obj.skeleton_slots) {
-    for(var i = 0; i < obj.skeleton_slots.length; ++i) {
-      var orphan = obj.skeleton_slots[i];
+  if(obj.hub_slots) {
+    for(var i = 0; i < obj.hub_slots.length; ++i) {
+      var orphan = obj.hub_slots[i];
       if(orphan) {
         orphan.parent = undefined;
         orphan.velocity = vectors.create(vel);
         orphan.position = vectors.create(pos);
-        obj.skeleton_slots[i] = undefined;
+        obj.hub_slots[i] = undefined;
       }
     }
   }
 
   if(obj.parent) {
-    var me = obj.parent.skeleton_slots.indexOf(obj);
-    obj.parent.skeleton_slots[me] = undefined;
+    var me = obj.parent.hub_slots.indexOf(obj);
+    obj.parent.hub_slots[me] = undefined;
     obj.parent = undefined;
   }
 

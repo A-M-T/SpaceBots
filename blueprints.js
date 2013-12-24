@@ -17,7 +17,7 @@
 		'manipulator': 100,
 		'radio': 100,
 		'refinery': 100,
-		'skeleton': 20,
+		'hub': 20,
 		'spectrometer': 100,
 		'store': 100
 	};
@@ -111,7 +111,7 @@
 			//},
 			//sensitivity: function(b, v) { return Math.sqrt(v) / 2; }
 		},
-		skeleton: {
+		hub: {
 			slots: function(b, v) {
 				return new Array(Math.round(Math.pow(v, 0.5)));
 			}

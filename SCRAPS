@@ -10,8 +10,8 @@ FR-layout
 			
 			var pull = function(x) {
 				if(x === obj.parent) return true;
-				if(obj.skeleton_slots) {
-					return obj.skeleton_slots.some(function(el) {
+				if(obj.hub_slots) {
+					return obj.hub_slots.some(function(el) {
 						return x === el;
 					});
 				}

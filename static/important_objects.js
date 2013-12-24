@@ -69,14 +69,14 @@ var register_object = function register_object(obj, always_sent) {
 
   // Now, we can check what other components our `obj` is connected
   // to. Various components can have child elements. They are saved
-  // in `skeleton_slots` field. Child elements connected through
-  // `skeleton_slots` can communicate, exchange resources and power.
+  // in `hub_slots` field. Child elements connected through
+  // `hub_slots` can communicate, exchange resources and power.
 
-  if('skeleton_slots' in obj) {
+  if('hub_slots' in obj) {
 
-    obj.skeleton_slots.forEach(function(child) {
+    obj.hub_slots.forEach(function(child) {
 
-      // `skeleton_slots` form an array. However - not every
+      // `hub_slots` form an array. However - not every
       // index is filled. We check it now:
 
       if(child && child.id) {
@@ -111,7 +111,7 @@ var register_object = function register_object(obj, always_sent) {
 
   // Besides child elements, any object can control its own
   // parent. We will do basically the same thing as with
-  // `skeleton_slots`. Only difference is that an object can have at
+  // `hub_slots`. Only difference is that an object can have at
   // most one parent so we don't need to iterate over the array.
 
   if(obj.parent &&
@@ -140,8 +140,8 @@ var register_object = function register_object(obj, always_sent) {
     obj.parent = objects[obj.parent.id];
   }
 
-  if(obj.skeleton_slots) {
-    obj.skeleton_slots = obj.skeleton_slots.map(function(el) {
+  if(obj.hub_slots) {
+    obj.hub_slots = obj.hub_slots.map(function(el) {
       return el ? objects[el.id] : el;
     });
   }

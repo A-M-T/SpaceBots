@@ -33,9 +33,9 @@
 			if(element.parent) {
 				browse(element.parent);
 			}
-			if(element.skeleton_slots) {
-				for(var i = 0; i < element.skeleton_slots.length; ++i) {
-					browse(element.skeleton_slots[i]);
+			if(element.hub_slots) {
+				for(var i = 0; i < element.hub_slots.length; ++i) {
+					browse(element.hub_slots[i]);
 				}
 			}
 			if(full) {

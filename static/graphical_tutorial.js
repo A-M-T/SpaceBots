@@ -50,14 +50,14 @@ var tutorial_strings = [
       manipulator_range: 50,
       position: vectors.create(),
       velocity: vectors.create(),
-      skeleton_slots: new Array(6),
+      hub_slots: new Array(6),
       sprite: "/hull.png",
-      features: { skeleton: true, manipulator: true },
+      features: { hub: true, manipulator: true },
       screen_position: vectors.create(0, 0)
     };
 
     var objid = common.uid();
-    radio = avatar = objects[shipid].skeleton_slots[0] = objects[objid] = {
+    radio = avatar = objects[shipid].hub_slots[0] = objects[objid] = {
       id: objid,
       fetch_time: -1,
       integrity: 9999,
@@ -69,7 +69,7 @@ var tutorial_strings = [
     };
 
     objid = common.uid();
-    impulse_drive = store = battery = objects[shipid].skeleton_slots[1] = objects[objid] = {
+    impulse_drive = store = battery = objects[shipid].hub_slots[1] = objects[objid] = {
       id: objid,
       fetch_time: -1,
       integrity: 9999,
@@ -87,7 +87,7 @@ var tutorial_strings = [
     objects[objid].store_stored[0] = 9999;
 
     objid = common.uid();
-    objects[shipid].skeleton_slots[2] = objects[objid] = {
+    objects[shipid].hub_slots[2] = objects[objid] = {
       id: objid,
       fetch_time: -1,
       integrity: 9999,
@@ -98,7 +98,7 @@ var tutorial_strings = [
     };
 
     objid = common.uid();
-    objects[shipid].skeleton_slots[3] = objects[objid] = {
+    objects[shipid].hub_slots[3] = objects[objid] = {
       id: objid,
       fetch_time: -1,
       integrity: 9999,
@@ -141,10 +141,10 @@ var tutorial_strings = [
     else
       return false;
   }},
-  { text: "Left icon (<img src=\"/features/skeleton.png\">) is a list of components attached to your ship's hull. Right icon (<img src=\"/features/manipulator.png\">) is a manipulator. Click on a left icon, we'll come back to the manipulator later.",
+  { text: "Left icon (<img src=\"/features/hub.png\">) is a list of components attached to your ship's hull. Right icon (<img src=\"/features/manipulator.png\">) is a manipulator. Click on a left icon, we'll come back to the manipulator later.",
     on_controlschange: function(target, feature) {
       if(target != common.get_root(avatar).id) return;
-      tutorial_strings[tutorial_process].var_finished = (feature == "skeleton");
+      tutorial_strings[tutorial_process].var_finished = (feature == "hub");
     }, finished: function() {
       return tutorial_strings[tutorial_process].var_finished;
     }, var_finished: false },
@@ -172,7 +172,7 @@ var tutorial_strings = [
       return tutorial_strings[tutorial_process].var_finished;
     }, var_finished: false },
   { text: "You can see the manipulator GUI here. White, dashed line near your ship shows it's range. You can grab objects by clicking in the center. Manipulator can also attach or detach elements of your ship, but as with refinery, you can't do this in graphical interface" },
-  { text: "OK, so now it's time to use our engines to move! Go back to skeleton view (<img src=\"/features/skeleton.png\">) and click on the ID of impulse drive (<img src=\"/features/impulse_drive.png\">).", finished: function() {
+  { text: "OK, so now it's time to use our engines to move! Go back to hub view (<img src=\"/features/hub.png\">) and click on the ID of impulse drive (<img src=\"/features/impulse_drive.png\">).", finished: function() {
     if(document.getElementById(impulse_drive.id))
       return true;
     else
