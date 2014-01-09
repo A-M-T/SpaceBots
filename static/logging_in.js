@@ -44,7 +44,7 @@ var socket;
 var connect = function() {
   return new Promise(function(resolve, reject) {
 
-    socket = io.connect('https://localhost:8080/');
+    socket = io.connect();
 
     // We use the 'connect' event to execute action right after
     // connection is created.
