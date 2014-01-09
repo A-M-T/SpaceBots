@@ -1,0 +1,52 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>RADIO - SpaceBots</title>
+<link rel=stylesheet href=doc.css>
+<h1>RADIO</h1>
+
+<p>Radio pozwala wysyłać i odbierać sygnały z przestrzeni oraz odnajdywać dryfujące w przestrzeni obiekty.</p>
+
+<h2>Dodatkowe pola: </h2>
+
+<h3><code>"radio_range"</code></h3>
+
+<p>Zasięg skanowania.</p>
+
+<h2>Polecenia: </h2>
+
+<h3><code>"scan"</code></h3>
+
+<p>Odnajduje dryfujące w pobliżu obiekty:</p>
+
+<pre><samp>"scan": {
+  target: "id radia"
+} -> [
+  {
+    id: "id obiektu",
+    sprite: "url z grafiką obiektu",
+  <span class=meta>&lt;</span> user_sprite: "url z grafiką użytkownika", <span class=meta>&gt;</span>
+    position: [ x, y, z ],
+    velocity: [ vx, vy, vz ]
+  },
+  ...
+]</samp></pre>
+
+<h3><code>"broadcast"</code></h3>
+
+<p>Pozwala wysłać komunikat w przestrzeń:</p>
+
+<pre><samp>"broadcast": {
+  target: "id radia",
+  message: "wiadomość ( do 140 znaków )"
+} -> "sent"</samp></pre>
+
+<h2>Sygnały: </h2>
+
+<h3><code>"broadcast"</code></h3>
+
+<p>Otrzymywany gdy inny gracz nada komunikat:</p>
+
+<pre><samp>"broadcast": {
+  source: { id: "id nadającego" },
+  message: "wiadomość"
+}</samp></pre>

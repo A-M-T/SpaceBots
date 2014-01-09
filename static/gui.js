@@ -46,8 +46,9 @@ if(typeof ctx.setLineDash === 'undefined') {
 //
 // Solving for x, we get following width and height of X and Z axes:
 
-var XZ_width = 2 / Math.sqrt(5);
-var XZ_height = 1 / Math.sqrt(5);
+var X_width = Z_width = 2 / Math.sqrt(5);
+var X_height = Z_height = 1 / Math.sqrt(5);
+var Y_height = 1, Y_hidden = 0;
 
 // This will be virtual camera that will contain 3d coordinates where we are
 // looking.
@@ -55,10 +56,10 @@ var camera = vectors.create();
 
 // TODO: docs
 Float32Array.prototype.getScreenX = function getScreenX() {
-  return (this[0] - camera[0]) * XZ_width - (this[2] - camera[2]) * XZ_width + canvas.width / 2;
+  return (this[0] - camera[0]) * X_width + (this[2] - camera[2]) * Z_width + canvas.width / 2;
 };
 Float32Array.prototype.getScreenY = function getScreenY() {
-  return (this[0] - camera[0]) * XZ_height + (this[2] - camera[2]) * XZ_height - (this[1] - camera[1]) + canvas.height / 2;
+  return (this[0] - camera[0]) * X_height + (this[2] - camera[2]) * Z_height - (this[1] - camera[1]) * Y_height + canvas.height / 2;
 };
 
 // Here are some drawing functions for various primitives on the screen:
@@ -74,7 +75,7 @@ var line = function line(a, b) {
 // This function will draw slightly flattened ellipse at screen coordinates `x`,
 // `y` with width `w`.
 var ellipse = function ellipse(x, y, w) {
-  var h = w / 2;
+  var h = w * Y_hidden;
   var kappa = .5522848,
   ox = (w / 2) * kappa, // control point offset horizontal
   oy = (h / 2) * kappa, // control point offset vertical
@@ -102,7 +103,7 @@ Float32Array.prototype.drawShadow = function drawShadow(color) {
   // achieved by using `p` as a prototype) except coordinate `y` which is set
   // to 0.
   var top_y = this.getScreenY();
-  var base_y = (this[0] - camera[0]) * XZ_height + (this[2] - camera[2]) * XZ_height + canvas.height / 2;
+  var base_y = (this[0] - camera[0]) * X_height + (this[2] - camera[2]) * Z_height + canvas.height / 2;
   var x = this.getScreenX();
 
   ctx.strokeStyle=color;
@@ -225,20 +226,33 @@ var tick = function tick(time) {
   if((stars.length < 200) && (Math.random() < 0.5)) {
     stars.push({
       age: 0,
-      position: vectors.random2(500/scale.current).add(camera)
+      position: vectors.random2(300/scale.current).add(camera)
     });
   }
+  
+    
+  ctx.save();
+  for(var cid in objects) {
+    var c = objects[cid];
+    if(!c.a || !c.b) continue;
+    var a = get_position_now(c.a);
+    var b = get_position_now(c.b);
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'black';
+    line(a, b);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'white';
+    line(a, b);
+  }
+  ctx.restore();
 
   var arr = common.dict_to_array(objects).filter(function position_filter(o) {
     return 'position' in o;
   });
   arr.sort(function position_sort(a, b) {
-
     return a.position[0] +
-      a.position[1] / 100 +
       a.position[2] -
       b.position[0] -
-      b.position[1] / 100 -
       b.position[2];
   });
 
@@ -283,7 +297,7 @@ var tick = function tick(time) {
       console.log(pos, obj.velocity, obj.position.drawShadow, obj.sprite);
     }
 
-    var sprite_url = obj.sprite || '/unknown.png';
+    var sprite_url = obj.sprite || 'unknown.png';
     var sprite = get_image(sprite_url, user_sprites && obj.user_sprite);
 
     var frames = get_frame_count(sprite_url);
@@ -302,12 +316,11 @@ var tick = function tick(time) {
         pos.getScreenY() - fh/2,
         fw, fh
       );
-      var short_id = obj.id.substring(0, 6);
-      ctx.fillStyle = '#' + short_id;
-      ctx.fillText(short_id, pos.getScreenX(), pos.getScreenY() - fh/2);
-    } catch(e) {
-      console.log(pos);
-    }
+    } catch(e) {}
+
+    var short_id = obj.id.substring(0, 6);
+    ctx.fillStyle = '#' + short_id;
+    ctx.fillText(short_id, pos.getScreenX(), pos.getScreenY() - fh/2);
 
     ctx.globalAlpha = 1;
 
@@ -321,9 +334,10 @@ var tick = function tick(time) {
     ctx.lineDashOffset = time * 2;
     ctx.lineWidth = 2;
     ctx.lineCap = 'round';
+    var p = get_position_now(manipulator);
     if(radio) {
       ctx.beginPath();
-      ctx.arc(canvas.width/2, canvas.height/2, manipulator.manipulator_range, 0, 2 * Math.PI, false);
+      ctx.arc(p.getScreenX(), p.getScreenY(), manipulator.manipulator_range, 0, 2 * Math.PI, false);
       ctx.stroke();
     }
     ctx.lineDashOffset = 0;
@@ -389,6 +403,18 @@ var draw_explosions = function(time) {
 var hovered;
 
 canvas.addEventListener('mousemove', function(e) {
+  var alpha = Math.PI * e.x / innerWidth * 2;
+  var pitch = Math.PI * e.y / innerHeight / 2;
+  
+  X_width = Math.sin(alpha);
+  X_height = Math.cos(pitch) * Math.cos(alpha);
+  
+  Z_width = -Math.cos(alpha);
+  Z_height = Math.cos(pitch) * Math.sin(alpha);
+
+  Y_height = Math.sin(pitch);
+  Y_hidden = Math.cos(pitch);
+
   hovered = null;
   var closest = 30;
   for(var hash in objects) {
@@ -432,5 +458,6 @@ onresize = function(e) {
   canvas.height = window.innerHeight;
   ctx.font = '20px "Share Tech"';
   ctx.textAlign = 'center';
+  ctx.imageSmoothingEnabled = false;
 };
 onresize();

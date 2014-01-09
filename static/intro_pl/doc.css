@@ -5,9 +5,22 @@ html {
     font-family: 'Exo 2', sans-serif;
     font-size: 16px;
 }
+h1 {
+    font-size: 48px;
+}
+h2 {
+    font-size: 36px;
+}
+h3 {
+    font-size: 24px;
+}
 pre, code, kbd, samp {
     font-family: 'PT Mono', monospace, sans-serif;
+    font-weight: normal;
     font-size: 13px;
+}
+h3 code {
+    font-size: inherit;
 }
 body {
     margin: 5%;
@@ -44,4 +57,7 @@ button {
 }
 .comment {
     color: #aaaaaa;
+}
+.meta {
+    color: red;
 }

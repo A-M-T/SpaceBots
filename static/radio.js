@@ -22,9 +22,9 @@ var radio_scanner = {
   loop: function radio_loop() {
     radio_scanner.timeout_id = undefined;
 
-    socket.emit('radio scan', {
+    socket.emit('scan', {
       target: radio.id
-    });
+    }, radio_scanner.result);
 
     radio_scanner.schedule();
   },
@@ -43,7 +43,12 @@ var radio_scanner = {
   run: function radio_scanner_run() {
     radio_scanner.loop();
   },
-  result: function radio_scanner_result(result) {
+  result: function radio_scanner_result(status, result) {
+
+    if(status !== 'success') {
+      console.error('Error in radio scan: ' + JSON.stringify(result));
+      return;
+    }
 
     // When radio scanning is done, we get the array containing all items
     // found within the `radio_range`. Each object found will have only
@@ -52,26 +57,21 @@ var radio_scanner = {
     // Let's integrate new information into our own structures. We
     // will do it the same way as in 'report' handler.
 
-    result.forEach(function(e) { register_object(e) });
+    result.forEach(report2object);
 
     // After each radio update, we are up-to date with all objects
     // positions and we are able to execute some additional action that is
     // guaranteed to operate on correct values. We will store this action
     // in `radio_scanner.callbacks`.
 
-    for(var i = 0; i < radio_scanner.callbacks.length; ++i) {
-      var cb = radio_scanner.callbacks[i];
-      cb();
-    };
+    radio_scanner.callbacks.forEach(function(f) { f() });
 
   }
 };
 
-socket.on('radio result', radio_scanner.result);
-
 var messages = {};
 var broadcast = function(msg) {
-  socket.emit('radio broadcast', { target: avatar.id, message: msg });
+  socket.emit('broadcast', { target: avatar.id, message: msg });
 };
 
 socket.on('broadcast', function(data) {

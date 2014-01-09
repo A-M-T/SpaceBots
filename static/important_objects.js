@@ -11,7 +11,7 @@ var avatar_id;
 // status, we can prepare an object that will hold our knowledge about
 // the world in the game:
 
-var objects = {};
+var objects = physics.objects;
 
 // "Pantha rhei" - everything changes. Whenever we get data from the
 // server, this data is valid at the moment it is generated. It should
@@ -23,11 +23,10 @@ var current_time = 0;
 // This function will get an object and integrate it into global
 // database in the `objects` variable.
 
-var vector_keys = { 'position': true, 'velocity': true};
-var register_object = function register_object(obj, always_sent) {
+var report2object = function report2object(obj) {
   var key;
 
-  if(obj.id in objects) {
+  if(objects[obj.id]) {
 
     // If we already have this object saved, we should only update
     // its fields.  We do this because during the execution
@@ -40,12 +39,6 @@ var register_object = function register_object(obj, always_sent) {
 
     var old = objects[obj.id];
     
-    if(always_sent) {
-      for(key in always_sent) {
-        delete old[key];
-      }
-    }
-
     for(key in obj) old[key] = obj[key];
 
     // We should erase all references to the received
@@ -62,96 +55,26 @@ var register_object = function register_object(obj, always_sent) {
   obj.fetch_time = current_time;
 
   // Position and velocity information will be sent as arrays: [x,
-  // y, z]. We can convert them using `sylvester` library into
-  // vectors. This way they will be easier to use.
+  // y, z]. We can convert them into vectors. This way they will be
+  // easier to use.
 
-  for(key in vector_keys) if(key in obj) obj[key] = vectors.create(obj[key]);
+  if(obj.position) obj.position = vectors.create(obj.position);
+  if(obj.velocity) obj.velocity = vectors.create(obj.velocity);
 
   // Now, we can check what other components our `obj` is connected
-  // to. Various components can have child elements. They are saved
-  // in `hub_slots` field. Child elements connected through
-  // `hub_slots` can communicate, exchange resources and power.
+  // to. Connections are saved in `connections` field.
 
-  if('hub_slots' in obj) {
-
-    obj.hub_slots.forEach(function(child) {
-
-      // `hub_slots` form an array. However - not every
-      // index is filled. We check it now:
-
-      if(child && child.id) {
-
-        // Child components and various other items are
-        // reported by the server as "stubs". They are objects
-        // that have only one property defined: `id`. It makes
-        // communication more efficient - if you already have
-        // information about this particular object, the
-        // server doesn't waste any bandwidth to send it
-        // again. If you don't have any info then you can
-        // request it using 'report' message.
-
-        // When we already have the object scanned - we don't
-        // need to issue 'report' command any more.
-
-        if(typeof objects[child.id] === 'undefined' || objects[child.id].position) {
-          objects[child.id] = child;
-        }
-
-        reporter.add(child.id)
-
-        // This way we will get 'scan report' for the next
-        // component, and the next one, and so on.
-
-        // This nifty trick will scan all the component hierarchy
-        // that is under our control.
-
-      }
-    });
-  }
-
-  // Besides child elements, any object can control its own
-  // parent. We will do basically the same thing as with
-  // `hub_slots`. Only difference is that an object can have at
-  // most one parent so we don't need to iterate over the array.
-
-  if(obj.parent &&
-     obj.parent.id &&
-     typeof objects[obj.parent.id] === 'undefined') {
-    objects[obj.parent.id] = obj.parent;
-    reporter.add(obj.parent.id);
-  }
-
-  // When manipulators hold other objects, they have stubs with
-  // their ids in manipulator_slot. If we don't have any information
-  // about these held objects, we should mark them in our objects
-  // set:
-
-  if(obj.manipulator_slot &&
-     obj.manipulator_slot.id &&
-     typeof objects[obj.manipulator_slot.id] === 'undefined') {
-    objects[obj.manipulator_slot.id] = obj.manipulator_slot;
-  }
-
-  // Our object will have stub as a parent, stub as a held object
-  // (if this is manipulator) and more stubs as its children. We can
-  // fix it by replacing them with objects from `objects` set.
-
-  if(obj.parent) {
-    obj.parent = objects[obj.parent.id];
-  }
-
-  if(obj.hub_slots) {
-    obj.hub_slots = obj.hub_slots.map(function(el) {
-      return el ? objects[el.id] : el;
-    });
-  }
-
-  if(obj.manipulator_slot) {
-    obj.manipulator_slot = objects[obj.manipulator_slot.id];
-  }
+  if(obj.connections) obj.connections = obj.connections.map(stub2object);
+  if(obj.a) obj.a = stub2object(obj.a);
+  if(obj.b) obj.b = stub2object(obj.b);
 
   return obj;
 
+};
+
+var stub2object = function(stub) {
+  reporter.add(stub.id);
+  return objects[stub.id] || (objects[stub.id] = stub);
 };
 
 // Certain objects that we will most probably use all the time are

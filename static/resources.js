@@ -89,7 +89,7 @@
 	};
 
 	var get_connected_mass = e.get_connected_mass = function(o) {
-		var cc = common.walk(o);
+		var cc = common.walk(o, 'rigid');
 		var mass = 0;
 		for(var id in cc) {
 			mass += get_mass(cc[id]);

@@ -19,31 +19,23 @@
     return get(this);
   };
 
-	// This function will walk the object hierarchy (parents and slots) and
-	// return object containing all elements found.
-	// When full parameter is set to true, the walk will cover also
-	// any components connected by manipulators.
-	var walk = e.walk = function(start, dict, full) {
+	// This function will traverse connected components and
+	// return all of them.
+	var walk = e.walk = function(start, type, dict) {
 		var cc = dict || {};
-		full = full || false;
+    type = type || 'rigid'; // 'rigid' or 'relay'
+
 		var browse = function(element) {
 			if(!element) return;
 			if(element.id in cc) return;
 			cc[element.id] = element;
-			if(element.parent) {
-				browse(element.parent);
-			}
-			if(element.hub_slots) {
-				for(var i = 0; i < element.hub_slots.length; ++i) {
-					browse(element.hub_slots[i]);
-				}
-			}
-			if(full) {
-				if(element.manipulator_slot) {
-					browse(element.manipulator_slot);
-				}
-				if(element.grabbed_by) {
-					browse(element.grabbed_by);
+			if(element.connections) {
+				for(var i = 0; i < element.connections.length; ++i) {
+          var c = element.connections[i];
+          if(!!c.features[type]) {
+            cc[c.id] = c;
+					  browse(element === c.a ? c.b : c.a);
+          }
 				}
 			}
 		};
@@ -57,47 +49,6 @@
 		return Object.keys(dict).map(function(key) {
 			return dict[key];
 		});
-	};
-
-	// This function can be used to get root element of the ship by passing
-	// any of ship's elements as an argument
-	var get_root = e.get_root = function(x) {
-		while(true) {
-			if(x.parent) {
-				// If this object has a parent, save it and continue
-				x = x.parent;
-			} else {
-				// But if it hasn't got a parent, let's return this object
-				return x;
-			}
-		}
-	};
-
-	// This function will get position of ship basing on any of it's elements
-	var get_position = e.get_position = function(x) {
-		while(true) {
-			if(x.parent) {
-				x = x.parent;
-			} else if(x.position) {
-				return x.position;
-			} else {
-				return undefined;
-			}
-		}
-	};
-
-	// Just like previous function, but it's user to set the position
-	var set_position = e.set_position = function(x, pos) {
-		while(true) {
-			if(x.parent) {
-				x = x.parent;
-			} else {
-				if(x.position) {
-					x.position = pos;
-				}
-				return;
-			}
-		}
 	};
 
 	// This function will return random number from -1 to 1

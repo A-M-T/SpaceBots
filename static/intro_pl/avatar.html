@@ -1,0 +1,51 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>AVATAR - SpaceBots</title>
+<link rel=stylesheet href=doc.css>
+<h1>AVATAR</h1>
+
+<p>Avatar jest źródłem, z którego wysyłane są polecenia do pozostałych podzespołów.</p>
+
+<h2>Polecenia: </h2>
+
+<h3><code>"report"</code></h3>
+
+<p>Pozwala uzyskać podstawowe informacje na temat dowolnego, osiągalnego z awatara podzespołu. Budowa polecenia:</p>
+
+<pre><samp>"report": {
+  target: "id podzespołu"
+} -> {
+  id: "id podzespołu",
+  features: { "nazwa cechy": "url z opisem", ... },
+  position: [x, y, z],
+  velocity: [vx, vy, vz],
+  sprite: "url z oficjalną grafiką",
+<span class=meta>&lt;</span> user_sprite: "url z grafiką gracza", <span class=meta>&gt;</span>
+  integrity: wytrzymałość,
+  mass: masa,
+  ... <span class=comment>// dodatkowe pola wynikające z cech podzespołu</span>
+}</samp></pre>
+
+<h3><code>"sprite"</code></h3>
+
+<p>Ustawia alternatywną grafikę wskazanemu, osiągalnemu podzespołowi. Można wykonać tylko raz dla każdego podzespołu. Budowa polecenia:</p>
+
+<pre><samp>"sprite": {
+  target: "id podzespołu",
+  user_sprite: "url grafiki" <span class=comment>// nie więcej niż 127 znaków</span>
+} -> {
+  id: "id podzespołu",
+  user_sprite: "url grafiki"
+}</samp></pre>
+
+<p>W domyślnym kliencie SpaceBots, grafiki graczy są wyłączone. Aby je włączyć ustaw globalną zmienną <code>user_sprites</code> na <code>true</code>.</p>
+
+<h2>Sygnały: </h2>
+
+<h3><code>"destroyed"</code></h3>
+
+<p>Otrzymywany gdy podzespół podłączony za pomocą przekaźników zostanie zniszczony:</p>
+
+<pre><samp>"destroyed": {
+  id: "id zniszczonego podzespołu"
+}</samp></pre>

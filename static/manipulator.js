@@ -49,9 +49,9 @@ socket.on('manipulator detached', function(data) {
   m.manipulator_slot = o;
   s.hub_slots[idx] = null;
   delete o.parent;
-  o.grabbed_by = target;
-  o.position = vectors.create(common.get_root(target).position);
-  o.velocity = vectors.create(common.get_root(target).velocity);
+  o.grabbed_by = m;
+  o.position = vectors.create(m.position);
+  o.velocity = vectors.create(m.velocity);
 });
 
 var repulse = function(x, y, z, power) {
