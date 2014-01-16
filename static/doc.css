@@ -1,0 +1,63 @@
+@import url(http://fonts.googleapis.com/css?family=Exo+2:100,300,700,300italic&subset=latin-ext);
+@import url(http://fonts.googleapis.com/css?family=PT+Mono&subset=latin-ext);
+
+html {
+    font-family: 'Exo 2', sans-serif;
+    font-size: 16px;
+}
+h1 {
+    font-size: 48px;
+}
+h2 {
+    font-size: 36px;
+}
+h3 {
+    font-size: 24px;
+}
+pre, code, kbd, samp {
+    font-family: 'PT Mono', monospace, sans-serif;
+    font-weight: normal;
+    font-size: 13px;
+}
+h3 code {
+    font-size: inherit;
+}
+body {
+    margin: 5%;
+}
+a, a:visited {
+    color: #ffb500;
+}
+a:hover {
+    color: #ffd56c;
+}
+img {
+    max-height: 50vh;
+}
+button {
+    display: none;
+}
+.keyword {
+    color: #b665f1;
+}
+.atom, .string {
+    color: #908f52;
+}
+.variabledef {
+    color: #d32b2e;
+}
+.localvariable {
+    color: #cf6466;
+}
+.variable {
+    color: #a02c2e;
+}
+.property {
+    color: #34d778;
+}
+.comment {
+    color: #aaaaaa;
+}
+.meta {
+    color: red;
+}
