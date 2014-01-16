@@ -1,5 +1,5 @@
 
-var file = new (require('node-static').Server)('./static');
+var file = new (require('./node-static').Server)('./static');
 var logger = require('./logger');
 var argv = require('optimist').argv;
 
