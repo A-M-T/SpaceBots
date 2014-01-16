@@ -11,7 +11,9 @@
     "socket.io": "~0.9.16",
     "optimist": "0.5.2",
     "validator": "2.0.0",
-    "findit": "0.1.2"
+    "findit": "0.1.2",
+    "colors": ">=0.6.0",
+    "mime": ">=1.2.9"
   },
   "devDependencies": {},
   "scripts": {
