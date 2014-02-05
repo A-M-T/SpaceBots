@@ -401,19 +401,32 @@ var draw_explosions = function(time) {
 };
 
 var hovered;
+var camera_rotation = vectors.create();
+var last_mouse_pos;
+var RMB_pressed = false;
 
 canvas.addEventListener('mousemove', function(e) {
-  var alpha = Math.PI * e.x / innerWidth * 2;
-  var pitch = Math.PI * e.y / innerHeight / 2;
-  
-  X_width = Math.sin(alpha);
-  X_height = Math.cos(pitch) * Math.cos(alpha);
-  
-  Z_width = -Math.cos(alpha);
-  Z_height = Math.cos(pitch) * Math.sin(alpha);
+  if((e.ctrlKey || RMB_pressed) && last_mouse_pos != undefined) {
+    camera_rotation[0] += e.x - last_mouse_pos.x;
+    camera_rotation[1] += e.y - last_mouse_pos.y;
 
-  Y_height = Math.sin(pitch);
-  Y_hidden = Math.cos(pitch);
+    var alpha = Math.PI * camera_rotation[0] / innerWidth * 2;
+    var pitch = Math.PI * camera_rotation[1] / innerHeight / 2;
+  
+    X_width = Math.sin(alpha);
+    X_height = Math.cos(pitch) * Math.cos(alpha);
+  
+    Z_width = -Math.cos(alpha);
+    Z_height = Math.cos(pitch) * Math.sin(alpha);
+
+    Y_height = Math.sin(pitch);
+    Y_hidden = Math.cos(pitch);
+  }
+
+  last_mouse_pos = {
+    x: e.x,
+    y: e.y
+  };
 
   hovered = null;
   var closest = 30;
@@ -440,10 +453,19 @@ canvas.addEventListener('contextmenu', function(e) {
 canvas.addEventListener('mousedown', function(e) {
   if(e.button == 0 && hovered)
     prompt("Press Ctrl + C and Enter.", hovered.id);
-  else if(e.button == 2 && hovered)
-    prompt("Press Ctrl + C and Enter.", 'objects["'+hovered.id+'"]');
-  else if(e.button == 1)
+  else if(e.button == 2) {
+    if(hovered)
+      prompt("Press Ctrl + C and Enter.", 'objects["'+hovered.id+'"]');
+    else
+      RMB_pressed = true;
+  } else if(e.button == 1)
     scale.target = 1;
+}, false);
+
+canvas.addEventListener('mouseup', function(e) {
+  if(e.button == 2) {
+    RMB_pressed = false;
+  }
 }, false);
 
 canvas.addEventListener('mousewheel', function(e) {
