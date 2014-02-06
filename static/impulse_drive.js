@@ -134,14 +134,15 @@ var get_position_now = function get_position_now(x) {
 };
 
 var destination = null;
+var navigation_center = null;
 var navigation_cancelled = null;
 var navigation_succeeded = null;
 
 var navigate_tick = function() {
   // Now let's calculate how fast we are moving relative to our
   // destination and the direction we should move towards...
-  var engine_pos = get_position_now(impulse_drive);
-  var engine_vel = impulse_drive.velocity;
+  var engine_pos = get_position_now(navigation_center);
+  var engine_vel = navigation_center.velocity;
 
   var target_velocity = vectors.create();
   var distance = 0;
@@ -167,7 +168,7 @@ var navigate_tick = function() {
       console.error("Error during navigation", error);
       radio_scanner.remove_callback(navigate_tick);
       navigation_cancelled();
-      destination = navigation_cancelled = navigation_succeeded = null;
+      destination = navigation_center = navigation_cancelled = navigation_succeeded = null;
     });
   }
 
@@ -176,7 +177,7 @@ var navigate_tick = function() {
     console.log("Destination reached.");
     radio_scanner.remove_callback(navigate_tick);
     navigation_succeeded();
-    destination = navigation_cancelled = navigation_succeeded = null;
+    destination = navigation_center = navigation_cancelled = navigation_succeeded = null;
   }
 
 };
@@ -187,7 +188,7 @@ var toggle_maneuver = function toggle_maneuver() {
     console.log("Maneuver aborted!");
     radio_scanner.remove_callback(navigate_tick);
     navigation_cancelled();
-    destination = navigation_cancelled = navigation_succeeded = null;
+    destination = navigation_center = navigation_cancelled = navigation_succeeded = null;
     return null;
   } else {
     return new Promise(function(resolve, reject) {
@@ -202,11 +203,13 @@ var toggle_maneuver = function toggle_maneuver() {
 
 
 var stop = function stop() {
+  navigation_center = impulse_drive;
   destination = { velocity: vectors.zero };
   return toggle_maneuver();
 };
 
-var navigate = function navigate(dest) {
+var navigate = function navigate(dest, center) {
+  navigation_center = common.get(center) || impulse_drive;
   destination = common.get(dest);
   return toggle_maneuver();
 };
