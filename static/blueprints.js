@@ -97,7 +97,7 @@
 			var nf = count_features(b);
 			return nf * nf * 25 / Math.max(1, v);
 		},
-		integrity: function(b, v) { return (v+1) * 1000; }
+		integrity: function(b, v) { return (v+1) * 10000; }
 	};
 
 	var tradeoffs = {
