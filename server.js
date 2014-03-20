@@ -297,7 +297,7 @@ io.sockets.on('connection', function (socket) {
 
     if(!('avatars' in player)) {
       player = undefined;
-      return callback('fail', { code: 3, message: 'Currputed accound - no avatar list.'});
+      return callback('fail', { code: 3, message: 'Corrupted account - no avatar list.'});
     }
     for(var k in player.avatars) {
       socket.join(k);
@@ -312,7 +312,9 @@ io.sockets.on('connection', function (socket) {
   var check_feature = function(object, feature) {
     if(!object.features[feature]) {
       throw { code: 8, message: 'Specified component doesn\'t  have ' + feature + ' capabilities' };
+      return false;
     }
+    return true;
   };
 
   var battery_check = function(battery, energy) {
@@ -481,25 +483,15 @@ io.sockets.on('connection', function (socket) {
       return;
     if(typeof target.manipulator_slot === 'undefined')
       return fail(999, 'Manipulator empty - nothing to be attached.');
-    var hub = find_co_component(target, data.hub, 'hub');
-    if(typeof data.hub_slot !== 'number')
-      return fail(999, 'hub slot should be a number.');
-    var idx = Math.round(data.skeleton_slot);
-    if(idx < 0)
-      return fail(999, 'Specified skeleton doesn\'t have negative slots.');
-    if(idx >= skeleton.skeleton_slots.length)
-      return fail(999, 'Specified skeleton doesn\'t have that many slots.');
-    if(skeleton.skeleton_slots[idx])
-      return fail(999, 'Skeleton '+data.skeleton+' slot '+idx+' occupied by '+skeleton.skeleton_slots[idx].id+'.');
+    if(typeof data.hub === 'undefined')
+      return fail(999, 'You must define hub to attach to.');
+    var hub = common.get(data.hub);
 
     var o = target.manipulator_slot;
-    skeleton.skeleton_slots[idx] = o;
-    o.parent = skeleton;
-    delete target.manipulator_slot.position;
-    delete target.manipulator_slot.velocity;
+    connect(hub, o);
     delete target.manipulator_slot.grabbed_by;
     delete target.manipulator_slot;
-    socket.emit('manipulator attached', { manipulator: { id: target.id }, skeleton: { id: skeleton.id }, slot: idx, object: { id: o.id } });
+    socket.emit('manipulator attached', { manipulator: { id: target.id }, hub: { id: hub.id }, object: { id: o.id } });
   });
 
   on('manipulator detach', function(target, data) {

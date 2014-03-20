@@ -97,6 +97,10 @@
 	String.prototype.capitalize = function() {
 		return this.charAt(0).toUpperCase() + this.slice(1);
 	}
+	
+	var get_position = e.get_position = function(object) {
+	    return vectors.create(object.position);
+	};
 
 })(typeof exports === 'undefined' ? this['common'] = {} : exports);
 

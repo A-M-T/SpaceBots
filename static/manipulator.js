@@ -18,19 +18,15 @@ socket.on('manipulator released', function(data) {
   delete objects[data.id].manipulator_slot;
 });
 
-var attach = function(hub, slot) {
+var attach = function(hub) {
   hub = common.get(hub);
-  socket.emit('manipulator attach', {target: manipulator.id, hub: hub.id, hub_slot: slot});
+  socket.emit('manipulator attach', {target: manipulator.id, hub: hub.id});
 };
 
 socket.on('manipulator attached', function(data) {
   var s = common.get(data.hub.id);
   var o = common.get(data.object.id);
   var m = common.get(data.manipulator.id);
-  s.hub_slots[data.slot] = o;
-  o.parent = s;
-  delete o.position;
-  delete o.velocity;
   delete o.grabbed_by;
   delete m.manipulator_slot;
   socket.emit('report', { target: o.id });
